@@ -1,0 +1,79 @@
+/* 1. Imports */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* 2. Theme Configuration */
+@theme {
+  --font-poppins: "Poppins", sans-serif;
+  --text-poppins-base: 0.95rem;
+  --text-poppins-medium: 1.125rem;
+
+  --animate-marquee: marquee 25s linear infinite;
+  --animate-marquee2: marquee2 25s linear infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0%); }
+    to { transform: translateX(-100%); }
+  }
+  @keyframes marquee2 {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0%); }
+  }
+}
+
+/* 3. Utilities Layer (For your custom classes and the scrollbar fix) */
+@layer utilities {
+  /* The Fix for the Sidebar Scrollbar */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Your existing custom classes */
+  .auth-wrapper {
+    min-height: 100vh;
+    background-color: #09090b; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-poppins) !important;
+  }
+
+  .heading-medium {
+    font-size: var(--text-poppins-medium);
+    font-weight: 600;
+    font-family: var(--font-poppins);
+  }
+
+  .modern-input {
+    width: 100%;
+    background: #09090b;
+    border: 1px solid #27272a;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: var(--text-poppins-base);
+    font-family: var(--font-poppins);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 0.8rem;
+    background: #fafafa;
+    color: #09090b;
+    font-weight: 600;
+    border-radius: 12px;
+    font-family: var(--font-poppins);
+  }
+
+  .marquee-container {
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+    gap: 2.5rem;
+    font-family: var(--font-poppins);
+  }
+}
