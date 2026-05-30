@@ -4,33 +4,33 @@ const navItems = [
   {
     section: "OVERVIEW",
     items: [
-      { id: "dashboard", label: "Dashboard", icon: "🏠" },
-      { id: "analytics", label: "Analytics", icon: "📊" },
+      { id: "dashboard", label: "Dashboard", icon: "" },
+      { id: "analytics", label: "Analytics", icon: "" },
     ]
   },
   {
     section: "OPERATIONS",
     items: [
-      { id: "orders", label: "Orders", icon: "📦", badge: 5 },
-      { id: "prescriptions", label: "Prescriptions", icon: "⚡", badge: 3 },
-      { id: "products", label: "Products", icon: "💊" },
-      { id: "customers", label: "Customers", icon: "👥" },
+      { id: "orders", label: "Orders", icon: "", badge: 5 },
+      { id: "prescriptions", label: "Prescriptions", icon: "", badge: 3 },
+      { id: "products", label: "Products", icon: "" },
+      { id: "customers", label: "Customers", icon: "" },
     ]
   },
   {
     section: "FINANCE",
     items: [
-      { id: "threepot", label: "Three-Pot System", icon: "🏦" },
-      { id: "invoices", label: "Invoices", icon: "🧾" },
-      { id: "commission", label: "Commission", icon: "📈" },
+      { id: "threepot", label: "Three-Pot System", icon: "" },
+      { id: "invoices", label: "Invoices", icon: "" },
+      { id: "commission", label: "Commission", icon: "" },
     ]
   },
   {
     section: "SYSTEM",
     items: [
-      { id: "sliders", label: "SliderMnager", icon: "🖼️" },
-      { id: "settings", label: "Settings", icon: "⚙️" },
-      { id: "livesite", label: "View Live Site", icon: "🌐" },
+      { id: "sliders", label: "SliderMnager", icon: "" },
+      { id: "settings", label: "Settings", icon: "" },
+      { id: "livesite", label: "View Live Site", icon: "" },
     ]
   },
 ];

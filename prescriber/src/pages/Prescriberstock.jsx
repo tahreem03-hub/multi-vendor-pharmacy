@@ -1,125 +1,151 @@
-import { useState } from 'react';
-import { MdWarning } from 'react-icons/md';
+import { useState, useEffect } from 'react';
+import { Package, AlertTriangle, Search, TrendingDown } from 'lucide-react';
 import PrescriberHeader from '../components/prescriber/PrescriberHeader';
-import { useMyStock } from '../hooks/usePrescriberData';
-
-const expiryBadge = {
-  none:     { label: 'OK',         cls: 'text-green-600 bg-green-50'  },
-  '60_days':{ label: '60 Day Alert',cls: 'text-yellow-600 bg-yellow-50'},
-  '30_days':{ label: '30 Day Alert',cls: 'text-orange-500 bg-orange-50'},
-  expired:  { label: 'EXPIRED',     cls: 'text-red-600 bg-red-50'       },
-};
-
-const FILTERS = [
-  { label: 'All Stock',      expiryAlert: '',        isLowStock: '' },
-  { label: 'Low Stock',      expiryAlert: '',        isLowStock: 'true' },
-  { label: 'Expiring 60d',   expiryAlert: '60_days', isLowStock: '' },
-  { label: 'Expiring 30d',   expiryAlert: '30_days', isLowStock: '' },
-  { label: 'Expired',        expiryAlert: 'expired', isLowStock: '' },
-];
+import API from '../api/axios';
 
 const PrescriberStock = () => {
-  const [filter, setFilter] = useState(0);
-  const { expiryAlert, isLowStock } = FILTERS[filter];
-  const { stock, count, loading } = useMyStock(expiryAlert, isLowStock);
+  const [stock,   setStock]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search,  setSearch]  = useState('');
+  const [filter,  setFilter]  = useState('all');
+
+  useEffect(() => {
+    API.get('/stock/my-stock')
+      .then(res => setStock(Array.isArray(res.data) ? res.data : res.data.stock || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = stock.filter(item => {
+    const matchSearch = !search || item.name?.toLowerCase().includes(search.toLowerCase());
+    const matchFilter =
+      filter === 'all'      ? true :
+      filter === 'low'      ? item.stock <= 5 && item.stock > 0 :
+      filter === 'out'      ? item.stock === 0 :
+      filter === 'expired'  ? (item.expiryDate && new Date(item.expiryDate) < new Date()) :
+      true;
+    return matchSearch && matchFilter;
+  });
+
+  const stats = [
+    { label: 'Total Products', value: stock.length,                                              color: 'border-l-slate-400' },
+    { label: 'Low Stock',      value: stock.filter(i => i.stock <= 5 && i.stock > 0).length,    color: 'border-l-amber-400' },
+    { label: 'Out of Stock',   value: stock.filter(i => i.stock === 0).length,                   color: 'border-l-red-400'   },
+    { label: 'Total Units',    value: stock.reduce((a, i) => a + (i.stock || 0), 0),             color: 'border-l-green-400' },
+  ];
 
   return (
-    <div className="w-full">
+    <div className="min-h-screen bg-slate-50 antialiased">
       <PrescriberHeader title="My Stock" />
-      <div className="p-4 sm:p-8">
+      <div className="max-w-5xl mx-auto px-5 md:px-8 py-8 space-y-6">
 
-        {/* Filter tabs */}
-        <div className="flex gap-2 flex-wrap mb-6">
-          {FILTERS.map((f, idx) => (
-            <button
-              key={idx}
-              onClick={() => setFilter(idx)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition
-                ${filter === idx
-                  ? 'bg-teal-600 text-white border-teal-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
-            >
-              {f.label}
-            </button>
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {stats.map((s, i) => (
+            <div key={i} className={`bg-white rounded-2xl border border-slate-100 shadow-sm p-4 border-l-4 ${s.color}`}>
+              <p className="text-2xl font-semibold text-slate-800">{s.value}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{s.label}</p>
+            </div>
           ))}
         </div>
 
-        {/* Table Wrapper for responsiveness */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden w-full">
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : stock.length === 0 ? (
-            <p className="text-center text-gray-400 py-16 font-medium">No stock found</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[800px]">
-                <thead className="border-b border-gray-100">
-                  <tr>
-                    {['Product', 'Category', 'Available', 'Pot 1 Value', 'Expiry Date', 'Expiry Alert', 'Low Stock'].map((h) => (
-                      <th key={h} className="text-left text-xs font-semibold text-gray-400 px-5 py-3 uppercase tracking-wide">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {stock.map((item) => {
-                    const badge = expiryBadge[item.expiryAlert] || expiryBadge.none;
-                    return (
-                      <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                        <td className="px-5 py-3">
-                          <p className="font-semibold text-gray-900 truncate max-w-[200px]">{item.productName}</p>
-                          {item.batchNumber && (
-                            <p className="text-[10px] text-gray-400 mt-0.5">Batch: {item.batchNumber}</p>
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-gray-500">
-                          {item.product?.category || '—'}
-                        </td>
-                        <td className="px-5 py-3">
-                          <span className={`font-bold ${item.isLowStock ? 'text-orange-500' : 'text-gray-900'}`}>
-                            {item.quantityAvailable}
-                          </span>
-                          {item.isLowStock && (
-                            <MdWarning className="inline ml-1 text-orange-400" size={14} />
-                          )}
-                        </td>
-                        <td className="px-5 py-3 font-semibold text-teal-700">
-                          £{parseFloat(item.pot1Value || 0).toFixed(2)}
-                        </td>
-                        <td className="px-5 py-3 text-gray-500">
-                          {item.expiryDate
-                            ? new Date(item.expiryDate).toLocaleDateString('en-GB')
-                            : '—'}
-                        </td>
-                        <td className="px-5 py-3">
-                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${badge.cls}`}>
-                            {badge.label}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3">
-                          {item.isLowStock ? (
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-yellow-600 bg-yellow-50 whitespace-nowrap">
-                              ⚠ Low
-                            </span>
-                          ) : (
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-green-600 bg-green-50 whitespace-nowrap">
-                              ✓ OK
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+        {/* Search + Filter */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
+            <input
+              placeholder="Search products..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl outline-none focus:border-slate-400"
+            />
+          </div>
+          <div className="flex gap-1.5">
+            {['all', 'low', 'out', 'expired'].map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all ${
+                  filter === f ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-400'
+                }`}>
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <p className="text-sm text-gray-400 mt-4">{count} item{count !== 1 ? 's' : ''} total</p>
+        {/* Stock Table */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Product</th>
+                <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Category</th>
+                <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Stock</th>
+                <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Expiry</th>
+                <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {loading ? (
+                <tr><td colSpan="5" className="text-center py-16">
+                  <div className="w-6 h-6 border-2 border-slate-200 border-t-slate-600 rounded-full animate-spin mx-auto" />
+                </td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan="5" className="text-center py-16">
+                  <Package size={24} className="text-slate-200 mx-auto mb-2" />
+                  <p className="text-xs text-slate-400">No products found</p>
+                </td></tr>
+              ) : filtered.map(item => {
+                const isExpired = item.expiryDate && new Date(item.expiryDate) < new Date();
+                const isLow     = item.stock <= 5 && item.stock > 0;
+                const isOut     = item.stock === 0;
+                return (
+                  <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-slate-50 rounded-xl border border-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
+                          {item.image
+                            ? <img src={`http://localhost:4000/${item.image}`} className="w-full h-full object-cover" alt="" />
+                            : <Package size={14} className="text-slate-300" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-700">{item.name}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">{item.sku || '—'}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg font-medium">
+                        {item.category || '—'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {(isLow || isOut) && <TrendingDown size={13} className={isOut ? 'text-red-400' : 'text-amber-400'} />}
+                        <span className="text-sm font-semibold text-slate-700">{item.stock}</span>
+                        <span className="text-xs text-slate-400">units</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className={`text-xs font-medium ${isExpired ? 'text-red-500' : 'text-slate-500'}`}>
+                        {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('en-GB') : '—'}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                        isOut     ? 'bg-red-50 text-red-500 border-red-200' :
+                        isExpired ? 'bg-red-50 text-red-500 border-red-200' :
+                        isLow     ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                                    'bg-green-50 text-green-600 border-green-200'
+                      }`}>
+                        {isOut ? 'Out' : isExpired ? 'Expired' : isLow ? 'Low' : 'Good'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

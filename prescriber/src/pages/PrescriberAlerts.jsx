@@ -1,87 +1,96 @@
-import PrescriberHeader from "../components/prescriber/PrescriberHeader";
-import { useMyThreePot } from "../hooks/usePrescriberData";
-import { MdNotificationsNone, MdErrorOutline, MdInfoOutline } from 'react-icons/md';
+import { useState, useEffect } from 'react';
+import { AlertTriangle, Clock, Package, Bell, CheckCircle } from 'lucide-react';
+import PrescriberHeader from '../components/prescriber/PrescriberHeader';
+import API from '../api/axios';
+
+const alertConfig = {
+  expiry:    { icon: Clock,          color: 'bg-orange-50 border-orange-100 text-orange-600',  dot: 'bg-orange-400' },
+  low_stock: { icon: Package,        color: 'bg-amber-50 border-amber-100 text-amber-600',     dot: 'bg-amber-400'  },
+  default:   { icon: AlertTriangle,  color: 'bg-red-50 border-red-100 text-red-500',           dot: 'bg-red-400'    },
+};
 
 const PrescriberAlerts = () => {
-    // Fetches live data from the ThreePort document for the logged-in prescriber
-    const { data, loading } = useMyThreePot();
-    
-    // Accesses the alerts array from the ThreePort model
-    const alerts = data?.alerts || [];
-    const unreadcount = alerts.filter(a => !a.isRead).length;
+  const [alerts,  setAlerts]  = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    return (
-        <div className="min-h-screen bg-slate-100">
-            <PrescriberHeader title="Financial Notifications" />
-            
-            <div className="p-8 max-w-3xl mx-auto">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
-                        {/* Fixed icon syntax and size */}
-                        <MdNotificationsNone className="text-slate-400" size={24} />
-                        <h2 className="text-xl font-bold text-slate-700">Recent Alerts</h2>
-                        {unreadcount > 0 && (
-                            <span className="bg-slate-500 text-white text-[10px] px-2 py-1 rounded-full uppercase font-bold tracking-wider">
-                                {unreadcount} new
-                            </span>
-                        )}
-                    </div>
-                </div>
+  useEffect(() => {
+    API.get('/stock/alerts')
+      .then(res => {
+        const data = res.data?.alerts || res.data?.items || res.data || [];
+        setAlerts(Array.isArray(data) ? data : []);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
-                {loading ? (
-                    <div className="flex justify-center py-20">
-                        <div className="w-8 h-8 border-4 border-slate-300 border-t-transparent rounded-full animate-spin" />
-                    </div>
-                ) : alerts.length === 0 ? (
-                    <div className="bg-white p-12 rounded-2xl border border-slate-100 text-center shadow-sm">
-                        <p className="text-slate-400 font-medium">
-                            Your financial status is healthy. No new alerts.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {alerts.map((alert) => (
-                            <div 
-                                key={alert._id}
-                                className={`bg-white p-5 rounded-2xl border transition-all ${
-                                    alert.isRead ? 'opacity-60 border-slate-100' : 'border-teal-100 shadow-sm'
-                                }`}
-                            >
-                                <div className="flex items-start gap-4">
-                                    {/* Alert icon logic based on alert type from model */}
-                                    <div className={`mt-1 p-2 rounded-lg ${
-                                        alert.type === 'warning' || alert.type === 'deposit_breach' 
-                                        ? 'bg-orange-50 text-orange-500' 
-                                        : 'bg-blue-50 text-blue-500'
-                                    }`}>
-                                        {alert.type === 'warning' || alert.type === 'deposit_breach' 
-                                            ? <MdErrorOutline size={20} /> 
-                                            : <MdInfoOutline size={20} />
-                                        }
-                                    </div>
+  const grouped = {
+    expiry:    alerts.filter(a => a.type === 'expiry'),
+    low_stock: alerts.filter(a => a.type === 'low_stock'),
+    other:     alerts.filter(a => a.type !== 'expiry' && a.type !== 'low_stock'),
+  };
 
-                                    <div className="flex-1">
-                                        <div className="flex justify-between items-start">
-                                            <h4 className={`font-bold ${alert.isRead ? 'text-slate-500' : 'text-slate-800'}`}>
-                                                {/* Displays dynamic alert messages from the database */}
-                                                {alert.type?.replace('_', ' ').toUpperCase() || 'NOTIFICATION'}
-                                            </h4>
-                                            <span className="text-[10px] text-slate-300 font-bold">
-                                                {new Date(alert.createdAt).toLocaleDateString('en-GB')}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-slate-500 mt-1">
-                                            {alert.message}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+  return (
+    <div className="min-h-screen bg-slate-50 antialiased">
+      <PrescriberHeader title="Alerts" alertCount={alerts.length} />
+      <div className="max-w-3xl mx-auto px-5 md:px-8 py-8 space-y-6">
+
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Expiry Alerts',    value: grouped.expiry.length,    color: 'border-l-orange-400' },
+            { label: 'Low Stock',        value: grouped.low_stock.length, color: 'border-l-amber-400'  },
+            { label: 'Other',            value: grouped.other.length,     color: 'border-l-red-400'    },
+          ].map((s, i) => (
+            <div key={i} className={`bg-white rounded-2xl border border-slate-100 shadow-sm p-4 border-l-4 ${s.color}`}>
+              <p className="text-2xl font-semibold text-slate-800">{s.value}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{s.label}</p>
             </div>
+          ))}
         </div>
-    );
+
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-7 h-7 border-2 border-slate-200 border-t-slate-600 rounded-full animate-spin" />
+          </div>
+        ) : alerts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-12 h-12 bg-white rounded-2xl border border-slate-100 flex items-center justify-center">
+              <CheckCircle size={20} className="text-green-400" />
+            </div>
+            <p className="text-sm font-semibold text-slate-700">All clear!</p>
+            <p className="text-xs text-slate-400">No active alerts at this time</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {alerts.map((alert, idx) => {
+              const cfg  = alertConfig[alert.type] || alertConfig.default;
+              const Icon = cfg.icon;
+              return (
+                <div key={idx}
+                  className={`flex items-start gap-3 p-4 rounded-2xl border ${cfg.color}`}>
+                  <div className="w-8 h-8 rounded-xl bg-white/60 flex items-center justify-center shrink-0">
+                    <Icon size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold leading-snug">{alert.message}</p>
+                    {alert.productName && (
+                      <p className="text-xs mt-1 opacity-70 font-medium">{alert.productName}</p>
+                    )}
+                    {alert.expiryDate && (
+                      <p className="text-xs mt-1 opacity-70">
+                        Expires: {new Date(alert.expiryDate).toLocaleDateString('en-GB')}
+                      </p>
+                    )}
+                  </div>
+                  <div className={`w-2 h-2 rounded-full shrink-0 mt-1 ${cfg.dot}`} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default PrescriberAlerts;

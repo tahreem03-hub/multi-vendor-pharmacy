@@ -5,6 +5,8 @@ import {
   searchPrescribers,
   sendLinkRequest,
   getActiveLinks,
+  getMyPatients,
+  deleteMyPatient,
   submitPrescriptionRequest,
   // Admin Controllers
   getAdminPendingLinks,
@@ -22,6 +24,8 @@ import upload from "../middleware/multer.js";
 // Change these 4 user routes
 router.get("/search",              protect, searchPrescribers);
 router.post("/link",               protect, sendLinkRequest);
+router.get("/patients",            ...prescriberOnly, getMyPatients);
+router.delete("/patients/:patientId", ...prescriberOnly, deleteMyPatient);
 router.get("/active-links",        protect, getActiveLinks);
 router.post("/request-prescription", protect, upload.single("consentFile"), submitPrescriptionRequest);
 

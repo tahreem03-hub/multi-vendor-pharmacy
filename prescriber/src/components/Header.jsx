@@ -44,7 +44,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-slate-900 text-white sticky top-0 z-[200] font-sans">
+    <header className="bg-slate-900 text-white  font-sans">
       {/* Top Bar Layout: Added flex-wrap for mobile */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center justify-between gap-4">
         

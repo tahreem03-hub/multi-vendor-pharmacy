@@ -21,23 +21,20 @@ const prescriptionSchema = new mongoose.Schema(
     },
 
     // ── PRESCRIBER LINK ───────────────────────────────────────
-    // Links this prescription to a User with role:"prescriber"
-    // Both fields stored: ObjectId for population, string for fast filtering
     prescriber: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
     prescriberId: {
-      type: String, // e.g. "PRE-AB12CD" — copied from User.prescriberId
+      type: String,
     },
 
-    // Kept for upload-method prescriptions where the prescriber
-    // is not yet a registered User in the system
     prescriberDetails: {
-      name:       { type: String },
-      regNumber:  { type: String },
-      type:       { type: String },
-      clinicName: { type: String },
+      name:          { type: String },
+      regNumber:     { type: String },
+      type:          { type: String },
+      clinicName:    { type: String },
+      clinicalNotes: { type: String }, // ✅ Added — was missing, now saves from form
     },
 
     // ── MEDICATIONS ───────────────────────────────────────────
@@ -55,11 +52,10 @@ const prescriptionSchema = new mongoose.Schema(
 
     // ── UPLOAD ────────────────────────────────────────────────
     image: {
-      type: String, // URL of uploaded prescription scan
+      type: String,
     },
 
     // ── STATUS ────────────────────────────────────────────────
-    // Added "dispensed" to track the full lifecycle
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "dispensed"],
@@ -76,12 +72,11 @@ const prescriptionSchema = new mongoose.Schema(
     pharmacistNote: { type: String },
     verifiedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // the admin/pharmacist who approved it
+      ref: "User",
     },
     verifiedAt: { type: Date },
 
     // ── LINKED ORDER ──────────────────────────────────────────
-    // Set once pharmacy dispatches — connects prescription to sale
     order: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
@@ -90,13 +85,13 @@ const prescriptionSchema = new mongoose.Schema(
     // ── EXPIRY ────────────────────────────────────────────────
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000), // 6 months
+      default: () => new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000),
     },
   },
   { timestamps: true }
 );
 
-// ── Indexes for fast prescriber dashboard queries ─────────────
+// ── Indexes ───────────────────────────────────────────────────
 prescriptionSchema.index({ prescriberId: 1, createdAt: -1 });
 prescriptionSchema.index({ status: 1 });
 prescriptionSchema.index({ user: 1 });

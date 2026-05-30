@@ -5,6 +5,7 @@ import {
   verifyPrescription,
   checkUserPrescriptionStatus,
   submitPrescription,
+  getMyPrescriptions
 } from "../controllers/prescription.controller.js";
 import upload from "../middleware/multer.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
@@ -23,6 +24,7 @@ router.post("/upload-consent", protect, upload.single("image"), (req, res) => {
 router.post("/submit",              protect,           submitPrescription);
 router.post("/upload",              protect,           upload.single("image"), uploadPrescription);
 router.get("/status/:medicineId",   protect,           checkUserPrescriptionStatus);
+router.get('/my', protect, getMyPrescriptions);
 
 // Admin only
 router.get("/pending",              ...adminOnly,      getPendingPrescriptions);

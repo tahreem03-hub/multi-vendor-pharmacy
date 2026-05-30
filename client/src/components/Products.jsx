@@ -1,71 +1,54 @@
 import { useState, useEffect } from "react";
-import API from "../api/axios"; 
+import API from "../api/axios";
 import Header from "./Header";
-import { ImagePlus, Trash2, Edit, ShoppingCart, FileText, X } from "lucide-react"; 
+import { ImagePlus, Trash2, Edit, ShoppingCart, FileText, X, Package } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const SUBCATEGORIES = {
-  Injectables: [
-    "Toxins",
-    "HA Fillers",
-    "Skin Boosters",
-    "Polynucleotides",
-  ],
-  Skincare: [
-    "Skincare",
-    "Hair",
-    "Make Up",
-  ],
+  Injectables: ["Toxins", "HA Fillers", "Skin Boosters", "Polynucleotides"],
+  Skincare:    ["Skincare", "Hair", "Make Up"],
 };
 
 const Products = () => {
   const { addToCart } = useCart();
-  
-  const [products, setProducts]               = useState([]);
-  const [loading, setLoading]                 = useState(true);
-  const [isModalOpen, setIsModalOpen]         = useState(false);
-  const [selectedId, setSelectedId]           = useState(null); 
-  const [addingToCart, setAddingToCart]       = useState(null); 
-  const [selectedCategory, setSelectedCategory]       = useState("all");
+  const navigate      = useNavigate();
+
+  const [products,    setProducts]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId,  setSelectedId]  = useState(null);
+  const [addingToCart,setAddingToCart]= useState(null);
+  const [selectedCategory,    setSelectedCategory]    = useState("all");
   const [selectedSubCategory, setSelectedSubCategory] = useState("all");
-  
-  const [imageFile, setImageFile]             = useState(null);
-  const [previewUrl, setPreviewUrl]           = useState(null);
-  const [additionalImages, setAdditionalImages]   = useState([]);
-  const [additionalPreviews, setAdditionalPreviews] = useState([]);
+  const [imageFile,            setImageFile]           = useState(null);
+  const [previewUrl,           setPreviewUrl]          = useState(null);
+  const [additionalImages,     setAdditionalImages]    = useState([]);
+  const [additionalPreviews,   setAdditionalPreviews]  = useState([]);
 
   const categories = [
-    "Botulinum Toxins",
-    "Dermal Fillers",
-    "Skin Boosters",
-    "Fat Dissolvers",
-    "Mesotherapy",
-    "Anesthetics",
-    "Skincare",
-    "Consumables",
-    "Injectables",
+    "Botulinum Toxins","Dermal Fillers","Skin Boosters",
+    "Fat Dissolvers","Mesotherapy","Anesthetics",
+    "Skincare","Consumables","Injectables",
   ];
 
   const [formData, setFormData] = useState({
-    name: "", brand: "", category: "Botulinum Toxins",
-    subCategory: "",
-    description: "", howToUse: "", safetyInfo: "",
-    prescriptionRequired: false, unitPrice: "", dispensedBy: "",
-    dosage: "", buyingPrice: "", sellingPrice: "", stock: "",
-    expiryDate: "", sku: "", supplier: ""
+    name:"", brand:"", category:"Botulinum Toxins", subCategory:"",
+    description:"", howToUse:"", safetyInfo:"",
+    prescriptionRequired: false, unitPrice:"", dispensedBy:"",
+    dosage:"", buyingPrice:"", sellingPrice:"", stock:"",
+    expiryDate:"", sku:"", supplier:""
   });
 
   const fetchProducts = async () => {
     try {
-      const response = await API.get("/medicines"); 
-      const data = Array.isArray(response.data) 
-        ? response.data 
-        : (response.data.medicines || []);
+      const res  = await API.get("/medicines");
+      const data = Array.isArray(res.data) ? res.data : (res.data.medicines || []);
       setProducts(data);
-    } catch (error) {
-      console.error("error fetching products:", error);
-      setProducts([]); 
+    } catch (err) {
+      console.error("error fetching products:", err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -73,38 +56,34 @@ const Products = () => {
 
   useEffect(() => { fetchProducts(); }, []);
 
-  // ── Helper to find subcategory key reliably matching casing ────────────────
   const getSubcategoryKey = (catName) => {
     if (!catName) return null;
-    return Object.keys(SUBCATEGORIES).find(
-      (key) => key.toLowerCase() === catName.toLowerCase()
-    );
+    return Object.keys(SUBCATEGORIES).find(k => k.toLowerCase() === catName.toLowerCase());
   };
 
-  // ── Filter logic ──────────────────────────────────────────────────────────
   const filteredProducts = products.filter(p => {
-    const matchCategory = selectedCategory === "all" ||
+    const matchCat = selectedCategory === "all" ||
       p.category.toLowerCase() === selectedCategory.toLowerCase();
-
-    const subKey = getSubcategoryKey(selectedCategory);
-    const hasSubcategories = subKey ? SUBCATEGORIES[subKey] : null;
-    
-    const matchSubCategory = !hasSubcategories ||
-      selectedSubCategory === "all" ||
+    const subKey   = getSubcategoryKey(selectedCategory);
+    const matchSub = !subKey || selectedSubCategory === "all" ||
       (p.subCategory && p.subCategory.toLowerCase() === selectedSubCategory.toLowerCase());
-
-    return matchCategory && matchSubCategory;
+    return matchCat && matchSub;
   });
 
   const handleAddToCart = async (product) => {
     if (!product._id) { toast.error("Invalid product."); return; }
+    if (product.prescriptionRequired) {
+      toast('Prescription required — redirecting...', { icon: '📋' });
+      setTimeout(() => navigate('/prescription-form'), 800);
+      return;
+    }
     if (addingToCart === product._id) return;
     setAddingToCart(product._id);
     try {
       await addToCart(product);
       toast.success(`${product.name} added to cart!`);
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to add item to cart.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to add to cart.");
     } finally {
       setAddingToCart(null);
     }
@@ -113,28 +92,26 @@ const Products = () => {
   const handleEdit = (product) => {
     setSelectedId(product._id);
     setFormData({
-      name:                 product.name || "",
-      brand:                product.brand || "",
-      category:             product.category || "Botulinum Toxins",
-      subCategory:          product.subCategory || "",
-      description:          product.description || "",
-      howToUse:             product.howToUse || "",
-      safetyInfo:           product.safetyInfo || "",
-      prescriptionRequired: product.prescriptionRequired || false,
-      unitPrice:            product.unitPrice || product.sellingPrice || "",
-      dispensedBy:          product.dispensedBy || "",
-      dosage:               product.dosage || "",
-      buyingPrice:          product.buyingPrice || "",
-      sellingPrice:         product.sellingPrice || product.price || "",
-      stock:                product.stock || "",
-      expiryDate:           product.expiryDate ? product.expiryDate.split('T')[0] : "",
-      sku:                  product.sku || "",
-      supplier:             product.supplier || ""
+      name:                product.name                || "",
+      brand:               product.brand               || "",
+      category:            product.category            || "Botulinum Toxins",
+      subCategory:         product.subCategory         || "",
+      description:         product.description         || "",
+      howToUse:            product.howToUse            || "",
+      safetyInfo:          product.safetyInfo          || "",
+      prescriptionRequired:product.prescriptionRequired|| false,
+      unitPrice:           product.unitPrice           || product.sellingPrice || "",
+      dispensedBy:         product.dispensedBy         || "",
+      dosage:              product.dosage              || "",
+      buyingPrice:         product.buyingPrice         || "",
+      sellingPrice:        product.sellingPrice        || product.price || "",
+      stock:               product.stock               || "",
+      expiryDate:          product.expiryDate          ? product.expiryDate.split('T')[0] : "",
+      sku:                 product.sku                 || "",
+      supplier:            product.supplier            || "",
     });
-
     if (product.image) setPreviewUrl(`http://localhost:4000/${product.image}`);
-
-    if (product.additionalImages && Array.isArray(product.additionalImages)) {
+    if (product.additionalImages?.length) {
       setAdditionalPreviews(product.additionalImages.map(img => `http://localhost:4000/${img}`));
     } else {
       setAdditionalPreviews([]);
@@ -143,20 +120,18 @@ const Products = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to remove this product?")) {
-      try {
-        await API.delete(`/medicines/${id}`);
-        setProducts(products.filter((p) => p._id !== id));
-        toast.success("Product removed from inventory");
-      } catch (error) {
-        toast.error("Failed to delete product.");
-      }
+    if (!window.confirm("Remove this product?")) return;
+    try {
+      await API.delete(`/medicines/${id}`);
+      setProducts(products.filter(p => p._id !== id));
+      toast.success("Product removed");
+    } catch {
+      toast.error("Failed to delete.");
     }
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // Reset subCategory when category changes
     if (name === 'category') {
       setFormData({ ...formData, category: value, subCategory: '' });
       return;
@@ -172,8 +147,7 @@ const Products = () => {
   const handleAdditionalFiles = (e) => {
     const files = Array.from(e.target.files);
     if (additionalPreviews.length + files.length > 3) {
-      toast.error("Maximum 3 additional images allowed");
-      return;
+      toast.error("Max 3 additional images"); return;
     }
     setAdditionalImages(prev => [...prev, ...files]);
     setAdditionalPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
@@ -181,65 +155,56 @@ const Products = () => {
 
   const removeAdditionalImage = (index) => {
     setAdditionalPreviews(prev => prev.filter((_, i) => i !== index));
-    setAdditionalImages(prev => prev.filter((_, i) => i !== (index - (additionalPreviews.length - additionalImages.length))));
+    setAdditionalImages(prev  => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    
-    // Ensure accurate subcategory layout before transmission 
-    const currentSubKey = getSubcategoryKey(formData.category);
-    const finalSubCategory = currentSubKey ? formData.subCategory : "";
-
+    const data   = new FormData();
+    const subKey = getSubcategoryKey(formData.category);
     Object.keys(formData).forEach(key => {
       if (key === "subCategory") {
-        data.append("subCategory", finalSubCategory);
+        data.append("subCategory", subKey ? formData.subCategory : "");
       } else {
         data.append(key, formData[key]);
       }
     });
-
     data.set("buyingPrice",  Number(formData.buyingPrice));
     data.set("sellingPrice", Number(formData.sellingPrice));
     data.set("price",        Number(formData.sellingPrice));
+    data.set("unitPrice",    Number(formData.unitPrice));
     data.set("stock",        Number(formData.stock));
     if (imageFile) data.append("image", imageFile);
     additionalImages.forEach(file => data.append("additionalImages", file));
 
     try {
       const token  = localStorage.getItem("token");
-      const config = { headers: { "content-type": "multipart/form-data", "authorization": `bearer ${token}` } };
-
+      const config = { headers: { "content-type": "multipart/form-data", authorization: `bearer ${token}` } };
       if (selectedId) {
-        const response = await API.put(`/medicines/${selectedId}`, data, config);
-        const updated  = response.data.medicine || response.data;
+        const res     = await API.put(`/medicines/${selectedId}`, data, config);
+        const updated = res.data.medicine || res.data;
         setProducts(products.map(p => p._id === selectedId ? updated : p));
-        toast.success("Product updated successfully");
+        toast.success("Product updated");
       } else {
-        const response = await API.post("/medicines", data, config);
-        const newProd  = response.data.medicine || response.data;
-        setProducts(prev => [...prev, newProd]);
-        toast.success("Product added to inventory");
+        const res = await API.post("/medicines", data, config);
+        setProducts(prev => [...prev, res.data.medicine || res.data]);
+        toast.success("Product added");
       }
       closeModal();
-    } catch (error) {
-      const errorMsg = error.response?.status === 401
-        ? "Unauthorized: please log in again."
-        : "Error saving: check all fields.";
-      toast.error(errorMsg);
+    } catch (err) {
+      toast.error(err.response?.status === 401 ? "Unauthorized" : "Error saving product");
     }
   };
 
   const closeModal = () => {
     setIsModalOpen(false); setSelectedId(null);
-    setImageFile(null); setPreviewUrl(null);
+    setImageFile(null);    setPreviewUrl(null);
     setAdditionalImages([]); setAdditionalPreviews([]);
     setFormData({
-      name: "", brand: "", category: "Botulinum Toxins", subCategory: "",
-      description: "", howToUse: "", safetyInfo: "", prescriptionRequired: false,
-      unitPrice: "", dispensedBy: "", dosage: "", buyingPrice: "",
-      sellingPrice: "", stock: "", expiryDate: "", sku: "", supplier: ""
+      name:"", brand:"", category:"Botulinum Toxins", subCategory:"",
+      description:"", howToUse:"", safetyInfo:"", prescriptionRequired: false,
+      unitPrice:"", dispensedBy:"", dosage:"", buyingPrice:"",
+      sellingPrice:"", stock:"", expiryDate:"", sku:"", supplier:""
     });
   };
 
@@ -248,55 +213,71 @@ const Products = () => {
     return (((formData.sellingPrice - formData.buyingPrice) / formData.sellingPrice) * 100).toFixed(1);
   };
 
-  // ── Active subcategories based on selected category ───────────────────────
   const activeSubcategoryKey = getSubcategoryKey(selectedCategory);
-  const activeSubcategories = activeSubcategoryKey ? SUBCATEGORIES[activeSubcategoryKey] : [];
-
-  // Form modal contextual subcategories
-  const formSubcategoryKey = getSubcategoryKey(formData.category);
+  const activeSubcategories  = activeSubcategoryKey ? SUBCATEGORIES[activeSubcategoryKey] : [];
+  const formSubcategoryKey   = getSubcategoryKey(formData.category);
 
   return (
-    <div className="bg-white min-h-screen relative text-black">
+    <div className="bg-white min-h-screen text-black">
       <Header title="Products" />
-      <div className="p-8 max-w-[1600px] mx-auto">
-        
+      <div className="p-6 md:p-8 max-w-[1600px] mx-auto">
+
+        {/* ── Header Row ── */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-black flex items-center gap-2">
-              💊 Inventory Management
-            </h1>
-            <p className="text-slate-500 text-sm mt-1">{products.length} Active Medical Listings</p>
+            <h1 className="text-xl font-bold text-black">Inventory Management</h1>
+            <p className="text-sm text-gray-400 mt-0.5">{products.length} products listed</p>
           </div>
           <button onClick={() => setIsModalOpen(true)}
-            className="px-6 py-2.5 bg-black text-white rounded-xl text-sm font-semibold hover:bg-slate-900 transition-all shadow-lg flex items-center gap-2">
-            <span className="text-lg">+</span> Add New Product
+            className="flex items-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-900 transition-all">
+            <span className="text-base leading-none">+</span> Add Product
           </button>
         </div>
 
         {/* ── Category Filters ── */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-2 no-scrollbar" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-          <button onClick={() => { setSelectedCategory("all"); setSelectedSubCategory("all"); }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${selectedCategory === "all" ? 'bg-black text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'}`}>
-            All Items
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-2 no-scrollbar">
+          <button
+            onClick={() => { setSelectedCategory("all"); setSelectedSubCategory("all"); }}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              selectedCategory === "all"
+                ? 'bg-black text-white'
+                : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-400'
+            }`}>
+            All
           </button>
           {categories.map(cat => (
-            <button key={cat} onClick={() => { setSelectedCategory(cat); setSelectedSubCategory("all"); }}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-black text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'}`}>
+            <button key={cat}
+              onClick={() => { setSelectedCategory(cat); setSelectedSubCategory("all"); }}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                selectedCategory === cat
+                  ? 'bg-black text-white'
+                  : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-400'
+              }`}>
               {cat}
             </button>
           ))}
         </div>
 
-        {/* ── SubCategory Filters — shows for any category that has subcategories ── */}
+        {/* ── Subcategory Filters ── */}
         {activeSubcategories.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-            <button onClick={() => setSelectedSubCategory("all")}
-              className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedSubCategory === "all" ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-500 border border-indigo-100 hover:bg-indigo-100'}`}>
+          <div className="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar">
+            <button
+              onClick={() => setSelectedSubCategory("all")}
+              className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                selectedSubCategory === "all"
+                  ? 'bg-gray-800 text-white'
+                  : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
+              }`}>
               All {selectedCategory}
             </button>
             {activeSubcategories.map(sub => (
-              <button key={sub} onClick={() => setSelectedSubCategory(sub)}
-                className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedSubCategory === sub ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-500 border border-indigo-100 hover:bg-indigo-100'}`}>
+              <button key={sub}
+                onClick={() => setSelectedSubCategory(sub)}
+                className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedSubCategory === sub
+                    ? 'bg-gray-800 text-white'
+                    : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'
+                }`}>
                 {sub}
               </button>
             ))}
@@ -304,70 +285,140 @@ const Products = () => {
         )}
 
         {/* ── Table ── */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-slate-500 text-xs font-semibold border-b border-slate-100">
-                <th className="py-4 px-6">Product Details</th>
+              <tr className="bg-gray-50 text-gray-400 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
+                <th className="py-4 px-6">Product</th>
                 <th className="py-4 px-6">Category</th>
-                <th className="py-4 px-6">Pricing (GBP)</th>
-                <th className="py-4 px-6">Margin</th>
+                <th className="py-4 px-6">Price / Unit</th>
                 <th className="py-4 px-6">Stock</th>
+                <th className="py-4 px-6">Rx</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan="6" className="text-center py-20 text-slate-400 text-sm">Loading inventory...</td></tr>
+                <tr>
+                  <td colSpan="6" className="text-center py-20">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-6 h-6 border-2 border-gray-200 border-t-black rounded-full animate-spin mx-auto" />
+                      <p className="text-xs text-gray-300">Loading inventory...</p>
+                    </div>
+                  </td>
+                </tr>
               ) : filteredProducts.length === 0 ? (
-                <tr><td colSpan="6" className="text-center py-20 text-slate-400 text-sm">No products found in this category.</td></tr>
-              ) : filteredProducts.map((item) => (
-                <tr key={item._id} className="hover:bg-slate-50/50 transition-all">
+                <tr>
+                  <td colSpan="6" className="text-center py-16">
+                    <Package size={28} className="text-gray-200 mx-auto mb-2" />
+                    <p className="text-sm text-gray-300">No products found</p>
+                  </td>
+                </tr>
+              ) : filteredProducts.map(item => (
+                <tr key={item._id} className="hover:bg-gray-50/60 transition-all">
+
+                  {/* Product */}
                   <td className="py-4 px-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center overflow-hidden border border-slate-100 shrink-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
                         {item.image
                           ? <img src={`http://localhost:4000/${item.image}`} alt={item.name} className="w-full h-full object-cover" />
-                          : <span className="text-xl">📦</span>}
+                          : <Package size={16} className="text-gray-200" />}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-black text-sm">{item.name}</span>
-                        <span className="text-xs text-slate-400">{item.sku || "no-sku"}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-black">{item.name}</p>
+                        <p className="text-[10px] text-gray-300 font-mono">{item.sku || '—'}</p>
+                        {item.brand && (
+                          <p className="text-[10px] text-gray-300">{item.brand}</p>
+                        )}
                       </div>
                     </div>
                   </td>
+
+                  {/* Category */}
                   <td className="py-4 px-6">
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium w-fit">{item.category}</span>
+                      <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg w-fit">
+                        {item.category}
+                      </span>
                       {item.subCategory && (
-                        <span className="text-xs bg-indigo-50 text-indigo-500 px-2.5 py-1 rounded-lg font-medium w-fit">{item.subCategory}</span>
+                        <span className="text-[10px] font-semibold bg-gray-50 text-gray-400 border border-gray-100 px-2 py-0.5 rounded-lg w-fit">
+                          {item.subCategory}
+                        </span>
                       )}
                     </div>
                   </td>
+
+                  {/* Price / Unit */}
                   <td className="py-4 px-6">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-slate-400">Cost: £{item.buyingPrice || 0}</span>
-                      <span className="text-sm font-semibold text-black">Sale: £{item.sellingPrice || item.price}</span>
-                    </div>
+                    <p className="text-sm font-bold text-black">
+                      £{(item.sellingPrice || item.price || 0).toFixed ? (item.sellingPrice || item.price || 0).toFixed(2) : (item.sellingPrice || item.price || 0)}
+                    </p>
+                    {item.unitPrice && (
+                      <p className="text-[10px] text-gray-400">unit: £{item.unitPrice}</p>
+                    )}
+                    <p className="text-[10px] text-gray-300">cost: £{item.buyingPrice || 0}</p>
+                    {item.buyingPrice && item.sellingPrice && (
+                      <p className="text-[10px] text-green-500 font-semibold">
+                        {(((item.sellingPrice - item.buyingPrice) / item.sellingPrice) * 100).toFixed(0)}% margin
+                      </p>
+                    )}
                   </td>
+
+                  {/* Stock */}
                   <td className="py-4 px-6">
-                    <span className={`text-sm font-semibold ${item.buyingPrice ? 'text-green-600' : 'text-slate-300'}`}>
-                      {item.buyingPrice ? (((item.sellingPrice - item.buyingPrice) / item.sellingPrice) * 100).toFixed(0) : 0}%
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                      item.stock > 5  ? 'bg-green-50 text-green-600' :
+                      item.stock > 0  ? 'bg-amber-50 text-amber-600'  :
+                                        'bg-red-50 text-red-500'
+                    }`}>
+                      {item.stock > 0 ? `${item.stock} units` : 'Out of stock'}
                     </span>
                   </td>
+
+                  {/* Rx */}
                   <td className="py-4 px-6">
-                    <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${item.stock > 5 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                      {item.stock} units
-                    </span>
+                    {item.prescriptionRequired ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-50 px-2 py-1 rounded-full">
+                        <FileText size={9} /> Rx
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-green-500 bg-green-50 px-2 py-1 rounded-full block w-fit">
+                        OTC
+                      </span>
+                    )}
                   </td>
+
+                  {/* Actions */}
                   <td className="py-4 px-6 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => handleAddToCart(item)} disabled={addingToCart === item._id}
-                        className={`p-2 rounded-lg transition-all ${addingToCart === item._id ? 'text-slate-300 cursor-not-allowed' : 'text-green-500 hover:bg-green-50'}`}>
-                        {addingToCart === item._id ? <span className="text-xs">...</span> : <ShoppingCart size={16}/>}
+                    <div className="flex justify-end gap-1.5">
+                      <button
+                        onClick={() => handleAddToCart(item)}
+                        disabled={addingToCart === item._id}
+                        title={item.prescriptionRequired ? 'Prescription required' : 'Add to cart'}
+                        className={`p-2 rounded-lg transition-all ${
+                          item.prescriptionRequired
+                            ? 'text-red-300 hover:text-red-500 hover:bg-red-50'
+                            : addingToCart === item._id
+                            ? 'text-gray-200 cursor-not-allowed'
+                            : 'text-green-500 hover:bg-green-50'
+                        }`}>
+                        {addingToCart === item._id
+                          ? <div className="w-3.5 h-3.5 border border-gray-300 border-t-transparent rounded-full animate-spin" />
+                          : item.prescriptionRequired
+                          ? <FileText size={15} />
+                          : <ShoppingCart size={15} />}
                       </button>
-                      <button onClick={() => handleEdit(item)} className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-all"><Edit size={16}/></button>
-                      <button onClick={() => handleDelete(item._id)} className="p-2 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={16}/></button>
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-lg transition-all">
+                        <Edit size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        className="p-2 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -379,186 +430,231 @@ const Products = () => {
 
       {/* ── Modal ── */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl w-full max-w-5xl p-8 shadow-2xl overflow-y-auto max-h-[95vh] text-black">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-3xl w-full max-w-5xl p-8 shadow-2xl overflow-y-auto max-h-[95vh]">
+
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-black">
+              <h2 className="text-lg font-bold text-black">
                 {selectedId ? "Edit Product" : "New Product"}
               </h2>
-              <button onClick={closeModal} className="w-9 h-9 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-red-500 transition-all">✕</button>
+              <button onClick={closeModal}
+                className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400 hover:text-red-500 transition-all">
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-8">
-              {/* Left column */}
-              <div className="w-full lg:w-5/12 space-y-5">
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-500 ml-1">Main Product Image</label>
-                  <div onClick={() => document.getElementById('imageInput').click()}
-                    className="w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center hover:border-black transition-all group cursor-pointer overflow-hidden">
+
+              {/* ── Left: Images + Descriptions ── */}
+              <div className="w-full lg:w-5/12 space-y-4">
+
+                {/* Main Image */}
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">
+                    Main Image
+                  </label>
+                  <div
+                    onClick={() => document.getElementById('imageInput').click()}
+                    className="w-full aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center hover:border-black transition-all cursor-pointer overflow-hidden group">
                     {previewUrl
                       ? <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
                       : <div className="text-center">
-                          <ImagePlus className="text-slate-300 group-hover:text-black transition-colors mb-2 mx-auto" size={40} />
-                          <span className="text-xs font-medium text-slate-400">Click to upload image</span>
+                          <ImagePlus size={36} className="text-gray-200 group-hover:text-black transition-colors mx-auto mb-2" />
+                          <span className="text-xs text-gray-300">Click to upload</span>
                         </div>}
                     <input id="imageInput" type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-500 ml-1">Additional Images (max 3)</label>
-                  <div className="grid grid-cols-3 gap-3">
+                {/* Additional Images */}
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">
+                    Additional Images (max 3)
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
                     {additionalPreviews.map((url, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-slate-100 group">
-                        <img src={url} className="w-full h-full object-cover" alt={`preview ${idx}`} />
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-gray-100 group">
+                        <img src={url} className="w-full h-full object-cover" alt="" />
                         <button type="button" onClick={() => removeAdditionalImage(idx)}
-                          className="absolute top-1 right-1 p-1 bg-white/80 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <X size={12} />
+                          className="absolute top-1 right-1 p-0.5 bg-white/80 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <X size={11} />
                         </button>
                       </div>
                     ))}
                     {additionalPreviews.length < 3 && (
-                      <button type="button" onClick={() => document.getElementById('additionalImagesInput').click()}
-                        className="aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center hover:border-black transition-all text-slate-300 hover:text-black">
-                        <ImagePlus size={20} />
+                      <button type="button"
+                        onClick={() => document.getElementById('additionalImagesInput').click()}
+                        className="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center hover:border-black transition-all text-gray-200 hover:text-black">
+                        <ImagePlus size={18} />
                         <input id="additionalImagesInput" type="file" accept="image/*" multiple className="hidden" onChange={handleAdditionalFiles} />
                       </button>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">Description</label>
-                    <textarea name="description" value={formData.description} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 focus:border-black rounded-xl px-4 py-3 text-sm outline-none transition-all min-h-[90px]" placeholder="Product details..."/>
+                {/* Text fields */}
+                {[
+                  { name: 'description', label: 'Description',  rows: 3, ph: 'Product details...'    },
+                  { name: 'howToUse',    label: 'How To Use',   rows: 2, ph: 'Usage instructions...' },
+                  { name: 'safetyInfo',  label: 'Safety Info',  rows: 2, ph: 'Warnings...'           },
+                ].map(f => (
+                  <div key={f.name}>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">
+                      {f.label}
+                    </label>
+                    <textarea
+                      name={f.name} rows={f.rows}
+                      value={formData[f.name]} onChange={handleChange}
+                      placeholder={f.ph}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all resize-none" />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">How To Use</label>
-                    <textarea name="howToUse" value={formData.howToUse} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 focus:border-black rounded-xl px-4 py-3 text-sm outline-none transition-all min-h-[70px]" placeholder="Usage instructions..."/>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">Safety & Warnings</label>
-                    <textarea name="safetyInfo" value={formData.safetyInfo} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 focus:border-black rounded-xl px-4 py-3 text-sm outline-none transition-all min-h-[70px]" placeholder="Safety warnings..."/>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              {/* Right column */}
-              <div className="w-full lg:w-7/12 space-y-5">
-                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Product Specifications</h3>
+              {/* ── Right: Specs + Pricing ── */}
+              <div className="w-full lg:w-7/12 space-y-4">
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 ml-1">Product Name</label>
-                      <input name="name" required value={formData.name} onChange={handleChange} className="w-full bg-white border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="e.g. Neuramis Deep"/>
+                {/* Specifications */}
+                <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Specifications
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Name</label>
+                      <input name="name" required value={formData.name} onChange={handleChange}
+                        placeholder="Product name"
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 ml-1">SKU</label>
-                      <input name="sku" required value={formData.sku} onChange={handleChange} className="w-full bg-white border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="BATCH-001"/>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">SKU</label>
+                      <input name="sku" required value={formData.sku} onChange={handleChange}
+                        placeholder="BATCH-001"
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
                     </div>
                   </div>
 
-                  {/* ── Category + SubCategory ── */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 ml-1">Category</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Category</label>
                       <select name="category" required value={formData.category} onChange={handleChange}
-                        className="w-full bg-white border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all">
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all">
                         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                       </select>
                     </div>
-
-                    {/* ✅ SubCategory — reliably handles case checks */}
                     {formSubcategoryKey ? (
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold text-slate-500 ml-1">Sub Category</label>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Sub Category</label>
                         <select name="subCategory" value={formData.subCategory} onChange={handleChange}
-                          className="w-full bg-white border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all">
-                          <option value="">Select Subcategory</option>
+                          className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all">
+                          <option value="">Select...</option>
                           {SUBCATEGORIES[formSubcategoryKey].map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-3 pt-5 pl-2">
-                        <input type="checkbox" name="prescriptionRequired" id="prescriptionRequired" checked={formData.prescriptionRequired} onChange={handleChange} className="w-4 h-4 accent-black rounded cursor-pointer" />
-                        <label htmlFor="prescriptionRequired" className="text-xs font-medium text-slate-700 cursor-pointer flex items-center gap-2">
-                          <FileText size={13} className="text-red-500" /> Prescription Required?
-                        </label>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Dosage</label>
+                        <input name="dosage" value={formData.dosage} onChange={handleChange}
+                          placeholder="e.g. 100 units"
+                          className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
                       </div>
                     )}
                   </div>
 
-                  {/* Prescription checkbox when category has subcategories */}
-                  {formSubcategoryKey && (
-                    <div className="flex items-center gap-3 pl-1">
-                      <input type="checkbox" name="prescriptionRequired" id="prescriptionRequired2" checked={formData.prescriptionRequired} onChange={handleChange} className="w-4 h-4 accent-black rounded cursor-pointer" />
-                      <label htmlFor="prescriptionRequired2" className="text-xs font-medium text-slate-700 cursor-pointer flex items-center gap-2">
-                        <FileText size={13} className="text-red-500" /> Prescription Required?
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Brand</label>
+                      <input name="brand" required value={formData.brand} onChange={handleChange}
+                        placeholder="Manufacturer"
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Supplier</label>
+                      <input name="supplier" value={formData.supplier} onChange={handleChange}
+                        placeholder="Wholesaler name"
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Stock</label>
+                      <input name="stock" type="number" required value={formData.stock} onChange={handleChange}
+                        placeholder="Units available"
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Expiry Date</label>
+                      <input name="expiryDate" type="date" value={formData.expiryDate} onChange={handleChange}
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
+                    </div>
+                  </div>
+
+                  {/* Prescription Toggle */}
+                  <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <FileText size={14} className="text-red-400" />
+                      <span className="text-sm font-medium text-black">Prescription Required</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox" name="prescriptionRequired"
+                        checked={formData.prescriptionRequired} onChange={handleChange}
+                        className="sr-only peer" />
+                      <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-red-500 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Pricing */}
+                <div className="bg-gray-50 rounded-2xl p-5 space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pricing</p>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">
+                        Unit Price (£)
                       </label>
+                      <input name="unitPrice" type="number" step="0.01" value={formData.unitPrice} onChange={handleChange}
+                        placeholder="0.00"
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
                     </div>
-                  )}
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">
+                        Cost (£)
+                      </label>
+                      <input name="buyingPrice" type="number" step="0.01" required value={formData.buyingPrice} onChange={handleChange}
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">
+                        Sell (£)
+                      </label>
+                      <input name="sellingPrice" type="number" step="0.01" required value={formData.sellingPrice} onChange={handleChange}
+                        className="w-full bg-white border border-gray-200 focus:border-black rounded-xl px-3 py-2.5 text-sm outline-none transition-all" />
+                    </div>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 ml-1">Unit Price (£)</label>
-                      <input name="unitPrice" type="number" step="0.01" required value={formData.unitPrice} onChange={handleChange} className="w-full bg-white border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="0.00" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 ml-1">Supplier</label>
-                      <input name="supplier" required value={formData.supplier} onChange={handleChange} className="w-full bg-white border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="Wholesaler name" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 ml-1">Dispensed By</label>
-                      <input name="dispensedBy" required value={formData.dispensedBy} onChange={handleChange} className="w-full bg-white border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="Pharmacist" />
-                    </div>
+                  {/* Margin display */}
+                  <div className="bg-white border border-gray-100 rounded-xl px-4 py-2.5 flex justify-between items-center">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Profit Margin
+                    </span>
+                    <span className={`text-sm font-bold ${Number(calculateMargin()) > 0 ? 'text-green-600' : 'text-gray-300'}`}>
+                      {calculateMargin()}%
+                    </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">Brand / Manufacturer</label>
-                    <input name="brand" required value={formData.brand} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="e.g. Hugel Pharma"/>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">Expiry Date</label>
-                    <input name="expiryDate" type="date" value={formData.expiryDate} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all"/>
-                  </div>
-                </div>
-
-                {/* Financial */}
-                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Financial</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500">Purchase (£)</label>
-                      <input name="buyingPrice" type="number" step="0.01" required value={formData.buyingPrice} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500">Retail (£)</label>
-                      <input name="sellingPrice" type="number" step="0.01" required value={formData.sellingPrice} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500">Est. Margin</label>
-                      <div className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-green-600 text-center">{calculateMargin()}%</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">Current Stock</label>
-                    <input name="stock" type="number" required value={formData.stock} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="Units available" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">Dosage / Strength</label>
-                    <input name="dosage" value={formData.dosage} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 focus:border-black rounded-xl px-4 py-2.5 text-sm outline-none transition-all" placeholder="e.g. 100 units" />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-2">
-                  <button type="button" onClick={closeModal} className="flex-1 py-3 text-slate-400 font-medium hover:text-slate-600 transition-all text-sm">Discard</button>
-                  <button type="submit" className="flex-[2] py-3 bg-black text-white rounded-2xl font-semibold text-sm hover:bg-slate-900 transition-all">
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={closeModal}
+                    className="flex-1 py-3 text-gray-400 text-sm font-medium hover:text-black transition-all">
+                    Cancel
+                  </button>
+                  <button type="submit"
+                    className="flex-[2] py-3 bg-black text-white text-sm font-semibold rounded-2xl hover:bg-gray-900 transition-all">
                     {selectedId ? "Save Changes" : "Add to Inventory"}
                   </button>
                 </div>

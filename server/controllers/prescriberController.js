@@ -14,6 +14,8 @@ export const searchPrescribers = async (req, res) => {
     }
 
     const prescribers = await User.find({
+      role: "prescriber",              // ✅ FIX 1: only return prescribers
+      _id: { $ne: req.user._id },     // ✅ FIX 2: exclude yourself from results
       $or: [
         { firstName: { $regex: query, $options: "i" } },
         { lastName:  { $regex: query, $options: "i" } },
@@ -58,7 +60,8 @@ export const sendLinkRequest = async (req, res) => {
       });
     }
 
-    if (prescriberId === String(requesterId)) {
+    // ✅ FIX 3: use .toString() on both sides — ObjectId vs string comparison was broken
+    if (prescriberId.toString() === requesterId.toString()) {
       return res.status(400).json({ success: false, message: "You cannot link yourself" });
     }
 
@@ -95,8 +98,6 @@ export const getActiveLinks = async (req, res) => {
       status: { $in: ["active", "pending"] },
     }).populate(
       "prescriberId",
-      // FIX: added "prescriberId" so the custom string field is returned
-      // CartPage needs p.prescriberId.prescriberId to send to POST /api/orders
       "firstName lastName email registrationNumber role professionalRole prescriberId"
     );
 
@@ -114,6 +115,67 @@ export const getActiveLinks = async (req, res) => {
   } catch (error) {
     console.error("Active links error:", error);
     res.status(500).json({ success: false, message: "Error fetching linked prescribers" });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// GET PRESCRIBER PATIENTS
+// ─────────────────────────────────────────────────────────────
+export const getMyPatients = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+
+    const requests = await PrescriptionRequest.find({ prescriberId: userId })
+      .populate("requesterId", "firstName lastName email phoneNumber address dob role")
+      .sort({ createdAt: -1 });
+
+    const seen = new Set();
+    const patients = requests
+      .map((item) => {
+        const user = item.requesterId;
+        const id = user?._id?.toString() || item._id.toString();
+        if (seen.has(id)) return null;
+        seen.add(id);
+
+        return {
+          _id: id,
+          firstName: item.patientName?.firstName || user?.firstName || "",
+          lastName: item.patientName?.lastName || user?.lastName || "",
+          dob: item.dob || user?.dob || "",
+          personalEmail: user?.email || "",
+          mobileNumber: user?.phoneNumber || "",
+          addressLine1: user?.address || "",
+          status: item.status || "pending",
+          lastRequestedAt: item.createdAt,
+        };
+      })
+      .filter(Boolean);
+
+    res.status(200).json({ patients, total: patients.length });
+  } catch (error) {
+    console.error("getMyPatients error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch patients." });
+  }
+};
+
+export const deleteMyPatient = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const patientId = req.params.patientId;
+
+    const deleted = await PrescriptionRequest.deleteMany({
+      prescriberId: userId,
+      requesterId: patientId,
+    });
+
+    if (!deleted.deletedCount) {
+      return res.status(404).json({ success: false, message: "Patient not found" });
+    }
+
+    return res.status(200).json({ success: true, message: "Patient deleted successfully" });
+  } catch (error) {
+    console.error("deleteMyPatient error:", error);
+    return res.status(500).json({ success: false, message: "Failed to delete patient" });
   }
 };
 
@@ -295,32 +357,20 @@ export const verifyPrescriptionRequest = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // PRESCRIBER DASHBOARD
 // ─────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────
-// PRESCRIBER DASHBOARD
-// ─────────────────────────────────────────────────────────────
 export const getPrescriberDashboard = async (req, res) => {
   try {
     const userId = req.user?._id || req.user?.id;
 
-    // Verify user exists
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Verify prescriber role
     if (user.role !== "prescriber") {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied. Prescriber role required.",
-      });
+      return res.status(403).json({ success: false, message: "Access denied. Prescriber role required." });
     }
 
-    // Run all queries in parallel
     const [
       activeLinksCount,
       pendingLinksCount,
@@ -329,129 +379,68 @@ export const getPrescriberDashboard = async (req, res) => {
       approvedRequests,
       recentRequests,
     ] = await Promise.all([
-      // Linked users
-      PrescriberLink.countDocuments({
-        prescriberId: userId,
-        status: "active",
-      }),
-
-      // Pending link requests
-      PrescriberLink.countDocuments({
-        prescriberId: userId,
-        status: "pending",
-      }),
-
-      // Total prescription requests
-      PrescriptionRequest.countDocuments({
-        prescriberId: userId,
-      }),
-
-      // Pending prescription requests
-      PrescriptionRequest.countDocuments({
-        prescriberId: userId,
-        status: "pending",
-      }),
-
-      // Approved prescription requests
-      PrescriptionRequest.countDocuments({
-        prescriberId: userId,
-        status: "approved",
-      }),
-
-      // Recent requests
-      PrescriptionRequest.find({
-        prescriberId: userId,
-      })
+      PrescriberLink.countDocuments({ prescriberId: userId, status: "active" }),
+      PrescriberLink.countDocuments({ prescriberId: userId, status: "pending" }),
+      PrescriptionRequest.countDocuments({ prescriberId: userId }),
+      PrescriptionRequest.countDocuments({ prescriberId: userId, status: "pending" }),
+      PrescriptionRequest.countDocuments({ prescriberId: userId, status: "approved" }),
+      PrescriptionRequest.find({ prescriberId: userId })
         .populate("requesterId", "firstName lastName email")
         .sort({ createdAt: -1 })
         .limit(5),
     ]);
 
-    // Format recent prescriptions for frontend
     const recentPrescriptions = recentRequests.map((item) => ({
       _id: item._id,
       user: {
         firstName: item.patientName?.firstName || "",
-        lastName: item.patientName?.lastName || "",
+        lastName:  item.patientName?.lastName  || "",
       },
-      method: item.treatment || "consultation",
-      status: item.status || "pending",
+      method:    item.treatment || "consultation",
+      status:    item.status    || "pending",
       createdAt: item.createdAt,
     }));
 
-    // Build alerts array
     const alerts = [];
-
     if (pendingLinksCount > 0) {
-      alerts.push({
-        type: "pending_links",
-        message: `${pendingLinksCount} pending link request(s)`,
-      });
+      alerts.push({ type: "pending_links", message: `${pendingLinksCount} pending link request(s)` });
     }
-
     if (pendingRequests > 0) {
-      alerts.push({
-        type: "pending_requests",
-        message: `${pendingRequests} prescription request(s) awaiting review`,
-      });
+      alerts.push({ type: "pending_requests", message: `${pendingRequests} prescription request(s) awaiting review` });
     }
 
-    // Final response shape EXACTLY matches what your React dashboard expects
     return res.status(200).json({
       success: true,
       data: {
-        // Orders section
         orders: {
-          totalRevenue: 0, // Replace with actual revenue if available
-          totalOrders: totalRequests,
-          totalCommission: approvedRequests * 10, // Example calculation
-          pendingOrders: pendingRequests,
+          totalRevenue:    0,
+          totalOrders:     totalRequests,
+          totalCommission: approvedRequests * 10,
+          pendingOrders:   pendingRequests,
         },
-
-        // Stock section
         stock: {
-          totalProducts: 0,
-          totalUnits: 0,
-          lowStockCount: 0,
-          expiring30Count: 0,
-          expiring60Count: 0,
-          expiredCount: 0,
+          totalProducts: 0, totalUnits: 0, lowStockCount: 0,
+          expiring30Count: 0, expiring60Count: 0, expiredCount: 0,
         },
-
-        // Three Pot section
         threePot: {
           equilibriumStatus: "green",
-          pot1StockValue: 0,
-          pot2Deposit: 0,
-          pot3Commission: approvedRequests * 10,
+          pot1StockValue:    0,
+          pot2Deposit:       0,
+          pot3Commission:    approvedRequests * 10,
         },
-
-        // Alerts section
-        alerts: {
-          count: alerts.length,
-          items: alerts,
-        },
-
-        // Recent prescriptions section
+        alerts:              { count: alerts.length, items: alerts },
         recentPrescriptions,
-
-        // Optional extra stats
         stats: {
-          totalLinkedUsers: activeLinksCount,
-          pendingLinkRequests: pendingLinksCount,
-          totalPrescriptionRequests: totalRequests,
-          pendingPrescriptionRequests: pendingRequests,
-          approvedPrescriptionRequests: approvedRequests,
+          totalLinkedUsers:               activeLinksCount,
+          pendingLinkRequests:            pendingLinksCount,
+          totalPrescriptionRequests:      totalRequests,
+          pendingPrescriptionRequests:    pendingRequests,
+          approvedPrescriptionRequests:   approvedRequests,
         },
       },
     });
   } catch (error) {
     console.error("getPrescriberDashboard error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to load dashboard data",
-      error: error.message,
-    });
+    return res.status(500).json({ success: false, message: "Failed to load dashboard data", error: error.message });
   }
 };

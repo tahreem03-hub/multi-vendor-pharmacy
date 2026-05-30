@@ -1,428 +1,322 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, FileText } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Package, Minus, Plus, FileText, Shield, ChevronRight } from 'lucide-react';
 import API from '../api/axios';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-hot-toast';
 
 const ProductDetails = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const { id }        = useParams();
+  const navigate      = useNavigate();
   const { addToCart } = useCart();
 
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
+  const [product,     setProduct]     = useState(null);
+  const [loading,     setLoading]     = useState(true);
+  const [quantity,    setQuantity]    = useState(1);
   const [activeImage, setActiveImage] = useState(null);
-  const [adding, setAdding] = useState(false);
-  const [orderType, setOrderType] = useState('Prescription');
-  const [patientQuery, setPatientQuery] = useState('');
-  const [patientOptions, setPatientOptions] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [patientSearchLoading, setPatientSearchLoading] = useState(false);
-  const [creatingPatient, setCreatingPatient] = useState(false);
-  const [newPatientData, setNewPatientData] = useState({
-    firstName: '',
-    lastName: '',
-    dob: '',
-    mobileNumber: '',
-    personalEmail: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    county: '',
-    postcode: '',
-    country: '',
-  });
-  const [directions, setDirections] = useState('');
-  const [sendTo, setSendTo] = useState('clinic');
+  const [adding,      setAdding]      = useState(false);
 
   useEffect(() => {
-    if (!id || id === 'undefined') {
-      setLoading(false);
-      return;
-    }
-
+    if (!id || id === 'undefined') { setLoading(false); return; }
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await API.get(`/medicines/${id}`);
-        const data = response.data.medicine || response.data;
+        const res  = await API.get(`/medicines/${id}`);
+        const data = res.data.medicine || res.data;
         setProduct(data);
         setActiveImage(data.image || data.primaryImage);
-        setOrderType(data.prescriptionRequired ? 'Prescription' : 'Stock Medicine');
-        setSendTo('clinic');
-      } catch (error) {
-        console.error('Error fetching product details:', error);
+      } catch {
         toast.error('Product not found');
       } finally {
         setLoading(false);
       }
     };
-
     fetchProduct();
   }, [id]);
-
-  const directToPatientAllowed = Boolean(
-    product?.directToPatientAllowed ||
-    product?.allowDirectToPatient ||
-    product?.sendToPatientAllowed ||
-    product?.allowPatientDelivery
-  );
 
   const handleAddToCart = async () => {
     if (product.stock < quantity) {
       toast.error(`Only ${product.stock} units available`);
       return;
     }
-
-    if (orderType === 'Prescription' && !selectedPatient) {
-      toast.error('Please select or create a patient before adding a prescription.');
-      return;
-    }
-
     setAdding(true);
     try {
-      await addToCart({
-        ...product,
-        quantity,
-        orderType,
-        directions,
-        sendTo,
-        patient: selectedPatient || null,
-      });
+      await addToCart({ ...product, quantity });
       toast.success(`${product.name} added to cart!`);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Failed to add to cart');
     } finally {
       setAdding(false);
     }
   };
 
-  const handlePrescriptionRedirect = () => {
-    navigate('/prescription-form');
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `http://localhost:4000/${path.startsWith('/') ? path.substring(1) : path}`;
   };
 
-  const handlePatientQueryChange = (value) => {
-    setPatientQuery(value);
-    setSelectedPatient(null);
-    setPatientOptions([]);
-    setPatientSearchLoading(false);
-    setCreatingPatient(false);
-  };
-
-  const handleCreatePatientChange = (field, value) => {
-    setNewPatientData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSelectPatient = (patient) => {
-    setSelectedPatient(patient);
-    setPatientQuery(`${patient.firstName} ${patient.lastName}`);
-    setPatientOptions([]);
-    setCreatingPatient(false);
-  };
-
-  const handleNewPatientSubmit = async () => {
-    if (!newPatientData.firstName || !newPatientData.lastName) {
-      toast.error('Please provide first and last name.');
-      return;
-    }
-
-    try {
-      const { data } = await API.post('/patients', newPatientData);
-      const patient = data.patient || data;
-      setSelectedPatient(patient);
-      setPatientQuery(`${patient.firstName} ${patient.lastName}`);
-      setPatientOptions([]);
-      setCreatingPatient(false);
-      setNewPatientData({
-        firstName: '',
-        lastName: '',
-        dob: '',
-        mobileNumber: '',
-        personalEmail: '',
-        addressLine1: '',
-        addressLine2: '',
-        city: '',
-        county: '',
-        postcode: '',
-        country: '',
-      });
-      toast.success('Patient created successfully');
-    } catch (error) {
-      console.error('Create patient failed:', error);
-      toast.error(error.response?.data?.message || 'Failed to create patient');
-    }
-  };
-
-  useEffect(() => {
-    if (creatingPatient) return;
-    if (patientQuery.length < 3) return;
-
-    const timer = setTimeout(async () => {
-      setPatientSearchLoading(true);
-      try {
-        const response = await API.get(`/patients?search=${encodeURIComponent(patientQuery)}`);
-        const data = Array.isArray(response.data) ? response.data : response.data.patients || [];
-        setPatientOptions(data);
-      } catch (error) {
-        console.error('Patient search failed:', error);
-        setPatientOptions([]);
-      } finally {
-        setPatientSearchLoading(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [patientQuery, creatingPatient]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-cyan-600" />
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-6 h-6 border-2 border-gray-100 border-t-black rounded-full animate-spin" />
+        <p className="text-xs text-gray-300 tracking-widest uppercase font-medium">Loading</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (!product) {
-    return <div className="text-center py-20 font-bold">Product not found.</div>;
-  }
-
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return 'https://via.placeholder.com/500?text=No+Image';
-    if (imagePath.startsWith('http')) return imagePath;
-    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-    return `http://localhost:4000/${cleanPath}`;
-  };
+  if (!product) return (
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="text-center space-y-3">
+        <Package size={40} className="text-gray-100 mx-auto" />
+        <p className="text-sm text-gray-400 font-medium">Product not found</p>
+        <button onClick={() => navigate(-1)} className="text-xs text-black underline underline-offset-4">Go back</button>
+      </div>
+    </div>
+  );
 
   const extraImages = product.additionalImages || product.images || [];
-  const allImages = [product.image || product.primaryImage, ...extraImages].filter(Boolean);
-  const selectedPatientAddress = selectedPatient
-    ? [
-        selectedPatient.addressLine1,
-        selectedPatient.addressLine2,
-        [selectedPatient.city, selectedPatient.postcode].filter(Boolean).join(', '),
-        selectedPatient.country,
-      ].filter(Boolean)
-    : [];
+  const allImages   = [product.image || product.primaryImage, ...extraImages].filter(Boolean);
+  const totalPrice  = ((product.sellingPrice || product.price || 0) * quantity).toFixed(2);
+  const isRx        = product.prescriptionRequired;
+  const price       = (product.sellingPrice || product.price || 0).toFixed(2);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 bg-white font-poppins">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-gray-500 hover:text-cyan-600 transition-colors mb-6 font-semibold text-sm"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
+    <div className="min-h-screen bg-white">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
-        <div className="space-y-4">
-          <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center border border-gray-100 aspect-square overflow-hidden">
-            <img
-              src={getImageUrl(activeImage)}
-              alt={product.name}
-              className="max-h-full w-auto object-contain transition-transform duration-500 hover:scale-105"
-            />
-          </div>
-          <div className="flex gap-3 overflow-x-auto py-2">
-            {allImages.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveImage(img)}
-                className={`w-20 h-20 rounded-xl border-2 overflow-hidden flex-shrink-0 transition-all ${
-                  activeImage === img
-                    ? 'border-cyan-500 scale-105 shadow-md'
-                    : 'border-transparent bg-gray-50 opacity-70 hover:opacity-100'
-                }`}
-              >
-                <img src={getImageUrl(img)} className="w-full h-full object-cover" alt={`View ${idx}`} />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col">
-          <div className="mb-4">
-            {product.prescriptionRequired ? (
-              <span className="bg-red-50 text-red-600 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-red-100 w-fit mb-2">
-                <FileText size={12} /> Prescription Required
-              </span>
-            ) : (
-              <span className="bg-green-50 text-green-600 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-green-100 w-fit mb-2">
-                OTC — No Prescription
-              </span>
-            )}
-
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-tight">{product.name}</h1>
-
-            <div className="flex flex-col gap-2 text-xs text-slate-500">
-              <span>
-                SKU: <span className="text-slate-900 font-semibold text-sm">{product.sku || 'N/A'}</span>
-              </span>
-              <span>
-                Stock: <span className="text-slate-900 font-semibold text-sm">{product.stock || 0} units</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 mb-6">
-            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">Per Unit Price</label>
-              <span className="text-lg font-bold text-gray-900">
-                £{(product.sellingPrice || product.price || 0).toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {product.prescriptionRequired && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2">
-              <AlertCircle size={14} className="text-red-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-red-700 font-medium">
-                This is a prescription-only medicine. You must submit a valid prescription before your order can be dispensed.
-                <button onClick={handlePrescriptionRedirect} className="ml-1 font-bold underline">
-                  Submit prescription →
-                </button>
-              </p>
-            </div>
+      {/* ── Breadcrumb bar ── */}
+      <div className="border-b border-gray-100 px-5 md:px-10 py-3.5">
+        <div className="max-w-5xl mx-auto flex items-center gap-2 text-sm">
+          <button onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-gray-400 hover:text-black transition-colors font-medium group">
+            <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
+            Back
+          </button>
+          {product.category && (
+            <>
+              <ChevronRight size={12} className="text-gray-200" />
+              <span className="text-gray-400">{product.category}</span>
+            </>
           )}
+          {product.subCategory && (
+            <>
+              <ChevronRight size={12} className="text-gray-200" />
+              <span className="text-gray-400">{product.subCategory}</span>
+            </>
+          )}
+          <ChevronRight size={12} className="text-gray-200" />
+          <span className="text-gray-700 font-medium truncate max-w-[180px]">{product.name}</span>
+        </div>
+      </div>
 
-          <div className="space-y-5 mt-auto">
-            <div className="grid grid-cols-2 gap-3">
-              {['Prescription', 'Stock Medicine'].map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setOrderType(type)}
-                  className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${orderType === type ? 'bg-black text-white border-black' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'}`}
-                >
-                  {type}
-                </button>
-              ))}
+      <div className="max-w-5xl mx-auto px-5 md:px-10 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
+
+          {/* ── Left: Image ── */}
+          <div className="space-y-3">
+            <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center group">
+              {activeImage
+                ? <img src={getImageUrl(activeImage)} alt={product.name}
+                    className="w-full h-full object-contain p-8 group-hover:scale-105 transition-transform duration-700" />
+                : <Package size={56} className="text-gray-100" />
+              }
+            </div>
+            {allImages.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                {allImages.map((img, idx) => (
+                  <button key={idx} onClick={() => setActiveImage(img)}
+                    className={`w-16 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
+                      activeImage === img ? 'border-black' : 'border-transparent opacity-40 hover:opacity-70'
+                    }`}>
+                    <img src={getImageUrl(img)} className="w-full h-full object-cover" alt="" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Right: Info ── */}
+          <div className="flex flex-col gap-6">
+
+            {/* Tags */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {isRx && (
+                <span className="text-[10px] font-semibold border border-gray-300 text-gray-500 px-3 py-1 rounded-full">
+                  Prescription Only
+                </span>
+              )}
+              {product.category && (
+                <span className="text-[10px] font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
+                  {product.category}
+                </span>
+              )}
             </div>
 
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {orderType === 'Prescription'
-                ? 'By selecting Prescription request type you are confirming that this item will be prescribed purely for medical purposes.'
-                : 'By selecting Stock Medicine you are creating a Signed Order which will require a prescriber signature before it can be dispatched.'}
-            </p>
+            {/* Name + meta */}
+            <div>
+              <h1 className="text-3xl font-bold text-black leading-tight tracking-tight mb-2">
+                {product.name}
+              </h1>
+              <div className="flex items-center gap-3 text-sm text-gray-400">
+                {product.brand && <span>{product.brand}</span>}
+                {product.brand && product.sku && <span className="text-gray-200">·</span>}
+                {product.sku && <span className="font-mono text-xs">{product.sku}</span>}
+              </div>
+            </div>
 
-            {orderType === 'Prescription' && (
-              <div className="space-y-5">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Select Patient</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={patientQuery}
-                        onChange={(e) => handlePatientQueryChange(e.target.value)}
-                        placeholder="Search for a patient"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
-                      {(patientOptions.length > 0 || patientSearchLoading) && (
-                        <div className="absolute z-30 mt-2 w-full max-h-60 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl">
-                          {patientOptions.length > 0 ? (
-                            patientOptions.map((patient) => (
-                              <button
-                                key={patient._id}
-                                type="button"
-                                onClick={() => handleSelectPatient(patient)}
-                                className="w-full text-left px-4 py-3 hover:bg-slate-100 transition"
-                              >
-                                <div className="font-semibold text-sm text-slate-900">{patient.firstName} {patient.lastName}</div>
-                                <div className="text-[11px] text-slate-500">{patient.personalEmail || patient.mobileNumber || 'No contact'}</div>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-4 py-3 text-sm text-slate-500">
-                              {patientSearchLoading ? 'Searching patients...' : 'No patients found.'}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {!creatingPatient && (
-                    <button
-                      type="button"
-                      onClick={() => { setCreatingPatient(true); setSelectedPatient(null); }}
-                      className="w-full inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all"
-                    >
-                      Create New Patient
-                    </button>
-                  )}
-
-                  {creatingPatient && (
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                          <input value={newPatientData.firstName} onChange={(e) => handleCreatePatientChange('firstName', e.target.value)} placeholder="First Name" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <input value={newPatientData.lastName} onChange={(e) => handleCreatePatientChange('lastName', e.target.value)} placeholder="Last Name" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <input type="date" value={newPatientData.dob} onChange={(e) => handleCreatePatientChange('dob', e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <input value={newPatientData.personalEmail} onChange={(e) => handleCreatePatientChange('personalEmail', e.target.value)} placeholder="Personal email address" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <input value={newPatientData.mobileNumber} onChange={(e) => handleCreatePatientChange('mobileNumber', e.target.value)} placeholder="Mobile phone" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                        </div>
-                        <div className="space-y-3">
-                          <input value={newPatientData.addressLine1} onChange={(e) => handleCreatePatientChange('addressLine1', e.target.value)} placeholder="Address Line 1" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <input value={newPatientData.addressLine2} onChange={(e) => handleCreatePatientChange('addressLine2', e.target.value)} placeholder="Address Line 2" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <input value={newPatientData.city} onChange={(e) => handleCreatePatientChange('city', e.target.value)} placeholder="City" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <input value={newPatientData.county} onChange={(e) => handleCreatePatientChange('county', e.target.value)} placeholder="County" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          <div className="grid grid-cols-2 gap-3">
-                            <input value={newPatientData.postcode} onChange={(e) => handleCreatePatientChange('postcode', e.target.value)} placeholder="Postcode" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                            <input value={newPatientData.country} onChange={(e) => handleCreatePatientChange('country', e.target.value)} placeholder="Country" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-black" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex gap-3">
-                        <button type="button" onClick={handleNewPatientSubmit} className="flex-1 rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-slate-900 transition-all">Create Patient</button>
-                        <button type="button" onClick={() => setCreatingPatient(false)} className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all">Cancel</button>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedPatient && (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 mt-2 text-sm text-slate-700">
-                      <div className="font-semibold text-slate-900">Selected Patient</div>
-                      <div className="mt-2 text-xs text-slate-600">
-                        <div>{selectedPatient.firstName} {selectedPatient.lastName}</div>
-                        {selectedPatient.personalEmail && <div>{selectedPatient.personalEmail}</div>}
-                        {selectedPatient.mobileNumber && <div>{selectedPatient.mobileNumber}</div>}
-                        {selectedPatient.dob && <div>DOB: {new Date(selectedPatient.dob).toLocaleDateString()}</div>}
-                        {selectedPatientAddress.length > 0 && (
-                          <div className="pt-2 border-t border-slate-200">
-                            {selectedPatientAddress.map((line, idx) => (<div key={idx}>{line}</div>))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+            {/* Price + Stock */}
+            <div className="flex items-end justify-between py-5 border-y border-gray-100">
+              <div>
+                <p className="text-xs text-gray-400 mb-1 font-medium">Price</p>
+                <p className="text-4xl font-bold text-black tracking-tight leading-none">£{price}</p>
+                {quantity > 1 && !isRx && (
+                  <p className="text-sm text-gray-400 mt-1.5">
+                    Total <span className="font-semibold text-black">£{totalPrice}</span>
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-1.5 justify-end mb-0.5">
+                  <div className={`w-1.5 h-1.5 rounded-full ${
+                    product.stock > 5 ? 'bg-green-500' :
+                    product.stock > 0 ? 'bg-amber-400' : 'bg-red-400'
+                  }`} />
+                  <span className="text-sm font-semibold text-black">
+                    {product.stock > 5 ? 'In Stock' :
+                     product.stock > 0 ? 'Low Stock' : 'Out of Stock'}
+                  </span>
                 </div>
+                <p className="text-xs text-gray-400">{product.stock} units available</p>
+              </div>
+            </div>
+
+            {/* Description */}
+            {product.description && (
+              <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
+            )}
+
+            {/* Dosage / Supplier */}
+            {[
+              { label: 'Dosage',   value: product.dosage   },
+              { label: 'Supplier', value: product.supplier },
+            ].filter(m => m.value).map(({ label, value }) => (
+              <div key={label} className="flex items-center gap-3 -mt-3">
+                <span className="text-xs text-gray-300 w-14 shrink-0">{label}</span>
+                <span className="text-xs font-medium text-gray-600">{value}</span>
+              </div>
+            ))}
+
+            {/* ── Rx Flow ── */}
+            {isRx ? (
+              <div className="space-y-2.5 pt-1">
+                <div className="flex items-start gap-2.5 py-3 border-t border-gray-100">
+                  <FileText size={14} className="text-gray-400 mt-0.5 shrink-0" />
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    A valid prescription is required before this medicine can be dispensed.
+                  </p>
+                </div>
+
+                {/* ✅ Goes to prescriptions page */}
+                <button
+                  onClick={() => navigate('/prescriptions')}
+                  className="w-full flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white text-sm font-semibold py-4 rounded-2xl transition-all">
+                  <FileText size={14} />
+                  Go to Prescriptions
+                </button>
+
+                {/* ✅ Add to cart anyway — also goes to prescriptions */}
+               <button
+  onClick={async () => {
+    setAdding(true);
+
+    try {
+      await addToCart({ ...product, quantity });
+
+      toast.success('Prescription is required for this product');
+
+      setTimeout(() => {
+        navigate('/prescriptions');
+      }, 1500);
+
+    } catch {
+      toast.error('Failed to add to cart');
+    } finally {
+      setAdding(false);
+    }
+  }}
+  disabled={adding || product.stock === 0}
+  className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-400 hover:text-black py-3 border border-gray-200 hover:border-gray-400 rounded-2xl transition-all disabled:opacity-40"
+>
+  {adding ? (
+    <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+  ) : (
+    <ShoppingCart size={14} />
+  )}
+
+  Add to Cart
+</button>
+              </div>
+            ) : (
+              <div className="space-y-4 pt-1">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+                    <button onClick={() => setQuantity(p => Math.max(1, p - 1))}
+                      className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 transition-all">
+                      <Minus size={13} />
+                    </button>
+                    <span className="w-10 text-center text-sm font-bold text-black">{quantity}</span>
+                    <button onClick={() => setQuantity(p => Math.min(product.stock, p + 1))}
+                      className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 transition-all">
+                      <Plus size={13} />
+                    </button>
+                  </div>
+                  <span className="text-xs text-gray-300">{product.stock} available</span>
+                </div>
+
+                <button
+                  onClick={handleAddToCart}
+                  disabled={adding || product.stock === 0}
+                  className="w-full flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white text-sm font-semibold py-4 rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                  {adding ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={14} />
+                      Add to Cart
+                    </>
+                  )}
+                </button>
               </div>
             )}
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Send To</p>
-              <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={() => setSendTo('clinic')} className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${sendTo === 'clinic' ? 'bg-black text-white' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'}`}>My Clinic</button>
-                <button type="button" onClick={() => directToPatientAllowed && setSendTo('patient')} disabled={!directToPatientAllowed} className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${sendTo === 'patient' ? 'bg-black text-white' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'} ${!directToPatientAllowed ? 'opacity-50 cursor-not-allowed' : ''}`}>Direct to Patient</button>
+            {/* Safety */}
+            {product.safetyInfo && (
+              <div className="flex items-start gap-2 pt-3 border-t border-gray-50">
+                <Shield size={13} className="text-gray-300 mt-0.5 shrink-0" />
+                <p className="text-xs text-gray-400 leading-relaxed">{product.safetyInfo}</p>
               </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1">
-                <button type="button" onClick={() => setQuantity((prev) => Math.max(1, prev - 1))} className="h-10 w-10 rounded-full border border-slate-200 bg-slate-50 text-lg font-semibold text-slate-700 hover:bg-slate-100">−</button>
-                <span className="w-12 text-center text-sm font-semibold">{quantity}</span>
-                <button type="button" onClick={() => setQuantity((prev) => prev + 1)} className="h-10 w-10 rounded-full border border-slate-200 bg-slate-50 text-lg font-semibold text-slate-700 hover:bg-slate-100">+</button>
-              </div>
-              <button type="button" onClick={handleAddToCart} disabled={adding || product.stock < quantity} className="flex-1 w-full rounded-2xl bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60">
-                {adding ? 'Adding...' : 'Add to Cart'}
-              </button>
-            </div>
+            )}
           </div>
         </div>
+
+        {/* How To Use */}
+        {product.howToUse && (
+          <div className="mt-14 pt-10 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-300 mb-3">How To Use</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{product.howToUse}</p>
+            </div>
+            {product.safetyInfo && (
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-300 mb-3">Safety & Warnings</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{product.safetyInfo}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

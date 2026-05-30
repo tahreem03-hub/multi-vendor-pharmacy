@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, ShoppingBag, Trash2, MapPin, User } from 'lucide-react';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -11,16 +11,20 @@ const CartPage = () => {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
-  const [removing, setRemoving] = useState(null);
-  const [mounted, setMounted] = useState(false);
-  const [checkingOut, setCheckingOut] = useState(false);
-  const [prescribers, setPrescribers] = useState([]);
-  const [prescriberId, setPrescriberId] = useState('');
-  const [deliveryAddress, setDelivery] = useState({ line1: '', city: '', postcode: '' });
+  const [removing,         setRemoving]         = useState(null);
+  const [mounted,          setMounted]          = useState(false);
+  const [checkingOut,      setCheckingOut]      = useState(false);
+  const [prescribers,      setPrescribers]      = useState([]);
+  const [prescriberId,     setPrescriberId]     = useState('');
+  const [deliveryAddress,  setDelivery]         = useState({
+    line1: '', city: '', postcode: ''
+  });
 
-  const items = cart?.items || [];
-  const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const items     = cart?.items || [];
+  const subtotal  = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+  const shipping  = 5;
+  const total     = subtotal + shipping;
 
   useEffect(() => {
     refreshCart();
@@ -33,10 +37,8 @@ const CartPage = () => {
       const { data } = await API.get('/prescriber/active-links');
       const links = Array.isArray(data) ? data : data.links || [];
       setPrescribers(links);
-
       if (links.length === 1) {
-        const customId = links[0].prescriberId?.prescriberId || '';
-        setPrescriberId(customId);
+        setPrescriberId(links[0].prescriberId?.prescriberId || '');
       }
     } catch (err) {
       console.error('Failed to fetch prescribers:', err);
@@ -68,7 +70,7 @@ const CartPage = () => {
     try {
       const orderItems = items.map(item => ({
         medicineId: item.productId,
-        quantity: item.quantity,
+        quantity:   item.quantity,
       }));
 
       await API.post('/orders', {
@@ -79,101 +81,183 @@ const CartPage = () => {
 
       toast.success('Order placed successfully!');
       await clearCart();
-      navigate('/home');
+      navigate('/');
     } catch (err) {
-      const message = err.response?.data?.message || 'Server connection error';
-      toast.error(message);
+      toast.error(err.response?.data?.message || 'Server connection error');
     } finally {
       setCheckingOut(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafb', fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ borderBottom: '1px solid #e8ecef', background: '#fff', padding: '16px 5%', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <Link to="/home" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '13px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ArrowLeft size={14} /> Back to Shop
-        </Link>
-        <span style={{ color: '#d1d5db' }}>·</span>
-        <span style={{ color: '#111', fontSize: '13px', fontWeight: '600' }}>Cart</span>
-      </div>
+    <div className="min-h-screen bg-white text-black">
+      <div className="max-w-5xl mx-auto px-5 md:px-10 py-10">
 
-      <div style={{ maxWidth: '1040px', margin: '0 auto', padding: '48px 5%' }}>
-        <div style={{ marginBottom: '36px', opacity: mounted ? 1 : 0, transition: 'all 0.5s ease' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a', margin: '0 0 4px' }}>Shopping Cart</h1>
-          <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>
-            {items.length === 0 ? 'Your cart is empty' : `${itemCount} item${itemCount !== 1 ? 's' : ''} in your cart`}
-          </p>
-        </div>
+        {/* Back */}
+        <button onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-400 hover:text-black transition-colors mb-10 text-sm font-medium group">
+          <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+          Continue Shopping
+        </button>
 
-        {items.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 20px', background: '#fff', borderRadius: '20px', border: '1px solid #e8ecef' }}>
-            <Package size={48} color="#94a3b8" style={{ margin: '0 auto 16px' }} />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>Your cart is empty</h2>
-            <Link to="/home" style={{ marginTop: '20px', display: 'inline-block', background: '#0f172a', color: 'white', padding: '12px 24px', borderRadius: '10px', textDecoration: 'none' }}>
-              Shop Now
-            </Link>
+        <div className={`transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+
+          {/* Title */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-black tracking-tight">Your Cart</h1>
+            <p className="text-sm text-gray-400 mt-1">
+              {items.length === 0
+                ? 'Nothing here yet'
+                : `${itemCount} item${itemCount !== 1 ? 's' : ''}`}
+            </p>
           </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
-            {/* Using a style object to simulate media queries for responsiveness */}
-            <style>{`
-              @media (min-width: 900px) {
-                .cart-grid { grid-template-columns: 1fr 340px !important; }
-              }
-            `}</style>
-            
-            <div className="cart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+          {/* Empty state */}
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center">
+                <ShoppingBag size={28} className="text-gray-200" />
+              </div>
+              <p className="text-sm font-medium text-gray-400">Your cart is empty</p>
+              <Link to="/"
+                className="mt-2 text-sm font-semibold text-black border-b border-black pb-0.5 hover:opacity-60 transition-opacity">
+                Browse products
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
+
+              {/* ── Cart Items ── */}
+              <div className="space-y-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300 mb-4">
+                  Items ({items.length})
+                </p>
+
                 {items.map((item) => (
-                  <div key={item.productId} style={{ background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #e8ecef', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '60px', height: '60px', background: '#f1f5f9', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>📦</div>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ fontWeight: '700', margin: 0 }}>{item.name}</h3>
-                      <p style={{ color: '#64748b', fontSize: '13px', margin: '4px 0 0' }}>Qty: {item.quantity}</p>
+                  <div key={item.productId}
+                    className="flex items-center gap-4 py-4 border-b border-gray-50 group">
+
+                    {/* Image */}
+                    <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
+                      {item.image
+                        ? <img
+                            src={`http://localhost:4000/${item.image}`}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                            onError={e => { e.target.style.display = 'none'; }}
+                          />
+                        : <Package size={18} className="text-gray-200" />}
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontWeight: '800', margin: '0 0 4px' }}>£{(item.price * item.quantity).toFixed(2)}</p>
-                      <button onClick={() => handleRemove(item.productId)} disabled={removing === item.productId} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }}>
-                        {removing === item.productId ? '...' : 'Remove'}
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-black truncate">{item.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        £{item.price?.toFixed(2)} × {item.quantity}
+                      </p>
+                    </div>
+
+                    {/* Price + Remove */}
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <p className="text-sm font-bold text-black">
+                        £{(item.price * item.quantity).toFixed(2)}
+                      </p>
+                      <button
+                        onClick={() => handleRemove(item.productId)}
+                        disabled={removing === item.productId}
+                        className="p-1.5 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                        {removing === item.productId
+                          ? <div className="w-3 h-3 border border-gray-300 border-t-transparent rounded-full animate-spin" />
+                          : <Trash2 size={13} />}
                       </button>
                     </div>
                   </div>
                 ))}
+
+                {/* Subtotal row */}
+                <div className="flex justify-between items-center pt-4">
+                  <span className="text-xs text-gray-400">Subtotal</span>
+                  <span className="text-sm font-semibold text-black">£{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-400">Shipping</span>
+                  <span className="text-sm font-semibold text-black">£{shipping.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                  <span className="text-sm font-bold text-black">Total</span>
+                  <span className="text-xl font-bold text-black">£{total.toFixed(2)}</span>
+                </div>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e8ecef', height: 'fit-content' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>Summary</h2>
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', display: 'block', marginBottom: '8px' }}>LINKED PRESCRIBER</label>
-                  <select value={prescriberId} onChange={e => setPrescriberId(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              {/* ── Order Summary / Checkout ── */}
+              <div className="space-y-6">
+
+                {/* Prescriber */}
+                <div>
+                  <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                    <User size={11} /> Linked Prescriber
+                  </label>
+                  <select
+                    value={prescriberId}
+                    onChange={e => setPrescriberId(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-black transition-colors bg-white text-black">
                     <option value="">Select a prescriber</option>
                     {prescribers.map((p, idx) => (
                       <option key={idx} value={p.prescriberId?.prescriberId || ''}>
-                        {p.prescriberId?.name || `${p.prescriberId?.firstName || ''} ${p.prescriberId?.lastName || ''}`.trim()}
+                        {p.prescriberId?.name ||
+                          `${p.prescriberId?.firstName || ''} ${p.prescriberId?.lastName || ''}`.trim()}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', display: 'block', marginBottom: '8px' }}>DELIVERY ADDRESS</label>
-                  <input placeholder="Address Line 1" value={deliveryAddress.line1} onChange={e => setDelivery({ ...deliveryAddress, line1: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '8px', boxSizing: 'border-box' }} />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <input placeholder="City" value={deliveryAddress.city} onChange={e => setDelivery({ ...deliveryAddress, city: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }} />
-                    <input placeholder="Postcode" value={deliveryAddress.postcode} onChange={e => setDelivery({ ...deliveryAddress, postcode: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }} />
+
+                {/* Delivery Address */}
+                <div>
+                  <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                    <MapPin size={11} /> Delivery Address
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      placeholder="Address Line 1"
+                      value={deliveryAddress.line1}
+                      onChange={e => setDelivery({ ...deliveryAddress, line1: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-black transition-colors" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        placeholder="City"
+                        value={deliveryAddress.city}
+                        onChange={e => setDelivery({ ...deliveryAddress, city: e.target.value })}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-black transition-colors" />
+                      <input
+                        placeholder="Postcode"
+                        value={deliveryAddress.postcode}
+                        onChange={e => setDelivery({ ...deliveryAddress, postcode: e.target.value })}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-black transition-colors" />
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                  <span style={{ fontWeight: '700' }}>Total</span>
-                  <span style={{ fontWeight: '800', fontSize: '18px' }}>£{(subtotal + 5).toFixed(2)}</span>
-                </div>
-                <button onClick={handleCheckout} disabled={checkingOut} style={{ width: '100%', padding: '14px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', opacity: checkingOut ? 0.7 : 1 }}>
-                  {checkingOut ? 'Processing...' : 'Place Order'}
+
+                {/* Place Order */}
+                <button
+                  onClick={handleCheckout}
+                  disabled={checkingOut}
+                  className="w-full flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white text-sm font-semibold py-4 rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                  {checkingOut ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing...
+                    </>
+                  ) : 'Place Order'}
                 </button>
+
+                <p className="text-[10px] text-gray-300 text-center leading-relaxed">
+                  By placing your order you agree to our terms. Prescription items require valid Rx before dispatch.
+                </p>
               </div>
+
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

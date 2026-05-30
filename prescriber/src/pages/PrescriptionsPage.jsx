@@ -33,17 +33,32 @@ const PrescriptionsPage = () => {
           >
             <Pencil 
               size={18} 
-              className={`${activeView === 'form' ? 'text-[#16a34a]' : 'text-gray-500'}`} 
+              className={`${activeView === 'form' ? 'text-gray-500' : 'text-gray-500'}`} 
             />
             <div className="flex flex-col items-start">
-              <span className={`text-base font-bold transition-colors ${activeView === 'form' ? 'text-[#16a34a]' : 'text-gray-500'}`}>
+              <span className={`text-base font-bold transition-colors ${activeView === 'form' ? 'text-slate-600' : 'text-gray-500'}`}>
                 Issue Prescription
               </span>
-              <div className={`h-[2px] transition-all duration-300 bg-[#22c55e] ${activeView === 'form' ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
+              <div className={`h-[2px] transition-all duration-300 bg-slate-600 ${activeView === 'form' ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
             </div>
           </button>
 
-         
+          {/* Prescriber Link Button (Added) */}
+          <button 
+            onClick={() => setActiveView('link')}
+            className={`flex items-center gap-3 group transition-all duration-300 ${activeView === 'link' ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}
+          >
+            <LinkIcon 
+              size={18} 
+              className={`${activeView === 'link' ? 'text-gray-500' : 'text-gray-500'}`} 
+            />
+            <div className="flex flex-col items-start">
+              <span className={`text-base font-bold transition-colors ${activeView === 'link' ? 'text-slate-600' : 'text-gray-500'}`}>
+                Prescriber Link
+              </span>
+              <div className={`h-[2px] transition-all duration-300 bg-slate-600 ${activeView === 'link' ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
+            </div>
+          </button>
           
         </div>
       </div>

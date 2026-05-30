@@ -138,3 +138,10 @@ export const checkUserPrescriptionStatus = async (req, res) => {
     res.status(500).json({ message: "Error checking status." });
   }
 };
+
+export const getMyPrescriptions = async (req, res) => {
+  const prescriptions = await Prescription.find({ user: req.user._id })
+    .populate('medications', 'name')
+    .sort({ createdAt: -1 });
+  res.json({ prescriptions });
+};
