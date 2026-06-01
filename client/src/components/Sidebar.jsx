@@ -20,7 +20,7 @@ const navItems = [
   {
     section: "FINANCE",
     items: [
-      { id: "threepot", label: "Three-Pot System", icon: "" },
+      { id: "threepot", label: "OnePort System", icon: "" },
       { id: "invoices", label: "Invoices", icon: "" },
       { id: "commission", label: "Commission", icon: "" },
     ]

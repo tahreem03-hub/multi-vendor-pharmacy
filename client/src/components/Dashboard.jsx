@@ -33,7 +33,7 @@ const Dashboard = () => {
       try {
         const [ordersRes, potsRes, prescriptionsRes, customersRes] = await Promise.all([
           API.get('/orders/admin/all?limit=5'),
-          API.get('/three-pot/admin/all'),
+          API.get('/port/admin/all'),
           API.get('/prescriptions/pending'),
           API.get('/users'),
         ]);

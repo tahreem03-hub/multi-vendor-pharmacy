@@ -26,7 +26,7 @@ const Threepot = () => {
   const fetchPots = async () => {
     setLoading(true);
     try {
-      const { data } = await API.get('/three-pot/admin/all');
+      const { data } = await API.get('/port/admin/all');
       const potsData = data.pots || [];
       setPots(potsData);
       if (potsData.length > 0 && !selected) setSelected(potsData[0]);
@@ -47,7 +47,7 @@ const Threepot = () => {
     if (!depositForm.amount || !selected) return;
     setSaving(true);
     try {
-      await API.patch(`/three-pot/admin/${selected.prescriberId}/set-deposit`, {
+      await API.patch(`/port/admin/${selected.prescriberId}/set-deposit`, {
         depositAmount: Number(depositForm.amount),
         depositPaidBy: depositForm.paidBy,
       });
@@ -65,7 +65,7 @@ const Threepot = () => {
     if (!selected) return;
     setSyncing(true);
     try {
-      await API.patch(`/three-pot/admin/${selected.prescriberId}/sync`);
+      await API.patch(`/port/admin/${selected.prescriberId}/sync`);
       toast.success('pot 1 synced');
       fetchPots();
     } catch (err) {

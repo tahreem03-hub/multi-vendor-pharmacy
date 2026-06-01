@@ -22,23 +22,8 @@ const PrescriberPrescriptions = () => {
     const fetchPrescriptions = async () => {
       try {
         setLoading(true);
-        // ✅ FIX: prescriptions submitted via PrescriptionForm go to /prescriptions
-        // prescriptions submitted via PrescriberLink go to /prescriber-link/requests
-        // Fetch both and merge
-        const [presRes, linkRes] = await Promise.allSettled([
-          API.get('/prescriptions/my'),
-          API.get('/prescriber-link/requests'),
-        ]);
-
-        const fromForm = presRes.status === 'fulfilled'
-          ? (presRes.value.data?.prescriptions || presRes.value.data || [])
-          : [];
-
-        const fromLink = linkRes.status === 'fulfilled'
-          ? (linkRes.value.data?.requests || linkRes.value.data || [])
-          : [];
-
-        setPrescriptions([...fromForm, ...fromLink]);
+        const response = await API.get('/prescriptions/pending');
+        setPrescriptions(response.data?.prescriptions || []);
       } catch (error) {
         console.error('Error fetching prescriptions:', error);
       } finally {
@@ -71,6 +56,16 @@ const PrescriberPrescriptions = () => {
     } catch (error) {
       console.error('Failed to delete:', error);
       alert(error.response?.data?.message || 'Unable to delete prescription');
+    }
+  };
+
+  const handleStatusUpdate = async (prescriptionId, status) => {
+    try {
+      const response = await API.patch(`/prescriptions/verify/${prescriptionId}`, { status });
+      setPrescriptions(prev => prev.map(p => p._id === prescriptionId ? response.data.prescription : p));
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      alert(error.response?.data?.message || 'Unable to update prescription status');
     }
   };
 
@@ -168,12 +163,30 @@ const PrescriberPrescriptions = () => {
                         {p.status || 'unknown'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => navigate(`/prescription-detail/${p._id}`)}
-                        className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-all">
-                        <Eye size={14} />
-                      </button>
+                    <td className="px-6 py-4 text-right space-x-2">
+                      {p.status === 'pending' ? (
+                        <>
+                          <button
+                            onClick={() => handleStatusUpdate(p._id, 'approved')}
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-black hover:bg-blue-700 transition-all"
+                          >
+                            approve
+                          </button>
+                          <button
+                            onClick={() => handleStatusUpdate(p._id, 'rejected')}
+                            className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-lg text-[10px] font-black hover:bg-slate-100 transition-all"
+                          >
+                            reject
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => navigate(`/prescription-detail/${p._id}`)}
+                          className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-all"
+                        >
+                          <Eye size={14} />
+                        </button>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button

@@ -13,7 +13,7 @@ import prescriptionRoutes from "./routes/prescriptionRoutes.js";
 import cartRoutes         from "./routes/cart.routes.js";
 import prescriberRoutes   from "./routes/prescriberRoutes.js";
 import patientRoutes      from "./routes/patient.routes.js";
-import threePotRoutes     from "./routes/Threepotroutes.js";
+import portRoutes         from "./routes/portRoutes.js";
 import stockRoutes        from "./routes/Stockroutes.js";
 import Orderroutes        from "./routes/Orderroutes.js";
 import sliderRoutes       from "./routes/sliderRoutes.js"; 
@@ -80,7 +80,8 @@ app.use("/api/prescriber-link", prescriberRoutes);
 
 app.use("/api/cart",            cartRoutes);
 app.use("/api/orders",          Orderroutes);
-app.use("/api/three-pot",       threePotRoutes);
+app.use("/api/port",           portRoutes);
+app.use("/api/three-pot",       portRoutes); // Backward compatibility
 app.use("/api/stock",           stockRoutes);
 app.use("/api/sliders",         sliderRoutes);
 app.use("/api/contact", contactRoutes);

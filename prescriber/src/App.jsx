@@ -3,28 +3,30 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
-import Login              from './pages/Login';
-import Register           from './pages/Register';
-import Home               from './pages/Home';
-import CartPage           from './pages/CartPage';
-import PrescriberLayout    from './pages/PrescriberLayout';
-import TrendPro           from './pages/TrendPro';
-import ProductDetails     from './pages/ProductDetails';
-import PrescriberLink     from './pages/PrescriberLink';
-import PrescriptionForm   from './pages/Prescription-form';
-import PrescriptionsPage  from './pages/PrescriptionsPage';
-import Injectable         from './pages/Injectable';
-import About              from './components/About';
-import Contact            from './components/Contact';
-import MediaManager       from './components/MediaManager';
-import PrescriberPosts    from './components/PrescriberPosts';
-import Skincare           from './pages/Skincare';
-import SliderManager      from './components/SliderManager';
-import Header             from './components/Header';
-import Footer             from './components/Footer';
+// Pages & Components
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Home from './pages/Home';
+import CartPage from './pages/CartPage';
+import PrescriberLayout from './pages/PrescriberLayout';
+import TrendPro from './pages/TrendPro';
+import ProductDetails from './pages/ProductDetails';
+import PrescriberLink from './pages/PrescriberLink';
+import PrescriptionForm from './pages/Prescription-form';
+import PrescriptionsPage from './pages/PrescriptionsPage';
+import Injectable from './pages/Injectable';
+import About from './components/About';
+import Contact from './components/Contact';
+import MediaManager from './components/MediaManager';
+import PrescriberPosts from './components/PrescriberPosts';
+import Skincare from './pages/Skincare';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import PrescriberData from './pages/PrescriberData';
 
 import './App.css';
 
+// Wrappers
 const PrescriberRoute = ({ children }) => {
   const { isLoggedIn, isPrescriber } = useAuth();
   if (!isLoggedIn || !isPrescriber) return <Navigate to="/login" replace />;
@@ -54,59 +56,31 @@ const AuthLayout = ({ children }) => (
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* ── Public — WITH header/footer ── */}
-      <Route path="/"            element={<MainLayout><Home /></MainLayout>} />
-      <Route path="/about"       element={<MainLayout><About /></MainLayout>} />
-      <Route path="/contact"     element={<MainLayout><Contact /></MainLayout>} />
+      {/* Public Routes */}
+      <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+      <Route path="/about" element={<MainLayout><About /></MainLayout>} />
+      <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
       <Route path="/injectables" element={<MainLayout><Injectable /></MainLayout>} />
-      <Route path="/Skincare"    element={<MainLayout><Skincare /></MainLayout>} />
+      <Route path="/Skincare" element={<MainLayout><Skincare /></MainLayout>} />
       <Route path="/product/:id" element={<MainLayout><ProductDetails /></MainLayout>} />
 
-      {/* ── Auth pages — NO header/footer ── */}
-      <Route path="/login"    element={<AuthLayout><Login /></AuthLayout>} />
+      {/* Auth Routes */}
+      <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
       <Route path="/register" element={<AuthLayout><Register /></AuthLayout>} />
 
-      {/* ── Protected — WITH header/footer ── */}
-      <Route path="/cart" element={
-        <ProtectedRoute>
-          <MainLayout><CartPage /></MainLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/prescription-form" element={
-        <ProtectedRoute>
-          <MainLayout><PrescriptionForm /></MainLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/prescriptions" element={
-        <ProtectedRoute>
-          <MainLayout><PrescriptionsPage /></MainLayout>
-        </ProtectedRoute>
-      } />
-      
+      {/* Protected Routes */}
+      <Route path="/cart" element={<ProtectedRoute><MainLayout><CartPage /></MainLayout></ProtectedRoute>} />
+      <Route path="/prescription-form" element={<ProtectedRoute><MainLayout><PrescriptionForm /></MainLayout></ProtectedRoute>} />
+      <Route path="/prescriptions" element={<ProtectedRoute><MainLayout><PrescriptionsPage /></MainLayout></ProtectedRoute>} />
 
-      {/* ── Prescriber only — WITH header/footer ── */}
-      <Route path="/trendpro" element={
-        <PrescriberRoute>
-          <MainLayout><TrendPro isHomePage={false} /></MainLayout>
-        </PrescriberRoute>
-      } />
-      <Route path="/prescriber-link" element={
-        <PrescriberRoute>
-          <MainLayout><PrescriberLink /></MainLayout>
-        </PrescriberRoute>
-      } />
-      <Route path="/media-manager" element={
-        <PrescriberRoute>
-          <MainLayout><MediaManager /></MainLayout>
-        </PrescriberRoute>
-      } />
-      <Route path="/prescriber-posts" element={
-        <PrescriberRoute>
-          <MainLayout><PrescriberPosts /></MainLayout>
-        </PrescriberRoute>
-      } />
+      {/* Prescriber Only Routes */}
+      <Route path="/trendpro" element={<PrescriberRoute><MainLayout><TrendPro isHomePage={false} /></MainLayout></PrescriberRoute>} />
+      <Route path="/prescriber-link" element={<PrescriberRoute><MainLayout><PrescriberLink /></MainLayout></PrescriberRoute>} />
+      <Route path="/media-manager" element={<PrescriberRoute><MainLayout><MediaManager /></MainLayout></PrescriberRoute>} />
+      <Route path="/prescriber-posts" element={<PrescriberRoute><MainLayout><PrescriberPosts /></MainLayout></PrescriberRoute>} />
+      <Route path="/prescriber-data" element={<PrescriberRoute><MainLayout><PrescriberData /></MainLayout></PrescriberRoute>} />
 
-      {/* ── Dashboard — NO header/footer ── */}
+      {/* Dashboard (Layout handles internal tabs) */}
       <Route path="/dashboard" element={
         <PrescriberRoute>
           <PrescriberLayout />

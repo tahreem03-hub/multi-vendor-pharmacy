@@ -1,13 +1,13 @@
 import cron from "node-cron";
 import Stock from "../models/Stock.js";
-import ThreePot from "../models/ThreePort.js";
+import OnePort from "../models/OnePort.js";
 
 // ─────────────────────────────────────────────────────────────
 // EXPIRY ALERT JOB
 // Runs every night at midnight
 // 1. Re-checks all stock expiry dates
 // 2. Updates expiryAlert flag on each Stock document
-// 3. Pushes unread alerts into the prescriber's ThreePot alerts
+// 3. Pushes unread alerts into the prescriber's OnePort alerts
 // ─────────────────────────────────────────────────────────────
 
 const runExpiryCheck = async () => {
@@ -27,9 +27,9 @@ const runExpiryCheck = async () => {
 
       const newAlert = stock.expiryAlert;
 
-      // Only push a ThreePot alert if the flag changed (avoid duplicate alerts)
+      // Only push a OnePort alert if the flag changed (avoid duplicate alerts)
       if (newAlert !== "none" && newAlert !== previousAlert) {
-        const pot = await ThreePot.findOne({ prescriberId: stock.prescriberId });
+        const pot = await OnePort.findOne({ prescriberId: stock.prescriberId });
         if (pot) {
           // Check if an unread alert for this stock already exists
           const alreadyAlerted = pot.alerts.some(
@@ -70,7 +70,7 @@ const runExpiryCheck = async () => {
 
 // ─────────────────────────────────────────────────────────────
 // LOW STOCK CHECK
-// Also runs nightly — pushes low stock alerts into ThreePot
+// Also runs nightly — pushes low stock alerts into OnePort
 // ─────────────────────────────────────────────────────────────
 const runLowStockCheck = async () => {
   console.log("[LowStockJob] Running low stock check...");
@@ -79,7 +79,7 @@ const runLowStockCheck = async () => {
     const lowStock = await Stock.find({ isLowStock: true });
 
     for (const stock of lowStock) {
-      const pot = await ThreePot.findOne({ prescriberId: stock.prescriberId });
+      const pot = await OnePort.findOne({ prescriberId: stock.prescriberId });
       if (!pot) continue;
 
       const alreadyAlerted = pot.alerts.some(

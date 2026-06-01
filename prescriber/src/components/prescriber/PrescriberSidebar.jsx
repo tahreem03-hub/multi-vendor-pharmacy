@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BiCheck } from 'react-icons/bi';
 import {
   MdDashboard, MdInventory, MdPeople, MdAssignment,
@@ -10,7 +11,8 @@ import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { key: 'dashboard',       label: 'Dashboard',      icon: MdDashboard },
-  { key: 'threepot',        label: 'Three-Pot',      icon: MdAccountBalanceWallet },
+{
+  key: 'oneport', label: 'OnePort', icon: MdAccountBalanceWallet },
   { key: 'orders',          label: 'My Orders',      icon: MdReceipt },
   { key: 'stock',           label: 'My Stock',       icon: MdInventory },
   { key: 'patients',        label: 'Patients',       icon: MdPeople },
@@ -18,12 +20,13 @@ const navItems = [
   { key: 'commission',      label: 'Commission',     icon: MdBarChart },
   { key: 'alerts',          label: 'Alerts',         icon: MdNotifications },
 { key: 'contact-setting', label: 'Contact setting', icon: MdPermMedia },   // Linked here
-  { key: 'settings',        label: 'Settings',       icon: MdSettings },
+  { key: 'settings',        label: 'Settings',      icon: MdSettings },
+  { key: 'data',            label: 'Data',          icon: MdEditAttributes }
 ];
-
 const PrescriberSidebar = ({ activePage, setActivePage }) => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <aside className={`
@@ -72,9 +75,11 @@ const PrescriberSidebar = ({ activePage, setActivePage }) => {
           return (
             <button
               key={key}
+              type="button"
               onClick={() => {
                 console.log("CLICKED:", key);
                 setActivePage(key);
+                navigate(`/dashboard?page=${key}`);
               }}
               title={collapsed ? label : ''}
               className={`

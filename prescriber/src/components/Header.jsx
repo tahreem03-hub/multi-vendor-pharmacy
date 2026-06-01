@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCart, Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -7,8 +7,10 @@ import API from '../api/axios';
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLeftSearchVisible, setIsLeftSearchVisible] = useState(false);
   const [products, setProducts] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
+  const leftSearchRef = useRef(null);
   const navigate = useNavigate();
   
   const { cartCount } = useCart();
@@ -25,6 +27,10 @@ const Header = () => {
     };
     fetchAllProducts();
   }, []);
+
+  useEffect(() => {
+    if (isLeftSearchVisible && leftSearchRef.current) leftSearchRef.current.focus();
+  }, [isLeftSearchVisible]);
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -46,7 +52,7 @@ const Header = () => {
   return (
     <header className="bg-slate-900 text-white  font-sans">
       {/* Top Bar Layout: Added flex-wrap for mobile */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center justify-between gap-4">
         
         {/* Logo Section */}
         <Link to="/" className="flex items-center gap-1 shrink-0 select-none">
@@ -55,52 +61,66 @@ const Header = () => {
           </span>
         </Link>
 
-        {/* Center Search Input Field: Added w-full and responsive order */}
-        <div className="flex-1 w-full md:max-w-xl relative order-3 md:order-2">
-          <div className="relative flex items-center border  rounded-md px-3 py-2">
-            <Search size={18} className="text-neutral-200 mr-2 shrink-0" />
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchOpen(true)}
-              placeholder="Search products..."
-              className="w-full bg-transparent text-sm text-gray-500 outline-none placeholder-neutral-200"
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery("")}
-                className="text-neutral-400 hover:text-white ml-2"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
 
-          {/* Search Dropdown Panel */}
-          {isSearchOpen && filteredResults.length > 0 && (
-            <div className="absolute top-full left-0 mt-1 w-full bg-neutral-900 border  rounded-md shadow-xl overflow-hidden z-[300]">
-              {filteredResults.map((item) => (
-                <div 
-                  key={item._id}
-                  onClick={() => handleResultClick(item._id)}
-                  className="p-3 text-sm text-neutral-300 hover:bg-neutral-800 cursor-pointer border-b border-neutral-800 last:border-none transition-colors"
-                >
-                  {item.name}
+        {/* Inline search container (appears on click, to the right of the logo) */}
+        <div className="order-2 w-full md:w-1/3 lg:w-1/4 mx-2">
+          {isLeftSearchVisible && (
+            <div className="relative">
+              <div className="bg-neutral-900 border rounded-md px-3 py-2 flex items-center">
+                <Search size={18} className="text-neutral-200 mr-2 shrink-0" />
+                <input
+                  ref={leftSearchRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchOpen(true)}
+                  placeholder="Search products..."
+                  className="w-full bg-transparent text-sm text-gray-500 outline-none placeholder-neutral-200"
+                />
+                <button onClick={() => setIsLeftSearchVisible(false)} className="text-neutral-400 hover:text-white ml-2">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {isSearchOpen && filteredResults.length > 0 && (
+                <div className="absolute left-0 top-full mt-1 w-full bg-neutral-900 border rounded-md shadow-xl overflow-hidden z-[300]">
+                  {filteredResults.map((item) => (
+                    <div
+                      key={item._id}
+                      onClick={() => handleResultClick(item._id)}
+                      className="p-3 text-sm text-neutral-300 hover:bg-neutral-800 cursor-pointer border-b border-neutral-800 last:border-none transition-colors"
+                    >
+                      {item.name}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
 
-        {/* Right Section: Cart */}
-        <Link to="/cart" className="flex items-center gap-2 bg-white text-black px-3 py-2 sm:px-4 rounded-sm hover:bg-neutral-200 transition-colors shrink-0 order-2 md:order-3">
-          <ShoppingCart size={16} strokeWidth={2.5} />
-          <span className="text-[10px] sm:text-xs font-bold tracking-wide uppercase">
-            Cart ({cartCount})
-          </span>
-        </Link>
+        {/* Right Section: Search Toggle + Cart */}
+        <div className="flex items-center shrink-0 order-3">
+          <button
+            onClick={() => setIsLeftSearchVisible(v => !v)}
+            aria-label="Toggle search"
+            className="text-white p-2 rounded-md hover:bg-neutral-800 mr-2"
+          >
+            <Search size={18} />
+          </button>
+
+          <Link to="/cart" className="flex items-center gap-2 bg-white text-black px-3 py-2 sm:px-4 rounded-sm hover:bg-neutral-200 transition-colors">
+            <ShoppingCart size={16} strokeWidth={2.5} />
+            <span className="text-[10px] sm:text-xs font-bold tracking-wide uppercase">
+              Cart ({cartCount})
+            </span>
+          </Link>
+        </div>
       </div>
+
+      
+
+      
 
       {/* Sub-Navigation Strip: Added flex-wrap for smaller screens */}
       <div className="border-t border-neutral-900 bg-slate-900">

@@ -1,7 +1,7 @@
 import Order from "../models/Order.js";
 import Medicine from "../models/medicines.js";
 import Stock from "../models/Stock.js";
-import ThreePot from "../models/ThreePort.js";
+import OnePort from "../models/OnePort.js";
 import User from "../models/User.js";
 import { syncPot1 } from "./helpers/syncPot1.js";
 
@@ -98,7 +98,7 @@ export const createOrder = async (req, res) => {
       calculateCommission(revenueExVat, cogsExVat, totalIncVat);
 
     // ── Get pot snapshot before changes ───────────────────────
-    const pot        = await ThreePot.findOne({ prescriberId });
+    const pot        = await OnePort.findOne({ prescriberId });
     const pot1Before = pot?.pot1?.stockValueExVat || 0;
 
     // ── Save the order ────────────────────────────────────────
@@ -132,7 +132,7 @@ export const createOrder = async (req, res) => {
     await syncPot1(prescriberId);
 
     if (pot) {
-      const freshPot  = await ThreePot.findOne({ prescriberId });
+      const freshPot  = await OnePort.findOne({ prescriberId });
       const pot1After = freshPot?.pot1?.stockValueExVat || 0;
 
       order.potSnapshot = {

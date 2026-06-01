@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PrescriberSidebar from '../components/prescriber/PrescriberSidebar';
 
 // ── Real page imports ─────────────────────────────────────────
@@ -12,9 +13,10 @@ import PrescriberPatient from './Prescriberpatients';
 import PrescriberPrescriptions from './PrescriberPrescriptions';
 import PrescriberAlerts from './PrescriberAlerts';
 import PrescriberSettings from './PrescriberSettings';
-import Prescriberthreepot from './Prescriberthreepot';
+import PrescriberOnePort from './PrescriberOnePort';
 import PrescriberPosts from '../components/PrescriberPosts';
 import ContactSetting from './ContactSetting';
+import PrescriberData from './PrescriberData';
 
 
 // ── Updated placeholder to fit the strict white & slate-600 setup ───────────────────────
@@ -31,7 +33,7 @@ const renderPage = (activePage) => {
   switch (activePage) {
     case 'dashboard':       return <PrescriberDashboard />;
     case 'media-manager':   return <MediaManager />;
-    case 'threepot':        return <Prescriberthreepot/>;
+    case 'oneport':         return <PrescriberOnePort/>;
     case 'orders':          return <PrescriberOrders />;
     case 'stock':           return <PrescriberStock/>;
     case 'patients':        return <PrescriberPatient />;
@@ -41,13 +43,21 @@ const renderPage = (activePage) => {
     case 'settings':        return <PrescriberSettings />;
     case 'footer-settings': return <FooterSetting />;
     case 'posts':           return <PrescriberPosts />;
-case 'contact-setting': return <ContactSetting/>;
+    case 'contact-setting': return <ContactSetting />;
+    case 'data':            return <PrescriberData />;
     default:                return <PrescriberDashboard />;
   }
 };
 
 const PrescriberLayout = () => {
-  const [activePage, setActivePage] = useState('dashboard');
+  const [searchParams] = useSearchParams();
+  const [activePage, setActivePage] = useState(() => searchParams.get('page') || 'dashboard');
+
+  useEffect(() => {
+    const page = searchParams.get('page') || 'dashboard';
+    setActivePage(page);
+  }, [searchParams]);
+
   console.log("Current activePage state is:", activePage);
 
   return (

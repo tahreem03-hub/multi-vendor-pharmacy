@@ -1,5 +1,5 @@
 import User from "../models/User.js";
-import ThreePot from "../models/ThreePort.js"
+import OnePort from "../models/OnePort.js"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -59,7 +59,7 @@ export const register = async (req, res, next) => {
 
     // 3. Create the accompanying record if the user is a prescriber
     if (user.role === "prescriber") {
-      await ThreePot.create({
+      await OnePort.create({
         prescriber: user._id,
         prescriberId: user.prescriberId || prescriberId || "", // Pulls safely from user instance or fallback payload
       });
@@ -86,7 +86,7 @@ export const register = async (req, res, next) => {
       // Clean up created entities if email dispatch fails so they can retry registering safely
       await User.findByIdAndDelete(user._id);
       if (user.role === "prescriber") {
-        await ThreePot.deleteOne({ prescriber: user._id });
+        await OnePort.deleteOne({ prescriber: user._id });
       }
       return res.status(500).json({ message: "Failed to send verification OTP email. Registration rolled back." });
     }

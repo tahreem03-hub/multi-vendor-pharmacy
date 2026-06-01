@@ -8,7 +8,7 @@ import {
   getMyPrescriptions
 } from "../controllers/prescription.controller.js";
 import upload from "../middleware/multer.js";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { protect, staffOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -26,8 +26,8 @@ router.post("/upload",              protect,           upload.single("image"), u
 router.get("/status/:medicineId",   protect,           checkUserPrescriptionStatus);
 router.get('/my', protect, getMyPrescriptions);
 
-// Admin only
-router.get("/pending",              ...adminOnly,      getPendingPrescriptions);
-router.patch("/verify/:id",         ...adminOnly,      verifyPrescription);
+// Staff only (admin or prescriber)
+router.get("/pending",              ...staffOnly,      getPendingPrescriptions);
+router.patch("/verify/:id",         ...staffOnly,      verifyPrescription);
 
 export default router;

@@ -22,7 +22,7 @@ const Commission = () => {
     try {
       const [summaryRes, potsRes] = await Promise.all([
         API.get('/orders/admin/commission-summary'),
-        API.get('/three-pot/admin/all'),
+        API.get('/port/admin/all'),
       ]);
 
       setSummary(summaryRes.data.summary || []);
@@ -64,7 +64,7 @@ const Commission = () => {
     }
     setSaving(true);
     try {
-      await API.post(`/three-pot/admin/${prescriberId}/record-payout`, {
+      await API.post(`/port/admin/${prescriberId}/record-payout`, {
         month,
         amountExVat:   Number(amount),
         invoiceNumber,

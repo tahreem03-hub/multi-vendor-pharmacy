@@ -1,13 +1,13 @@
 import Stock from "../models/Stock.js";
-import ThreePot from "../models/ThreePort.js"
+import OnePort from "../models/OnePort.js"
 import { syncPot1 } from "./helpers/syncPot1.js";
 import User from "../models/User.js";
 import Medicine from "../models/medicines.js";
 
 // ── Helper: check if adding stock would breach Pot 2 deposit ──
 const checkDepositGuard = async (prescriberId, newStockCostExVat) => {
-  const pot = await ThreePot.findOne({ prescriberId });
-  if (!pot) return { allowed: false, message: "ThreePot record not found" };
+  const pot = await OnePort.findOne({ prescriberId });
+  if (!pot) return { allowed: false, message: "OnePort record not found" };
 
   const currentPot1  = pot.pot1.stockValueExVat;
   const pot2Deposit  = pot.pot2.depositAmount;
