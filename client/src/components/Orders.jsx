@@ -3,9 +3,7 @@ import {
   BiPackage, 
   BiRefresh, 
   BiSearch, 
-  BiCheckShield,
-  BiShow,
-  BiChevronRight
+  BiShow
 } from 'react-icons/bi';
 import Header from './Header';
 import API from '../api/axios';
@@ -24,12 +22,12 @@ const STATUS_NEXT = {
   dispatched: 'delivered',
 };
 
-// high contrast action buttons
+// High contrast action buttons
 const STATUS_ACTION = {
-  pending:    { label: 'verify rx',   cls: 'bg-black text-white hover:bg-gray-800' },
-  verified:   { label: 'dispense',    cls: 'bg-black text-white hover:bg-gray-800' },
-  dispensing: { label: 'dispatch',    cls: 'bg-black text-white hover:bg-gray-800' },
-  dispatched: { label: 'delivered',   cls: 'bg-emerald-600 text-white hover:bg-emerald-700' },
+  pending:    { label: 'verify rx',    cls: 'bg-black text-white hover:bg-gray-800' },
+  verified:   { label: 'dispense',     cls: 'bg-black text-white hover:bg-gray-800' },
+  dispensing: { label: 'dispatch',     cls: 'bg-black text-white hover:bg-gray-800' },
+  dispatched: { label: 'delivered',    cls: 'bg-emerald-600 text-white hover:bg-emerald-700' },
 };
 
 const STATUS_THEME = {
@@ -56,6 +54,7 @@ const Orders = () => {
     try {
       const params = new URLSearchParams({ limit: LIMIT, page });
       if (statusFilter) params.append('status', statusFilter);
+      // Fetches standard order flow
       const { data } = await API.get(`/orders/admin/all?${params}`);
       setOrders(data.orders || []);
       setTotal(data.count || 0);
@@ -84,7 +83,6 @@ const Orders = () => {
       
       <div className="max-w-[1600px] mx-auto p-4 lg:p-8">
         
-        {/* top branding section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -104,7 +102,6 @@ const Orders = () => {
           </button>
         </div>
 
-        {/* filter bar */}
         <div className="bg-white border border-gray-200 rounded-xl p-2 mb-6 flex flex-col md:flex-row gap-2 shadow-sm">
           <div className="relative flex-1">
             <BiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -129,7 +126,6 @@ const Orders = () => {
           </select>
         </div>
 
-        {/* orders table */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
           <table className="w-full border-collapse">
             <thead>
@@ -152,18 +148,14 @@ const Orders = () => {
                 return (
                   <React.Fragment key={order._id}>
                     <tr className={`group transition-all ${isExp ? 'bg-gray-50' : 'hover:bg-gray-50/50'}`}>
-                      <td className="py-5 px-6 font-mono text-[11px] font-bold text-gray-500">
-                        {order._id?.slice(-8).toUpperCase()}
-                      </td>
+                      <td className="py-5 px-6 font-mono text-[11px] font-bold text-gray-500">{order._id?.slice(-8).toUpperCase()}</td>
                       <td className="py-5 px-6">
                         <div className="flex flex-col">
                           <span className="font-bold text-black text-sm">{order.customer?.firstName} {order.customer?.lastName}</span>
                           <span className="text-[11px] font-bold text-gray-400">verified account</span>
                         </div>
                       </td>
-                      <td className="py-5 px-6">
-                        <span className="text-sm font-black text-black">{fmt(order.financials?.revenueExVat)}</span>
-                      </td>
+                      <td className="py-5 px-6"><span className="text-sm font-black text-black">{fmt(order.financials?.revenueExVat)}</span></td>
                       <td className="py-5 px-6 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded border text-[9px] font-black ${STATUS_THEME[order.status]}`}>
                            {order.status}
@@ -200,8 +192,8 @@ const Orders = () => {
                               {order.items?.map((item, i) => (
                                 <div key={i} className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                                   <div className="flex items-center gap-4">
-                                     <div className="w-8 h-8 bg-gray-100 rounded text-black flex items-center justify-center font-black text-[10px]">{item.quantity}x</div>
-                                     <span className="text-xs font-bold text-gray-800">{item.productName}</span>
+                                      <div className="w-8 h-8 bg-gray-100 rounded text-black flex items-center justify-center font-black text-[10px]">{item.quantity}x</div>
+                                      <span className="text-xs font-bold text-gray-800">{item.productName}</span>
                                   </div>
                                   <span className="font-mono text-xs font-bold text-black">{fmt(item.unitRevenueExVat * item.quantity)}</span>
                                 </div>
@@ -235,7 +227,6 @@ const Orders = () => {
             </tbody>
           </table>
         </div>
-
       </div>
     </div>
   );

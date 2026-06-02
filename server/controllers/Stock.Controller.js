@@ -6,11 +6,21 @@ import Medicine from "../models/medicines.js";
 
 // ── Helper: check if adding stock would breach Pot 2 deposit ──
 const checkDepositGuard = async (prescriberId, newStockCostExVat) => {
-  const pot = await OnePort.findOne({ prescriberId });
-  if (!pot) return { allowed: false, message: "OnePort record not found" };
+  let pot = await OnePort.findOne({ prescriberId });
+  if (!pot) {
+    const prescriberUser = await User.findOne({ prescriberId });
+    if (prescriberUser) {
+      pot = await OnePort.create({
+        prescriber: prescriberUser._id,
+        prescriberId: prescriberUser.prescriberId,
+      });
+    } else {
+      return { allowed: false, message: "OnePort record not found for prescriber" };
+    }
+  }
 
-  const currentPot1  = pot.pot1.stockValueExVat;
-  const pot2Deposit  = pot.pot2.depositAmount;
+  const currentPot1  = pot.stockValue || 0;
+  const pot2Deposit  = pot.cashBalance || 0;
   const projected    = currentPot1 + newStockCostExVat;
 
   if (projected > pot2Deposit) {

@@ -22,24 +22,17 @@ export const addToCart = async (req, res) => {
 
   try {
     let cart = await Cart.findOne({ userId });
-
     if (!cart) {
       cart = new Cart({ userId, items: [], totalAmount: 0 });
     }
 
-    // ✅ FIX: compare as strings on BOTH sides — no ObjectId conversion
     const existingIndex = cart.items.findIndex(
       (item) => item.productId.toString() === productId.toString()
     );
 
-    console.log("📦 Existing item index:", existingIndex, "for productId:", productId);
-    console.log("🛒 Current cart items:", cart.items.map(i => i.productId.toString()));
-
     if (existingIndex > -1) {
       cart.items[existingIndex].quantity += quantity || 1;
-      console.log("✅ Incremented quantity for:", name);
     } else {
-      // ✅ FIX: store productId as STRING not ObjectId to avoid comparison issues
       cart.items.push({
         productId: productId.toString(),
         name,
@@ -47,7 +40,6 @@ export const addToCart = async (req, res) => {
         image: image || "",
         quantity: quantity || 1,
       });
-      console.log("✅ Added new item:", name, "Total items now:", cart.items.length);
     }
 
     cart.totalAmount = cart.items.reduce(
@@ -55,9 +47,7 @@ export const addToCart = async (req, res) => {
     );
 
     await cart.save();
-    console.log("✅ Cart saved. Total items:", cart.items.length);
     return res.status(200).json(cart);
-
   } catch (error) {
     console.error("❌ addToCart error:", error.message);
     res.status(500).json({ message: "Error adding to cart", error: error.message });
@@ -81,17 +71,18 @@ export const removeFromCart = async (req, res) => {
     );
 
     await cart.save();
-    console.log("✅ Item removed, remaining:", cart.items.length);
     res.status(200).json(cart);
   } catch (error) {
     console.error("❌ removeFromCart error:", error.message);
     res.status(500).json({ message: "Error removing from cart", error: error.message });
   }
 };
+
 export const clearCart = async (req, res) => {
   try {
+    // FIX: Changed { user: ... } to { userId: ... } to match schema
     const cart = await Cart.findOneAndUpdate(
-      { user: req.user._id },
+      { userId: req.user._id }, 
       { items: [], totalAmount: 0 },
       { new: true }
     );

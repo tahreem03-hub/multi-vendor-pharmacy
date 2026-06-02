@@ -17,7 +17,7 @@ import {
 } from "../controllers/prescriberController.js";
 
 import { protect, adminOnly,prescriberOnly } from "../middleware/authMiddleware.js";
-import upload from "../middleware/multer.js";
+
 
 // --- USER ROUTES ---
 // Regular users can search, link, and submit
@@ -27,7 +27,7 @@ router.post("/link",               protect, sendLinkRequest);
 router.get("/patients",            ...prescriberOnly, getMyPatients);
 router.delete("/patients/:patientId", ...prescriberOnly, deleteMyPatient);
 router.get("/active-links",        protect, getActiveLinks);
-router.post("/request-prescription", protect, upload.single("consentFile"), submitPrescriptionRequest);
+router.post("/request-prescription", protect, submitPrescriptionRequest);
 
 // Change these 4 admin routes — remove the separate protect, spread adminOnly
 router.get("/admin/pending",              ...adminOnly, getAdminPendingLinks);

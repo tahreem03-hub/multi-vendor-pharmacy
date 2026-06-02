@@ -182,6 +182,8 @@ export const deleteMyPatient = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // SUBMIT PRESCRIPTION REQUEST
 // ─────────────────────────────────────────────────────────────
+// SUBMIT PRESCRIPTION REQUEST
+// ─────────────────────────────────────────────────────────────
 export const submitPrescriptionRequest = async (req, res) => {
   try {
     const {
@@ -205,13 +207,14 @@ export const submitPrescriptionRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "Consent documentation is required" });
-    }
+    // ✅ FIXED: Removed the req.file check as consent documentation is no longer required
 
     let parsedProducts = [];
     try {
-      parsedProducts = productsRequired ? JSON.parse(productsRequired) : [];
+      // If productsRequired is already an array, use it; otherwise parse
+      parsedProducts = Array.isArray(productsRequired) 
+        ? productsRequired 
+        : (productsRequired ? JSON.parse(productsRequired) : []);
     } catch (err) {
       parsedProducts = [];
     }
@@ -225,7 +228,7 @@ export const submitPrescriptionRequest = async (req, res) => {
       treatment,
       productsRequired: parsedProducts,
       clinicalNotes,
-      consentDocumentation: req.file.path.replace(/\\/g, "/"),
+      // ✅ FIXED: Removed consentDocumentation reference
       status: "pending",
     });
 
@@ -288,7 +291,7 @@ export const getAdminPrescriptionRequests = async (req, res) => {
       medications:          item.productsRequired?.map((p) => ({ _id: p._id, name: p.name })) || [],
       clinicalNotes:        item.clinicalNotes || "",
       treatment:            item.treatment || "",
-      consentDocumentation: item.consentDocumentation ? `http://localhost:4000/${item.consentDocumentation}` : "",
+consentDocumentation: item.consentDocumentation ? `http://localhost:4000/${item.consentDocumentation}` : "No documentation provided",
       status:               item.status || "pending",
       createdAt:            item.createdAt,
     }));

@@ -16,7 +16,7 @@ import Orders from './components/Orders';
 import Prescriptions from './components/Prescriptions';
 import Products from './components/Products';
 import Customers from './components/Customers';
-import Threepot from './components/Threepot';
+import Onepot from './components/Onepot';
 import Invoices from './components/Invoices';
 import Commission from './components/Commission';
 import Setting from './components/Setting';
@@ -85,7 +85,7 @@ const DashboardLayout = () => {
     prescriptions: <Prescriptions />,
     products:      <Products />,
     customers:     <Customers />,
-    threepot:      <Threepot />,
+    onepot:      <Onepot/>,
     invoices:      <Invoices />,
     commission:    <Commission />,
     settings:      <Setting />,

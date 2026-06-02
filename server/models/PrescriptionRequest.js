@@ -60,7 +60,7 @@ const PrescriptionRequestSchema = new mongoose.Schema(
 
     consentDocumentation: {
       type: String,
-      required: true,
+      required: false,
     },
 
     status: {

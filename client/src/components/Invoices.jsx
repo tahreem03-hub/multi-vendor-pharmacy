@@ -10,10 +10,10 @@ const fmt = (n) =>
   })}`;
 
 const statusColors = {
-  delivered:  { label: 'paid',     cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  dispatched: { label: 'sent',     cls: 'bg-blue-50 text-blue-700 border-blue-100' },
+  delivered:  { label: 'paid',    cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+  dispatched: { label: 'sent',    cls: 'bg-blue-50 text-blue-700 border-blue-100' },
   pending:    { label: 'pending',  cls: 'bg-amber-50 text-amber-700 border-amber-100' },
-  cancelled:  { label: 'void',     cls: 'bg-rose-50 text-rose-700 border-rose-100' },
+  cancelled:  { label: 'void',    cls: 'bg-rose-50 text-rose-700 border-rose-100' },
   default:    { label: 'draft',    cls: 'bg-slate-50 text-slate-700 border-slate-100' },
 };
 
@@ -60,6 +60,22 @@ const Invoices = () => {
     inv.id.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Added export functionality
+  const handleExport = (inv) => {
+    const csvContent = [
+      ["Invoice ID", "Customer", "Date", "VAT", "Total", "Status"],
+      [inv.id, inv.customer, inv.date, inv.vat, inv.total, inv.status.label]
+    ].map(e => e.join(",")).join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${inv.id}.csv`;
+    a.click();
+    toast.success('invoice exported');
+  };
+
   const totalInvoiced = invoices.reduce((s, i) => s + i.total, 0);
   const totalVat      = invoices.reduce((s, i) => s + i.vat,   0);
 
@@ -67,14 +83,11 @@ const Invoices = () => {
     <div className="bg-white min-h-screen text-black">
       <Header title="Invoices" />
       <div className="p-6 max-w-7xl mx-auto">
-
-        {/* title */}
         <div className="mb-6">
           <h1 className="text-xl font-bold border-b border-slate-100 pb-2 inline-block">Invoice Registry</h1>
           <p className="text-slate-500 text-xs mt-1">Manage and Export System-Generated Invoices</p>
         </div>
 
-        {/* summary cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
             { label: 'total volume', value: fmt(totalInvoiced) },
@@ -88,7 +101,6 @@ const Invoices = () => {
           ))}
         </div>
 
-        {/* search input */}
         <div className="mb-6">
           <input
             type="text"
@@ -99,7 +111,6 @@ const Invoices = () => {
           />
         </div>
 
-        {/* data table */}
         <div className="border border-slate-100 rounded-xl overflow-hidden shadow-sm">
           {loading ? (
             <div className="py-20 flex justify-center items-center">
@@ -138,7 +149,10 @@ const Invoices = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <button className="text-slate-300 hover:text-black transition-colors">
+                        <button 
+                          onClick={() => handleExport(inv)}
+                          className="text-slate-300 hover:text-black transition-colors"
+                        >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>

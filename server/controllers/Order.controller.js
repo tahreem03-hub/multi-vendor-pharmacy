@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Medicine from "../models/medicines.js";
 import Stock from "../models/Stock.js";
@@ -25,7 +26,6 @@ const calculateCommission = (revenueExVat, cogsExVat, totalIncVat) => {
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/orders
-// No transactions — works with standalone MongoDB
 // ─────────────────────────────────────────────────────────────
 export const createOrder = async (req, res) => {
   try {
@@ -34,136 +34,171 @@ export const createOrder = async (req, res) => {
     if (!items || items.length === 0) {
       return res.status(400).json({ message: "No items in order" });
     }
-    if (!prescriberId) {
-      return res.status(400).json({ message: "prescriberId is required" });
-    }
 
-    // Validate prescriber
-    const prescriber = await User.findOne({ prescriberId, role: "prescriber" });
-    if (!prescriber) {
-      return res.status(404).json({ message: "Prescriber not found" });
+    let prescriber = null;
+    if (prescriberId) {
+      prescriber = await User.findOne({ _id: prescriberId, role: "prescriber" });
+      if (!prescriber) {
+        return res.status(404).json({ message: "Prescriber not found" });
+      }
     }
 
     let revenueExVat = 0;
-    let cogsExVat    = 0;
+    let cogsExVat = 0;
     let vatCollected = 0;
     const orderItems = [];
-    const stockUpdates = []; // collect stock docs to save after validation
+    const stockUpdates = [];
 
-    // ── Validate all items first before making any changes ────
+    // ── Validate all items & check stock ──────────────────────
     for (const item of items) {
       const medicine = await Medicine.findById(item.medicineId);
       if (!medicine) {
         return res.status(404).json({ message: `Medicine not found: ${item.medicineId}` });
       }
 
-      const stockEntry = await Stock.findOne({
-        prescriberId,
-        product:           item.medicineId,
-        quantityAvailable: { $gte: item.quantity },
-      });
+      // 1. Try to find prescriber-specific stock in the Stock collection first
+      let stockEntry = null;
+      let isGeneralStock = false;
 
-      if (!stockEntry) {
-        return res.status(400).json({
-          message: `Insufficient stock for: ${medicine.name}`,
+      if (prescriber?.prescriberId) {
+        stockEntry = await Stock.findOne({
+          product: new mongoose.Types.ObjectId(item.medicineId),
+          prescriberId: prescriber.prescriberId,
+          quantityAvailable: { $gte: item.quantity }
         });
       }
 
-      const isPOM       = medicine.prescriptionRequired;
-      const vatRate     = isPOM ? CONFIG.VAT_RATE_POM : CONFIG.VAT_RATE_STANDARD;
-      const lineRevenue = medicine.sellingPrice * item.quantity;
-      const lineCogs    = medicine.buyingPrice  * item.quantity;
-      const lineVat     = lineRevenue * vatRate;
+      // 2. If no prescriber-specific stock is found, fall back to general stock from Medicine
+      if (!stockEntry) {
+        if (medicine.stock >= item.quantity) {
+          isGeneralStock = true;
+        } else {
+          return res.status(400).json({ 
+            message: `Insufficient stock for: ${medicine.name}` 
+          });
+        }
+      }
 
-      revenueExVat += lineRevenue;
-      cogsExVat    += lineCogs;
-      vatCollected += lineVat;
+      const isPOM = medicine.prescriptionRequired;
+      const vatRate = isPOM ? CONFIG.VAT_RATE_POM : CONFIG.VAT_RATE_STANDARD;
+      
+      revenueExVat += medicine.sellingPrice * item.quantity;
+      cogsExVat += medicine.buyingPrice * item.quantity;
+      vatCollected += (medicine.sellingPrice * item.quantity) * vatRate;
 
       orderItems.push({
-        product:          medicine._id,
-        productName:      medicine.name,
-        quantity:         item.quantity,
+        product: medicine._id,
+        productName: medicine.name,
+        quantity: item.quantity,
         isPOM,
-        unitCostExVat:    medicine.buyingPrice,
+        unitCostExVat: medicine.buyingPrice,
         unitRevenueExVat: medicine.sellingPrice,
         vatRate,
       });
 
-      // Store stock entry + quantity to deduct for later
-      stockUpdates.push({ stockEntry, quantity: item.quantity });
+      if (isGeneralStock) {
+        stockUpdates.push({ medicineId: medicine._id, quantity: item.quantity, isGeneral: true });
+      } else {
+        stockUpdates.push({ stockEntry, quantity: item.quantity, isGeneral: false });
+      }
     }
 
+    // Financial calculations
     const totalIncVat = revenueExVat + vatCollected;
-    const { packaging, delivery, paymentFee, commission } =
-      calculateCommission(revenueExVat, cogsExVat, totalIncVat);
+    const { packaging, delivery, paymentFee, commission } = calculateCommission(revenueExVat, cogsExVat, totalIncVat);
 
-    // ── Get pot snapshot before changes ───────────────────────
-    const pot        = await OnePort.findOne({ prescriberId });
-    const pot1Before = pot?.pot1?.stockValueExVat || 0;
-
-    // ── Save the order ────────────────────────────────────────
+    // ── Save Order ────────────────────────────────────────────
     const order = await Order.create({
-      customer:     req.user._id,
-      prescriber:   prescriber._id,
-      prescriberId,
+      customer: req.user._id,
+      prescriber: prescriber ? prescriber._id : null,
+      prescriberId: prescriber ? prescriber.prescriberId : null,
       prescription: prescriptionId || null,
-      items:        orderItems,
+      items: orderItems,
       financials: {
         revenueExVat,
         cogsExVat,
         packagingCostExVat: packaging,
-        deliveryCostExVat:  delivery,
+        deliveryCostExVat: delivery,
         paymentFee,
-        commissionExVat:    commission,
+        commissionExVat: commission,
         vatCollected,
-        vatOnPurchases:     cogsExVat * CONFIG.VAT_RATE_STANDARD,
+        vatOnPurchases: cogsExVat * CONFIG.VAT_RATE_STANDARD,
       },
       deliveryAddress,
       status: prescriptionId ? "pending" : "verified",
     });
 
-    // ── Deduct stock after order is saved ─────────────────────
-    for (const { stockEntry, quantity } of stockUpdates) {
-      stockEntry.quantityAvailable -= quantity;
-      await stockEntry.save();
+    // ── Deduct Stock ──────────────────────────────────────────
+    for (const update of stockUpdates) {
+      if (update.isGeneral) {
+        await Medicine.findByIdAndUpdate(update.medicineId, {
+          $inc: { stock: -update.quantity }
+        });
+      } else {
+        update.stockEntry.quantityAvailable -= update.quantity;
+        await update.stockEntry.save();
+      }
     }
 
-    // ── Sync Pot 1 + update Pot 3 ─────────────────────────────
-    await syncPot1(prescriberId);
+    // ── Pot Syncing (Only if prescriber is involved) ──────────
+    if (prescriberId && prescriber) {
+      const actualPrescriberId = prescriber.prescriberId;
+      
+      let pot = await OnePort.findOne({ prescriberId: actualPrescriberId });
+      if (!pot) {
+        pot = await OnePort.create({
+          prescriber: prescriber._id,
+          prescriberId: actualPrescriberId,
+        });
+      }
+      
+      const pot1Before = pot.stockValue || 0;
 
-    if (pot) {
-      const freshPot  = await OnePort.findOne({ prescriberId });
-      const pot1After = freshPot?.pot1?.stockValueExVat || 0;
+      await syncPot1(actualPrescriberId);
+
+      const freshPot = await OnePort.findOne({ prescriberId: actualPrescriberId });
+      const pot1After = freshPot?.stockValue || 0;
 
       order.potSnapshot = {
         pot1StockBefore: pot1Before,
-        pot1StockAfter:  pot1After,
-        pot2Deposit:     pot.pot2?.depositAmount || 0,
-        pot3Running:     (pot.pot3?.totalRevenueExVat || 0) + revenueExVat,
+        pot1StockAfter: pot1After,
+        pot2Deposit: freshPot?.cashBalance || 0,
+        pot3Running: (freshPot?.earnedProfit || 0) + commission,
       };
       await order.save();
 
-      freshPot.pot3.totalRevenueExVat    += revenueExVat;
-      freshPot.pot3.commissionSubAccount += commission;
-      freshPot.pot3.vatReserveSubAccount += vatCollected;
-      await freshPot.save();
+      if (freshPot) {
+        freshPot.addLedgerEntry({
+          type: "PATIENT_PAYMENT_RECEIVED",
+          orderId: order._id,
+          amount: totalIncVat,
+          vatAmount: vatCollected,
+          cashDelta: totalIncVat,
+          profitDelta: commission,
+          restrictedDelta: vatCollected,
+          vatPositionDelta: -vatCollected,
+          description: `Order #${order._id} payment received`,
+        });
+        await freshPot.save();
+      }
     }
 
     res.status(201).json({
       message: "Order placed successfully",
       orderId: order._id,
       financialSummary: {
-        revenueExVat:  revenueExVat.toFixed(2),
-        cogsExVat:     cogsExVat.toFixed(2),
-        packaging:     packaging.toFixed(2),
-        delivery:      delivery.toFixed(2),
-        paymentFee:    paymentFee.toFixed(2),
-        commission:    commission.toFixed(2),
-        vatCollected:  vatCollected.toFixed(2),
-        totalIncVat:   totalIncVat.toFixed(2),
+        revenueExVat: revenueExVat.toFixed(2),
+        cogsExVat: cogsExVat.toFixed(2),
+        packaging: packaging.toFixed(2),
+        delivery: delivery.toFixed(2),
+        paymentFee: paymentFee.toFixed(2),
+        commission: commission.toFixed(2),
+        vatCollected: vatCollected.toFixed(2),
+        totalIncVat: totalIncVat.toFixed(2),
       },
     });
   } catch (err) {
+    console.error("❌ createOrder error:", err);
     res.status(500).json({ message: err.message });
   }
 };

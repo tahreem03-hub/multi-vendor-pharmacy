@@ -34,11 +34,11 @@ const OrderSchema = new mongoose.Schema(
     prescriber: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
     prescriberId: {
       type: String,
-      required: true, // e.g. "PRE-AB12CD"
+      required: false, // e.g. "PRE-AB12CD"
     },
 
     // ── PRESCRIPTION REFERENCE ────────────────────────────────

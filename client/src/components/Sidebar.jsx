@@ -11,8 +11,8 @@ const navItems = [
   {
     section: "OPERATIONS",
     items: [
-      { id: "orders", label: "Orders", icon: "", badge: 5 },
-      { id: "prescriptions", label: "Prescriptions", icon: "", badge: 3 },
+      { id: "orders", label: "Orders", icon: "",  },
+      { id: "prescriptions", label: "Prescriptions", icon: "",  },
       { id: "products", label: "Products", icon: "" },
       { id: "customers", label: "Customers", icon: "" },
     ]
@@ -20,7 +20,7 @@ const navItems = [
   {
     section: "FINANCE",
     items: [
-      { id: "threepot", label: "OnePort System", icon: "" },
+{ id: "onepot", label: "OnePort System", icon: "" },
       { id: "invoices", label: "Invoices", icon: "" },
       { id: "commission", label: "Commission", icon: "" },
     ]

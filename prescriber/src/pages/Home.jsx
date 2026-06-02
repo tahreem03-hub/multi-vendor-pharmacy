@@ -10,6 +10,9 @@ import { useCart } from '../context/CartContext';
 import { toast } from 'react-hot-toast';
 import TrendPro from './TrendPro';
 
+const PLACEHOLDER_150 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="100%" height="100%" fill="%23f8fafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23cbd5e1">Image</text></svg>`;
+const PLACEHOLDER_HERO = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="100%" height="100%" fill="%23f8fafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="32" fill="%23cbd5e1">Pharmacy Supplies</text></svg>`;
+
 // ── Intersection Observer hook for scroll animations ──────────
 const useInView = (threshold = 0.15) => {
   const ref = useRef(null);
@@ -57,10 +60,10 @@ const ProductCard = ({ item, onAdd, delay = 0 }) => {
     >
       <div className="relative aspect-square bg-gray-50 overflow-hidden flex items-center justify-center">
         <img
-src={`http://localhost:4000/uploads/${item.image}`}
+          src={item.image ? (item.image.startsWith('http') ? item.image : (item.image.startsWith('uploads') ? `http://localhost:4000/${item.image}` : `http://localhost:4000/uploads/${item.image}`)) : PLACEHOLDER_150}
           alt={item.name}
           className="max-h-[75%] object-contain group-hover:scale-110 transition-transform duration-700"
-          onError={e => { e.target.src = 'https://via.placeholder.com/150'; }}
+          onError={e => { e.target.src = PLACEHOLDER_150; }}
         />
         {/* Wishlist */}
         <button
@@ -244,6 +247,12 @@ const Home = () => {
     (item.image && /\.(mp4|mov|webm)$/i.test(item.image))
   );
 
+  // Filter image elements dynamically for the marquee
+  const imageItems = mediaItems.filter(item => 
+    item.mediaType === 'image' || 
+    (item.image && !/\.(mp4|mov|webm)$/i.test(item.image))
+  );
+
   return (
     <div className="bg-white overflow-x-hidden">
 
@@ -261,10 +270,10 @@ const Home = () => {
               >
                 <div className="absolute inset-0 w-full h-full z-0">
                   <img
-                    src={`http://localhost:4000/${slide.imageUrl}`}
+                    src={slide.imageUrl ? (slide.imageUrl.startsWith('http') ? slide.imageUrl : (slide.imageUrl.startsWith('uploads') ? `http://localhost:4000/${slide.imageUrl}` : `http://localhost:4000/uploads/${slide.imageUrl}`)) : PLACEHOLDER_HERO}
                     alt={slide.title}
                     className="w-full h-full object-cover select-none"
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/1200x800?text=Pharmacy+Supplies'; }}
+                    onError={(e) => { e.target.src = PLACEHOLDER_HERO; }}
                   />
                   <div className="absolute inset-0 bg-black/40" />
                 </div>
@@ -508,18 +517,18 @@ const Home = () => {
 
               <div className="overflow-hidden w-full">
                 <div className="auto-scroll-track">
-                  {[...mediaItems, ...mediaItems].map((item, i) => (
+                  {[...imageItems, ...imageItems].map((item, i) => (
                     <div
                       key={`${item._id}-${i}`}
                       className="w-[80px] sm:w-[100px] md:w-[110px] shrink-0 overflow-hidden group"
                     >
                       <div className="relative aspect-square overflow-hidden rounded-xl">
                         <img
-                          src={`http://localhost:4000/${item.imageUrl || item.image}`}
+                          src={item.imageUrl || item.image ? ((item.imageUrl || item.image).startsWith('http') ? (item.imageUrl || item.image) : ((item.imageUrl || item.image).startsWith('uploads') ? `http://localhost:4000/${item.imageUrl || item.image}` : `http://localhost:4000/uploads/${item.imageUrl || item.image}`)) : PLACEHOLDER_150}
                           alt={item.title || 'Uploaded Update'}
                           className="w-[600px] h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/150?text=Image';
+                            e.target.src = PLACEHOLDER_150;
                           }}
                         />
                       </div>

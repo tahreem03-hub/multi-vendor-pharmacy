@@ -127,7 +127,7 @@ const OnePotSchema = new mongoose.Schema(
 );
 
 // ── Pre-save: recalculate derived fields ──────────────────────
-OnePotSchema.pre("save", function (next) {
+OnePotSchema.pre("save", async function () {
   // Recalculate available to spend
   this.availableToSpend =
     this.cashBalance -
@@ -153,8 +153,6 @@ OnePotSchema.pre("save", function (next) {
   } else {
     this.equilibriumStatus = "green";
   }
-
-  next();
 });
 
 // ── Instance method: add a ledger entry and apply deltas ──────

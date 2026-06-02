@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Search, Phone, Mail, MapPin, Trash2 } from 'lucide-react';
+import { User, Search, Phone, Mail, MapPin, Trash2, Calendar, CreditCard, Info } from 'lucide-react';
 import PrescriberHeader from '../components/prescriber/PrescriberHeader';
 import API from '../api/axios';
 
@@ -13,7 +13,6 @@ const PrescriberPatient = () => {
     const fetchPatients = async () => {
       try {
         setLoading(true);
-        // ✅ FIX: correct route is /prescriber-link/patients not /prescriber/patients
         const res = await API.get('/prescriber-link/patients');
         setPatients(res.data?.patients || []);
       } catch (error) {
@@ -35,15 +34,14 @@ const PrescriberPatient = () => {
   });
 
   const handleDelete = async (patientId) => {
-    if (!window.confirm('Delete this patient and all requests for them?')) return;
+    if (!window.confirm('Delete this patient and all associated records?')) return;
     try {
-      // ✅ FIX: correct route
       await API.delete(`/prescriber-link/patients/${patientId}`);
-      setPatients((prev) => prev.filter((patient) => patient._id !== patientId));
+      setPatients((prev) => prev.filter((p) => p._id !== patientId));
       if (selected?._id === patientId) setSelected(null);
     } catch (error) {
       console.error('Failed to delete patient:', error);
-      alert(error.response?.data?.message || 'Unable to delete patient');
+      alert('Unable to delete patient');
     }
   };
 
@@ -52,125 +50,71 @@ const PrescriberPatient = () => {
       <PrescriberHeader title="Patients" />
       <div className="max-w-5xl mx-auto px-5 md:px-8 py-8 space-y-6">
 
-        {/* Search */}
+        {/* Search Header */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               placeholder="Search by name, email or phone..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors shadow-sm"
             />
           </div>
-          <span className="text-xs text-slate-400 font-medium whitespace-nowrap">
-            {filtered.length} patients
-          </span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{filtered.length} Patients</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
 
           {/* Patient List */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <div className="w-7 h-7 border-2 border-slate-200 border-t-slate-600 rounded-full animate-spin" />
-              </div>
+              <div className="py-20 text-center"><div className="w-8 h-8 border-2 border-slate-200 border-t-slate-700 rounded-full animate-spin mx-auto" /></div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <div className="w-12 h-12 bg-white rounded-2xl border border-slate-100 flex items-center justify-center">
-                  <User size={20} className="text-slate-300" />
-                </div>
-                <p className="text-sm text-slate-400 font-medium">No patients found</p>
+              <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+                <User size={32} className="text-slate-200 mx-auto mb-3" />
+                <p className="text-sm text-slate-400">No patients found</p>
               </div>
             ) : filtered.map(p => (
-              <button key={p._id}
-                onClick={() => setSelected(p)}
-                className={`w-full text-left bg-white rounded-2xl border p-4 transition-all hover:shadow-sm ${
-                  selected?._id === p._id ? 'border-slate-400 shadow-sm' : 'border-slate-100'
-                }`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center shrink-0">
-                    <span className="text-sm font-bold text-slate-600">
-                      {p.firstName?.charAt(0).toUpperCase()}
-                    </span>
+              <button key={p._id} onClick={() => setSelected(p)}
+                className={`w-full text-left bg-white rounded-2xl border p-4 transition-all hover:shadow-sm ${selected?._id === p._id ? 'border-slate-400 shadow-sm' : 'border-slate-100'}`}>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center font-bold text-slate-600">{p.firstName?.charAt(0)}</div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-800">{p.firstName} {p.lastName}</p>
+                    <p className="text-xs text-slate-400">{p.personalEmail || 'No email'}</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-700 truncate">
-                      {p.firstName} {p.lastName}
-                    </p>
-                    <p className="text-xs text-slate-400 truncate">
-                      {p.personalEmail || p.mobileNumber || 'No contact info'}
-                    </p>
-                  </div>
-                  {p.dob && (
-                    <p className="text-xs text-slate-400 shrink-0">
-                      {new Date(p.dob).toLocaleDateString('en-GB')}
-                    </p>
-                  )}
                 </div>
               </button>
             ))}
           </div>
 
-          {/* Patient Detail */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 h-fit sticky top-5">
+          {/* Patient Detail Panel */}
+          <div className="h-fit sticky top-5">
             {!selected ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-2">
-                <User size={24} className="text-slate-200" />
-                <p className="text-xs text-slate-400 font-medium">Select a patient to view details</p>
+              <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center border-dashed">
+                <Info size={24} className="text-slate-300 mx-auto mb-3" />
+                <p className="text-xs text-slate-400 font-medium">Select a patient to view full profile</p>
               </div>
             ) : (
-              <div className="space-y-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
-                      <span className="text-lg font-bold text-slate-600">
-                        {selected.firstName?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center text-white font-bold text-xl">{selected.firstName?.charAt(0)}</div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">
-                        {selected.firstName} {selected.lastName}
-                      </p>
-                      {selected.dob && (
-                        <p className="text-xs text-slate-400">
-                          DOB: {new Date(selected.dob).toLocaleDateString('en-GB')}
-                        </p>
-                      )}
+                      <h2 className="text-lg font-bold text-slate-800">{selected.firstName} {selected.lastName}</h2>
+                      <p className="text-xs text-slate-400 font-mono">ID: {selected._id.slice(-6).toUpperCase()}</p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(selected._id)}
-                    className="inline-flex items-center gap-2 px-1 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <button onClick={() => handleDelete(selected._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 size={16} /></button>
                 </div>
 
-                <div className="space-y-3 border-t border-slate-50 pt-4">
-                  {selected.personalEmail && (
-                    <div className="flex items-center gap-2">
-                      <Mail size={13} className="text-slate-300 shrink-0" />
-                      <p className="text-xs text-slate-600 truncate">{selected.personalEmail}</p>
-                    </div>
-                  )}
-                  {selected.mobileNumber && (
-                    <div className="flex items-center gap-2">
-                      <Phone size={13} className="text-slate-300 shrink-0" />
-                      <p className="text-xs text-slate-600">{selected.mobileNumber}</p>
-                    </div>
-                  )}
-                  {(selected.addressLine1 || selected.city) && (
-                    <div className="flex items-start gap-2">
-                      <MapPin size={13} className="text-slate-300 shrink-0 mt-0.5" />
-                      <div className="text-xs text-slate-600 leading-relaxed">
-                        {[selected.addressLine1, selected.addressLine2, selected.city, selected.postcode, selected.country]
-                          .filter(Boolean).join(', ')}
-                      </div>
-                    </div>
-                  )}
+                <div className="space-y-4 border-t border-slate-100 pt-6">
+                  <DetailItem icon={Calendar} label="Date of Birth" value={selected.dob ? new Date(selected.dob).toLocaleDateString('en-GB') : 'N/A'} />
+                  <DetailItem icon={CreditCard} label="NHS Number" value={selected.nhsNumber || 'Not provided'} />
+                  <DetailItem icon={Mail} label="Email Address" value={selected.personalEmail} />
+                  <DetailItem icon={Phone} label="Mobile Number" value={selected.mobileNumber} />
+                  <DetailItem icon={MapPin} label="Address" value={[selected.addressLine1, selected.city, selected.postcode].filter(Boolean).join(', ') || 'No address provided'} />
                 </div>
               </div>
             )}
@@ -180,5 +124,17 @@ const PrescriberPatient = () => {
     </div>
   );
 };
+
+const DetailItem = ({ icon: Icon, label, value }) => (
+  <div className="flex gap-3">
+    <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center shrink-0">
+      <Icon size={14} className="text-slate-400" />
+    </div>
+    <div className="overflow-hidden">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="text-sm font-medium text-slate-700 truncate">{value}</p>
+    </div>
+  </div>
+);
 
 export default PrescriberPatient;

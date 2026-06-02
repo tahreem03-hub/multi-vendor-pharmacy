@@ -11,20 +11,20 @@ const CartPage = () => {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
-  const [removing,         setRemoving]         = useState(null);
-  const [mounted,          setMounted]          = useState(false);
-  const [checkingOut,      setCheckingOut]      = useState(false);
-  const [prescribers,      setPrescribers]      = useState([]);
-  const [prescriberId,     setPrescriberId]     = useState('');
-  const [deliveryAddress,  setDelivery]         = useState({
+  const [removing, setRemoving] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [prescribers, setPrescribers] = useState([]);
+  const [prescriberId, setPrescriberId] = useState('');
+  const [deliveryAddress, setDelivery] = useState({
     line1: '', city: '', postcode: ''
   });
 
-  const items     = cart?.items || [];
-  const subtotal  = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const items = cart?.items || [];
+  const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
-  const shipping  = 5;
-  const total     = subtotal + shipping;
+  const shipping = 5;
+  const total = subtotal + shipping;
 
   useEffect(() => {
     refreshCart();
@@ -38,7 +38,9 @@ const CartPage = () => {
       const links = Array.isArray(data) ? data : data.links || [];
       setPrescribers(links);
       if (links.length === 1) {
-        setPrescriberId(links[0].prescriberId?.prescriberId || '');
+        // Use the actual ID field (handling nested structure)
+        const id = links[0].prescriberId?._id || links[0].prescriberId?.prescriberId || links[0].prescriberId;
+        setPrescriberId(id);
       }
     } catch (err) {
       console.error('Failed to fetch prescribers:', err);
@@ -69,9 +71,13 @@ const CartPage = () => {
     setCheckingOut(true);
     try {
       const orderItems = items.map(item => ({
+        // Ensure this key matches what your backend API expects (e.g., medicineId or productId)
         medicineId: item.productId,
-        quantity:   item.quantity,
+        quantity: item.quantity,
       }));
+
+      // DEBUG LOG: Check if data is correct before it reaches the server
+      console.log("DEBUG: Checkout Payload:", { prescriberId, items: orderItems, deliveryAddress });
 
       await API.post('/orders', {
         prescriberId,
@@ -83,6 +89,8 @@ const CartPage = () => {
       await clearCart();
       navigate('/');
     } catch (err) {
+      // DEBUG LOG: Check exactly why the server rejected the order
+      console.error("DEBUG: Order Error Response:", err.response?.data);
       toast.error(err.response?.data?.message || 'Server connection error');
     } finally {
       setCheckingOut(false);
@@ -202,12 +210,15 @@ const CartPage = () => {
                     onChange={e => setPrescriberId(e.target.value)}
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-black transition-colors bg-white text-black">
                     <option value="">Select a prescriber</option>
-                    {prescribers.map((p, idx) => (
-                      <option key={idx} value={p.prescriberId?.prescriberId || ''}>
-                        {p.prescriberId?.name ||
-                          `${p.prescriberId?.firstName || ''} ${p.prescriberId?.lastName || ''}`.trim()}
-                      </option>
-                    ))}
+                    {prescribers.map((p, idx) => {
+                      const id = p.prescriberId?._id || p.prescriberId?.prescriberId || p.prescriberId;
+                      const name = p.prescriberId?.name || `${p.prescriberId?.firstName || ''} ${p.prescriberId?.lastName || ''}`.trim();
+                      return (
+                        <option key={idx} value={id}>
+                          {name}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 

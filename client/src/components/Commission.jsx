@@ -26,7 +26,7 @@ const Commission = () => {
       ]);
 
       setSummary(summaryRes.data.summary || []);
-      setPots(potsRes.data.pots || []);
+      setPots(potsRes.data.ports || []); // Updated to match /port/admin/all structure
 
       const ordersRes = await API.get('/orders/admin/all');
       const orders    = ordersRes.data.orders || [];
@@ -36,8 +36,8 @@ const Commission = () => {
         const d     = new Date(o.createdAt);
         const key   = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         if (!grouped[key]) grouped[key] = { month: key, revenue: 0, cogs: 0, packaging: 0, delivery: 0, paymentFee: 0, commission: 0, vat: 0, count: 0 };
-        grouped[key].revenue     += o.financials?.revenueExVat       || 0;
-        grouped[key].cogs         += o.financials?.cogsExVat          || 0;
+        grouped[key].revenue   += o.financials?.revenueExVat       || 0;
+        grouped[key].cogs        += o.financials?.cogsExVat          || 0;
         grouped[key].packaging   += o.financials?.packagingCostExVat || 0;
         grouped[key].delivery    += o.financials?.deliveryCostExVat  || 0;
         grouped[key].paymentFee  += o.financials?.paymentFee         || 0;
@@ -100,14 +100,14 @@ const Commission = () => {
             Commission Tracker
           </h1>
           <p className="text-slate-500 text-md mt-1">
-            revenue – costs = commission. net zero pharmacy <br /> profit model.
+            revenue – costs = commission. OnePort pharmacy <br /> profit model.
           </p>
         </div>
 
         {/* rule banner */}
         <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 mb-8">
           <p className="text-slate-700 text-[13px] leading-relaxed">
-            <span className="font-bold mr-2 tracking-tight">three-pot rule:</span> 
+            <span className="font-bold mr-2 tracking-tight">OnePort rule:</span> 
             pharmacy is reimbursed exact costs only (drug, packaging, delivery ex-vat). 
             no dispensing fees or profit shares are applied.
           </p>
@@ -197,7 +197,7 @@ const Commission = () => {
                     <option value="">select...</option>
                     {pots.map(p => (
                       <option key={p.prescriberId} value={p.prescriberId}>
-                        {p.prescriber?.firstName} {p.prescriber?.lastName}
+                        {p.prescriberName}
                       </option>
                     ))}
                   </select>

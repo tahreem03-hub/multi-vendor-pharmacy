@@ -12,14 +12,13 @@ const fmt = (n) =>
     maximumFractionDigits: 2,
   })}`;
 
-// High-contrast status badges for white background
 const statusColors = {
-  pending:     'text-orange-600 bg-orange-50 border-orange-100',
-  verified:    'text-blue-600 bg-blue-50 border-blue-100',
-  dispensing:  'text-amber-600 bg-amber-50 border-amber-100',
-  dispatched:  'text-cyan-600 bg-cyan-50 border-cyan-100',
-  delivered:   'text-emerald-600 bg-emerald-50 border-emerald-100',
-  cancelled:   'text-red-600 bg-red-50 border-red-100',
+  pending:    'text-orange-600 bg-orange-50 border-orange-100',
+  verified:   'text-blue-600 bg-blue-50 border-blue-100',
+  dispensing: 'text-amber-600 bg-amber-50 border-amber-100',
+  dispatched: 'text-cyan-600 bg-cyan-50 border-cyan-100',
+  delivered:  'text-emerald-600 bg-emerald-50 border-emerald-100',
+  cancelled:  'text-red-600 bg-red-50 border-red-100',
 };
 
 const Dashboard = () => {
@@ -40,7 +39,7 @@ const Dashboard = () => {
 
         const allOrders = ordersRes.data.orders || [];
         setOrders(allOrders);
-        setPots(potsRes.data.pots || []);
+        setPots(potsRes.data.ports || []);
 
         setStats({
           totalOrders: ordersRes.data.count || 0,
@@ -59,10 +58,11 @@ const Dashboard = () => {
     fetchAll();
   }, []);
 
-  const totalPot1 = pots.reduce((s, p) => s + (p.pot1?.stockValueExVat || 0), 0);
-  const totalPot2 = pots.reduce((s, p) => s + (p.pot2?.depositAmount || 0), 0);
-  const totalPot3 = pots.reduce((s, p) => s + (p.pot3?.totalRevenueExVat || 0), 0);
-  const totalComm = pots.reduce((s, p) => s + (p.pot3?.commissionSubAccount || 0), 0);
+  // One-Pot Aggregation
+  const totalCash = pots.reduce((s, p) => s + (p.cashBalance || 0), 0);
+  const totalStock = pots.reduce((s, p) => s + (p.stockValue || 0), 0);
+  const totalProfit = pots.reduce((s, p) => s + (p.earnedProfit || 0), 0);
+  const totalRestrictedVat = pots.reduce((s, p) => s + (p.restrictedVatPayable || 0), 0);
 
   if (loading) return (
     <div className="flex items-center justify-center h-screen bg-white">
@@ -82,8 +82,6 @@ const Dashboard = () => {
       <Header title="Dashboard" />
       
       <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-
-        {/* Top Metric Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((stat, idx) => (
             <div key={idx} className="bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
@@ -102,15 +100,10 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Transactions Table */}
           <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
             <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-[13px] font-bold text-black flex items-center gap-2">
-                Recent Transactions
-              </h3>
-              <button className="text-[13px] font-bold text-gray-600 hover:text-black flex items-center">
-                Full Log <BiChevronRight size={14} />
-              </button>
+              <h3 className="text-[13px] font-bold text-black flex items-center gap-2">Recent Transactions</h3>
+              <button className="text-[13px] font-bold text-gray-600 hover:text-black flex items-center">Full Log <BiChevronRight size={14} /></button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -140,7 +133,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Prescriber Equilibrium - Sidebar Style */}
           <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <h3 className="text-[13px] font-bold text-black mb-6">Prescriber Health</h3>
             <div className="space-y-3">
@@ -156,7 +148,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Overall Financial Health - Wide Section */}
           <div className="lg:col-span-3 bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
             <div className="flex items-center gap-2 mb-8">
                <BiWallet className="text-black" size={20} />
@@ -165,46 +156,33 @@ const Dashboard = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <div className="space-y-2">
-                <p className="text-[13px] text-gray-500 font-bold">Pot 1: Total Stock Value</p>
-                <p className="text-2xl font-bold text-black">{fmt(totalPot1)}</p>
+                <p className="text-[13px] text-gray-500 font-bold">Total Cash Balance</p>
+                <p className="text-2xl font-bold text-black">{fmt(totalCash)}</p>
                 <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-black w-[65%]" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <p className="text-[13px] text-gray-500 font-bold">Pot 2: Total Deposits</p>
-                <p className="text-2xl font-bold text-black">{fmt(totalPot2)}</p>
+                <p className="text-[13px] text-gray-500 font-bold">Total Stock Value</p>
+                <p className="text-2xl font-bold text-black">{fmt(totalStock)}</p>
                 <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600">
-                  <BiCheckCircle /> System Balanced
+                  <BiCheckCircle /> System Live
                 </div>
               </div>
 
               <div className="bg-gray-50 p-5 rounded-lg border border-gray-100">
                 <div className="flex justify-between items-end mb-4">
-                   <span className="text-[13px] font-bold text-gray-500">Gross Pot 3 Sales</span>
-                   <span className="text-sm font-bold text-black">{fmt(totalPot3)}</span>
+                   <span className="text-[13px] font-bold text-gray-500">Earned Profit</span>
+                   <span className="text-sm font-bold text-black">{fmt(totalProfit)}</span>
                 </div>
                 <div className="pt-4 border-t border-gray-200 flex justify-between items-end">
-                   <span className="text-[12px] font-bold text-gray-700">Net Commission</span>
-                   <span className="text-lg font-black text-black">{fmt(totalComm)}</span>
+                   <span className="text-[12px] font-bold text-gray-700">Restricted VAT</span>
+                   <span className="text-lg font-black text-red-600">{fmt(totalRestrictedVat)}</span>
                 </div>
               </div>
             </div>
-
-            {/* Sub-account stats */}
-            <div className="mt-10 pt-6 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-8 text-[11px]">
-               <div className="flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100">
-                  <span className="font-bold text-gray-600">Vat Reserve Sub-Account:</span>
-                  <span className="font-mono font-bold text-black">{fmt(pots.reduce((s, p) => s + (p.pot3?.vatReserveSubAccount || 0), 0))}</span>
-               </div>
-               <div className="flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100">
-                  <span className="font-bold text-gray-600">Pharmacy Net Payables:</span>
-                  <span className="font-mono font-bold text-black">£0.00</span>
-               </div>
-            </div>
           </div>
-
         </div>
       </div>
     </div>
