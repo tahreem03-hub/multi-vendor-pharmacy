@@ -9,20 +9,31 @@ const PrescriberPatient = () => {
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        setLoading(true);
-        const res = await API.get('/prescriber-link/patients');
-        setPatients(res.data?.patients || []);
-      } catch (error) {
-        console.error('Failed to load patients:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPatients();
-  }, []);
+useEffect(() => {
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const res  = await API.get('/prescriber-link/patients');
+
+      // ── DEBUG ──
+      console.log('=== PATIENTS API RESPONSE ===', res.data);
+      // ── END DEBUG ──
+
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data?.patients || [];
+      setPatients(data);
+    } catch (error) {
+      console.error('Patients fetch failed:',
+        error.response?.status,
+        error.response?.data
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchPatients();
+}, []);
 
   const filtered = patients.filter((p) => {
     const query = search.toLowerCase();

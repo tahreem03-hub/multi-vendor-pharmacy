@@ -1,36 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import API from '../api/axios';
 import { toast } from 'react-hot-toast';
 import { Phone, Mail, Clock, MapPin, Trash2, MessageSquare, Settings } from 'lucide-react';
 
-const ContactSetting = () => {
-  const [clinicData, setClinicData] = useState({
-    number:      '+44 20 7946 0958',
-    timings:     'Monday - Friday: 9:00 AM - 6:00 PM, Saturday: 10:00 AM - 4:00 PM, Sunday: Closed',
-    address:     '123 Harley Street, London, W1G 6AX, United Kingdom',
-    clinicEmail: 'clinic@doctorg.com',
-  });
-  const [messages, setMessages] = useState([]);
-  const [saving,   setSaving]   = useState(false);
-  const [loading,  setLoading]  = useState(true);
+// ✅ Empty state — fields always start blank
+const EMPTY = { number: '', timings: '', address: '', clinicEmail: '' };
 
+const ContactSetting = () => {
+  const [clinicData, setClinicData] = useState(EMPTY);  // ✅ always empty on mount
+  const [messages,   setMessages]   = useState([]);
+  const [saving,     setSaving]     = useState(false);
+  const [loading,    setLoading]    = useState(true);
+
+  // ✅ Only fetch messages — never pre-fill clinic form
   useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const clinicRes = await API.get('/contact/clinic');
-        if (clinicRes.data) setClinicData(clinicRes.data);
-      } catch (err) {
-        console.error('Clinic fetch error:', err);
-      }
+    const fetchMessages = async () => {
       try {
         const msgRes = await API.get('/contact/messages');
         if (msgRes.data) setMessages(msgRes.data);
       } catch (err) {
         console.error('Messages fetch error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    fetchAll();
+    fetchMessages();
   }, []);
 
   const handleSave = async () => {
@@ -38,6 +32,7 @@ const ContactSetting = () => {
     try {
       await API.put('/contact/clinic', clinicData);
       toast.success('Clinic details updated!');
+      setClinicData(EMPTY); // ✅ clear fields after save
     } catch (err) {
       toast.error('Failed to save.');
     } finally {
@@ -58,22 +53,22 @@ const ContactSetting = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="w-8 h-8 border-4 border-slate-700 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-700 rounded-full animate-spin" />
     </div>
   );
 
   const clinicFields = [
-    { label: 'Phone Number', key: 'number',      icon: Phone,   type: 'input'    },
-    { label: 'Clinic Email', key: 'clinicEmail', icon: Mail,    type: 'input'    },
-    { label: 'Opening Hours',key: 'timings',     icon: Clock,   type: 'textarea' },
-    { label: 'Address',      key: 'address',     icon: MapPin,  type: 'textarea' },
+    { label: 'Phone Number',  key: 'number',      icon: Phone,  type: 'input'    },
+    { label: 'Clinic Email',  key: 'clinicEmail', icon: Mail,   type: 'input'    },
+    { label: 'Opening Hours', key: 'timings',     icon: Clock,  type: 'textarea' },
+    { label: 'Address',       key: 'address',     icon: MapPin, type: 'textarea' },
   ];
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-10">
       <div className="max-w-4xl mx-auto space-y-8">
 
-        {/* ── Page Header ── */}
+        {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
             <Settings size={18} className="text-white" />
@@ -84,12 +79,12 @@ const ContactSetting = () => {
           </div>
         </div>
 
-        {/* ── Clinic Details ── */}
+        {/* Clinic Details */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
             <div className="w-2 h-2 bg-teal-500 rounded-full" />
             <h2 className="text-base font-semibold text-slate-700">Clinic Details</h2>
-            <span className="ml-auto text-xs text-slate-400">Displayed on contact page</span>
+            <span className="ml-auto text-xs text-slate-400">Update fields you want to change</span>
           </div>
 
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -102,14 +97,16 @@ const ContactSetting = () => {
                 {type === 'input' ? (
                   <input
                     value={clinicData[key]}
-                    onChange={e => setClinicData({ ...clinicData, [key]: e.target.value })}
+                    onChange={e => setClinicData(prev => ({ ...prev, [key]: e.target.value }))}
+                    placeholder={`Enter ${label.toLowerCase()}...`}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400 focus:bg-white transition-all"
                   />
                 ) : (
                   <textarea
                     rows={3}
                     value={clinicData[key]}
-                    onChange={e => setClinicData({ ...clinicData, [key]: e.target.value })}
+                    onChange={e => setClinicData(prev => ({ ...prev, [key]: e.target.value }))}
+                    placeholder={`Enter ${label.toLowerCase()}...`}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400 focus:bg-white transition-all resize-none"
                   />
                 )}
@@ -117,7 +114,7 @@ const ContactSetting = () => {
             ))}
           </div>
 
-          <div className="px-6 pb-6">
+          <div className="px-6 pb-6 flex items-center gap-3">
             <button
               onClick={handleSave}
               disabled={saving}
@@ -130,10 +127,17 @@ const ContactSetting = () => {
                 </>
               ) : 'Save Changes'}
             </button>
+            <button
+              type="button"
+              onClick={() => setClinicData(EMPTY)}
+              className="px-4 py-2.5 text-slate-400 hover:text-slate-600 text-sm font-medium transition-all"
+            >
+              Clear
+            </button>
           </div>
         </div>
 
-        {/* ── User Messages ── */}
+        {/* User Messages */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
             <div className="w-2 h-2 bg-indigo-500 rounded-full" />
@@ -155,11 +159,10 @@ const ContactSetting = () => {
             </div>
           ) : (
             <div className="divide-y divide-slate-50">
-              {messages.map((msg, idx) => (
+              {messages.map(msg => (
                 <div key={msg._id} className="px-6 py-4 hover:bg-slate-50/50 transition-all">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      {/* Avatar */}
                       <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center shrink-0">
                         <span className="text-sm font-bold text-slate-600">
                           {msg.name?.charAt(0).toUpperCase()}

@@ -424,3 +424,56 @@ export const getMyStats = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getMyCommission = async (req, res) => {
+  try {
+    const prescriberId = req.user.prescriberId;
+
+    const [totals] = await Order.aggregate([
+      { $match: { prescriberId } },
+      {
+        $group: {
+          _id: null,
+          totalCommission: { $sum: "$financials.commissionExVat" },
+          totalOrders: { $sum: 1 },
+          pendingCommission: {
+            $sum: {
+              $cond: [
+                { $eq: ["$commissionStatus", "pending"] },
+                "$financials.commissionExVat",
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const [monthly] = await Order.aggregate([
+      { $match: { prescriberId, createdAt: { $gte: startOfMonth } } },
+      {
+        $group: {
+          _id: null,
+          monthlyCommission: { $sum: "$financials.commissionExVat" }
+        }
+      }
+    ]);
+
+    const port = await OnePort.findOne({ prescriberId }).select("commissionPayouts");
+    const payouts = port ? port.commissionPayouts : [];
+
+    res.json({
+      totalCommission: totals?.totalCommission || 0,
+      monthlyCommission: monthly?.monthlyCommission || 0,
+      pendingCommission: totals?.pendingCommission || 0,
+      totalOrders: totals?.totalOrders || 0,
+      payouts
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

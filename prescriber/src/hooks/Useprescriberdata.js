@@ -26,7 +26,7 @@ export const usePrescriberDashboard = () => {
         setLoading(true);
         setError(null);
 
-        const res = await axios.get(`${API}/api/prescriber/dashboard`, {
+const res = await axios.get(`${API}/api/prescriber-link/dashboard`, {
           headers: getHeaders(),
         });
 

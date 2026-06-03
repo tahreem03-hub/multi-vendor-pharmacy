@@ -1,6 +1,7 @@
-import PrescriberLink from "../models/PrescriberLink.js";
-import PrescriptionRequest from "../models/PrescriptionRequest.js";
-import User from "../models/User.js";
+import PrescriberLink       from "../models/PrescriberLink.js";
+import PrescriptionRequest  from "../models/PrescriptionRequest.js";
+import Prescription         from "../models/Prescription.js"; // ✅ add this
+import User                 from "../models/User.js";
 
 // ─────────────────────────────────────────────────────────────
 // SEARCH PRESCRIBERS
@@ -125,27 +126,42 @@ export const getMyPatients = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
 
-    const requests = await PrescriptionRequest.find({ prescriberId: userId })
-      .populate("requesterId", "firstName lastName email phoneNumber address dob role")
+    // ── DEBUG (remove after fixing) ──
+    const allRequests = await PrescriptionRequest.find({}).limit(10);
+    console.log('=== ALL DB REQUESTS ===');
+    allRequests.forEach(r => {
+      console.log('prescriberId in DB:', r.prescriberId?.toString(), '| patientName:', r.patientName);
+    });
+    console.log('=== LOGGED IN USER ID:', userId.toString(), '===');
+    // ── END DEBUG ──
+
+    const requests = await PrescriptionRequest.find({
+      $or: [
+        { prescriberId: userId },
+        { prescriberId: userId.toString() },
+      ]
+    })
+      .populate("requesterId", "firstName lastName email phoneNumber address dob")
       .sort({ createdAt: -1 });
+
+    console.log(`=== MATCHED: ${requests.length} requests ===`);
 
     const seen = new Set();
     const patients = requests
       .map((item) => {
         const user = item.requesterId;
-        const id = user?._id?.toString() || item._id.toString();
+        const id   = user?._id?.toString() || item._id.toString();
         if (seen.has(id)) return null;
         seen.add(id);
-
         return {
-          _id: id,
-          firstName: item.patientName?.firstName || user?.firstName || "",
-          lastName: item.patientName?.lastName || user?.lastName || "",
-          dob: item.dob || user?.dob || "",
-          personalEmail: user?.email || "",
-          mobileNumber: user?.phoneNumber || "",
-          addressLine1: user?.address || "",
-          status: item.status || "pending",
+          _id:             id,
+          firstName:       item.patientName?.firstName || user?.firstName || "",
+          lastName:        item.patientName?.lastName  || user?.lastName  || "",
+          dob:             item.dob          || user?.dob          || "",
+          personalEmail:   user?.email       || "",
+          mobileNumber:    user?.phoneNumber || "",
+          addressLine1:    user?.address     || "",
+          status:          item.status       || "pending",
           lastRequestedAt: item.createdAt,
         };
       })
