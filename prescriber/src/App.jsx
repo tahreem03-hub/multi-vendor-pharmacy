@@ -23,6 +23,7 @@ import Skincare from './pages/Skincare';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import PrescriberData from './pages/PrescriberData';
+import ForgotPassword from './pages/ForgotPassword'
 
 import './App.css';
 
@@ -67,6 +68,7 @@ const AppRoutes = () => {
       {/* Auth Routes */}
       <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
       <Route path="/register" element={<AuthLayout><Register /></AuthLayout>} />
+      <Route path='/forgot-password' element={<AuthLayout><ForgotPassword /></AuthLayout>} />
 
       {/* Protected Routes */}
       <Route path="/cart" element={<ProtectedRoute><MainLayout><CartPage /></MainLayout></ProtectedRoute>} />
