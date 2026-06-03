@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import PrescriberSidebar from '../components/prescriber/PrescriberSidebar';
 
 // ── Real page imports ─────────────────────────────────────────
-import PrescriberDashboard from './PrescriberDashboard';
+import PrescriberDashboard from './Prescriberdashboard';
 import PrescriberCommission from './PrescriberCommission';
 import MediaManager from '../components/MediaManager';
 import FooterSetting from './FooterSettings';

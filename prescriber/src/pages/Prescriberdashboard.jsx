@@ -10,7 +10,7 @@ import {
   MdHistory
 } from 'react-icons/md';
 import PrescriberHeader from '../components/prescriber/PrescriberHeader';
-import { usePrescriberDashboard } from '../hooks/usePrescriberData';
+import { usePrescriberDashboard } from '../hooks/Useprescriberdata';
 
 const fmt = (n) => `£${parseFloat(n || 0).toLocaleString('en-GB', {
   minimumFractionDigits: 2, maximumFractionDigits: 2,

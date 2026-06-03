@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import CartPage from './pages/CartPage';
-import PrescriberLayout from './pages/PrescriberLayout';
+import PrescriberLayout from './pages/Prescriberlayout';
 import TrendPro from './pages/TrendPro';
 import ProductDetails from './pages/ProductDetails';
 import PrescriberLink from './pages/PrescriberLink';
