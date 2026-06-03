@@ -42,7 +42,7 @@ const Commission = () => {
         grouped[key].delivery    += o.financials?.deliveryCostExVat  || 0;
         grouped[key].paymentFee  += o.financials?.paymentFee         || 0;
         grouped[key].commission  += o.financials?.commissionExVat    || 0;
-        grouped[key].vat         += o.financials?.vatCollected       || 0;
+        grouped[key].vat         += o.financials?.outputVat          || 0;
         grouped[key].count       += 1;
       });
 

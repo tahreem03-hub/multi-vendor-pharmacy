@@ -7,17 +7,10 @@ import {
   getExpiryAlerts,
   getMyStock,
   getMyAlerts,
-} from "../controllers/stock.controller.js";
+} from "../controllers/Stock.Controller.js";
 import {protect, requireRole, adminOnly, prescriberOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
-console.log("adminOnly:", adminOnly)
-console.log("prescriberOnly:", prescriberOnly)
-
-adminOnly.forEach((fn, i) => {
-  console.log(`adminOnly[${i}]:`, typeof fn, fn?.name);
-})
 
 // ── ADMIN ROUTES ──────────────────────────────────────────────
 router.post("/admin/add", protect, requireRole("admin"), addStock);

@@ -207,10 +207,17 @@ export const updateVatPeriod = async (req, res) => {
  */
 export const getMyPort = async (req, res) => {
   try {
-    const port = await OnePort.findOne({
+    let port = await OnePort.findOne({
       prescriberId: req.user.prescriberId,
     });
-    if (!port) return res.status(404).json({ message: "Port record not found" });
+
+    // Auto-create for prescribers registered before OnePort migration
+    if (!port) {
+      port = await OnePort.create({
+        prescriber: req.user._id,
+        prescriberId: req.user.prescriberId,
+      });
+    }
 
     res.json(port);
   } catch (err) {
@@ -224,13 +231,19 @@ export const getMyPort = async (req, res) => {
  */
 export const getPortSummary = async (req, res) => {
   try {
-    const port = await OnePort.findOne({
+    let port = await OnePort.findOne({
       prescriberId: req.user.prescriberId,
     }).select(
       "cashBalance stockValue vatPosition earnedProfit availableToSpend truePotValue equilibriumStatus alerts"
     );
 
-    if (!port) return res.status(404).json({ message: "Port record not found" });
+    // Auto-create for prescribers registered before OnePort migration
+    if (!port) {
+      port = await OnePort.create({
+        prescriber: req.user._id,
+        prescriberId: req.user.prescriberId,
+      });
+    }
 
     res.json(port);
   } catch (err) {

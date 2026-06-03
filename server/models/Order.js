@@ -53,14 +53,17 @@ const OrderSchema = new mongoose.Schema(
     // ── FINANCIAL BREAKDOWN (all ex VAT) ─────────────────────
     // Populated by order.controller.js commission calculator
     financials: {
-      revenueExVat:       { type: Number, default: 0 }, // total selling price ex VAT
-      cogsExVat:          { type: Number, default: 0 }, // total buying price ex VAT
-      packagingCostExVat: { type: Number, default: 0 }, // flat packaging cost
-      deliveryCostExVat:  { type: Number, default: 0 }, // flat delivery cost
-      paymentFee:         { type: Number, default: 0 }, // % of total inc VAT
-      commissionExVat:    { type: Number, default: 0 }, // Dr G's margin
-      vatCollected:       { type: Number, default: 0 }, // output VAT charged to client
-      vatOnPurchases:     { type: Number, default: 0 }, // input VAT pharmacy reclaims
+      revenueExVat:        { type: Number, default: 0 }, // total selling price ex VAT
+      cogsExVat:           { type: Number, default: 0 }, // total buying price ex VAT
+      packagingCostExVat:  { type: Number, default: 0 }, // flat packaging cost
+      deliveryCostExVat:   { type: Number, default: 0 }, // flat delivery cost
+      paymentFee:          { type: Number, default: 0 }, // card/payment processing fee
+      commissionExVat:     { type: Number, default: 0 }, // Dr G's earned margin
+      outputVat:           { type: Number, default: 0 }, // VAT charged to patient (owed to HMRC)
+      inputVat:            { type: Number, default: 0 }, // VAT paid on purchases (reclaimable)
+      vatPositionImpact:   { type: Number, default: 0 }, // inputVat - outputVat (+ve = HMRC owes pot)
+      immediateCashImpact: { type: Number, default: 0 }, // cash pot sees before any VAT refund
+      trueProfitImpact:    { type: Number, default: 0 }, // immediateCashImpact + vatPositionImpact
     },
 
     // ── POT SNAPSHOT ──────────────────────────────────────────

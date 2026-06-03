@@ -205,7 +205,7 @@ const Orders = () => {
                                <div className="space-y-3 mb-6">
                                   <div className="flex justify-between text-xs font-bold">
                                     <span className="text-gray-500">tax (vat)</span>
-                                    <span className="text-black font-bold">{fmt(order.financials?.vatCollected)}</span>
+                                    <span className="text-black font-bold">{fmt(order.financials?.outputVat)}</span>
                                   </div>
                                   <div className="flex justify-between text-xs font-bold">
                                     <span className="text-gray-500">shipping</span>

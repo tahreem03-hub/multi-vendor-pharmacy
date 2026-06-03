@@ -5,7 +5,7 @@ import {
   MdDashboard, MdInventory, MdPeople, MdAssignment,
   MdBarChart, MdSettings, MdLogout, MdMenu, MdClose,
   MdAccountBalanceWallet, MdNotifications, MdReceipt,
-  MdPermMedia, MdEditAttributes 
+  MdPermMedia
 } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext';
 
@@ -20,8 +20,7 @@ const navItems = [
   { key: 'commission',      label: 'Commission',     icon: MdBarChart },
   { key: 'alerts',          label: 'Alerts',         icon: MdNotifications },
 { key: 'contact-setting', label: 'Contact setting', icon: MdPermMedia },   // Linked here
-  { key: 'settings',        label: 'Settings',      icon: MdSettings },
-  { key: 'data',            label: 'Data',          icon: MdEditAttributes }
+  { key: 'settings',        label: 'Settings',      icon: MdSettings }
 ];
 const PrescriberSidebar = ({ activePage, setActivePage }) => {
   const [collapsed, setCollapsed] = useState(false);

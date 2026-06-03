@@ -28,7 +28,7 @@ const navItems = [
   {
     section: "SYSTEM",
     items: [
-      { id: "sliders", label: "SliderMnager", icon: "" },
+      { id: "sliders", label: "SliderManager", icon: "" },
       { id: "settings", label: "Settings", icon: "" },
       { id: "livesite", label: "View Live Site", icon: "" },
     ]

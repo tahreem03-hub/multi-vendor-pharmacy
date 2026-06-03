@@ -21,7 +21,7 @@ const PrescriberOrders = () => {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    API.get('/orders/my-orders')
+    API.get('/orders/my')
       .then(res => {
         // Handle varying API response formats
         const data = res.data.orders || (Array.isArray(res.data) ? res.data : []);

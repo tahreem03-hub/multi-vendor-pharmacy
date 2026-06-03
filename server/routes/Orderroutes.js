@@ -6,7 +6,7 @@ import {
   getCommissionSummary,
   getMyOrders,
   getMyStats,
-} from "../controllers/order.controller.js";
+} from "../controllers/Order.controller.js";
 import { protect, adminOnly, prescriberOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();

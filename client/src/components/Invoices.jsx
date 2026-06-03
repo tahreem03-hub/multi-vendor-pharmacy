@@ -38,7 +38,7 @@ const Invoices = () => {
 
   const invoices = orders.map((order, idx) => {
     const revenueExVat = order.financials?.revenueExVat || 0;
-    const vatAmount    = order.financials?.vatCollected || 0;
+    const vatAmount    = order.financials?.outputVat    || 0;
     const totalIncVat  = revenueExVat + vatAmount;
     const status       = statusColors[order.status] || statusColors.default;
 

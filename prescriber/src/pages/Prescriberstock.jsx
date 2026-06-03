@@ -10,7 +10,7 @@ const PrescriberStock = () => {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    API.get('/stock/my-stock')
+    API.get('/stock/my')
       .then(res => setStock(Array.isArray(res.data) ? res.data : res.data.stock || []))
       .catch(err => console.error('Failed to load stock:', err))
       .finally(() => setLoading(false));

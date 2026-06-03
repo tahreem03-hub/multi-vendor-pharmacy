@@ -44,8 +44,9 @@ export const createOrder = async (req, res) => {
     }
 
     let revenueExVat = 0;
-    let cogsExVat = 0;
-    let vatCollected = 0;
+    let cogsExVat    = 0;
+    let outputVat    = 0; // VAT charged to patient (owed to HMRC for standard items)
+    let inputVat     = 0; // VAT paid when buying stock (always reclaimable)
     const orderItems = [];
     const stockUpdates = [];
 
@@ -79,12 +80,15 @@ export const createOrder = async (req, res) => {
         }
       }
 
-      const isPOM = medicine.prescriptionRequired;
+      const isPOM   = medicine.prescriptionRequired;
       const vatRate = isPOM ? CONFIG.VAT_RATE_POM : CONFIG.VAT_RATE_STANDARD;
-      
-      revenueExVat += medicine.sellingPrice * item.quantity;
-      cogsExVat += medicine.buyingPrice * item.quantity;
-      vatCollected += (medicine.sellingPrice * item.quantity) * vatRate;
+      const lineRevExVat  = medicine.sellingPrice * item.quantity;
+      const lineCostExVat = medicine.buyingPrice  * item.quantity;
+
+      revenueExVat += lineRevExVat;
+      cogsExVat    += lineCostExVat;
+      outputVat    += lineRevExVat  * vatRate;                    // 0 for POM, 20% for standard
+      inputVat     += lineCostExVat * CONFIG.VAT_RATE_STANDARD;  // pharmacy always pays 20% on purchases
 
       orderItems.push({
         product: medicine._id,
@@ -103,9 +107,14 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // Financial calculations
-    const totalIncVat = revenueExVat + vatCollected;
+    // ── Financial Calculations ────────────────────────────────
+    const totalIncVat        = parseFloat((revenueExVat + outputVat).toFixed(2));
     const { packaging, delivery, paymentFee, commission } = calculateCommission(revenueExVat, cogsExVat, totalIncVat);
+
+    // Per-spec derived values
+    const vatPositionImpact   = parseFloat((inputVat - outputVat).toFixed(2));  // + means HMRC owes pot
+    const immediateCashImpact = parseFloat((totalIncVat - paymentFee - packaging - delivery).toFixed(2));
+    const trueProfitImpact    = parseFloat((immediateCashImpact + vatPositionImpact).toFixed(2));
 
     // ── Save Order ────────────────────────────────────────────
     const order = await Order.create({
@@ -117,12 +126,15 @@ export const createOrder = async (req, res) => {
       financials: {
         revenueExVat,
         cogsExVat,
-        packagingCostExVat: packaging,
-        deliveryCostExVat: delivery,
+        packagingCostExVat:  packaging,
+        deliveryCostExVat:   delivery,
         paymentFee,
-        commissionExVat: commission,
-        vatCollected,
-        vatOnPurchases: cogsExVat * CONFIG.VAT_RATE_STANDARD,
+        commissionExVat:     commission,
+        outputVat:           parseFloat(outputVat.toFixed(2)),
+        inputVat:            parseFloat(inputVat.toFixed(2)),
+        vatPositionImpact,
+        immediateCashImpact,
+        trueProfitImpact,
       },
       deliveryAddress,
       status: prescriptionId ? "pending" : "verified",
@@ -168,17 +180,88 @@ export const createOrder = async (req, res) => {
       await order.save();
 
       if (freshPot) {
+        // ── 1. Patient payment received ───────────────────────
         freshPot.addLedgerEntry({
           type: "PATIENT_PAYMENT_RECEIVED",
           orderId: order._id,
           amount: totalIncVat,
-          vatAmount: vatCollected,
+          vatAmount: outputVat,
           cashDelta: totalIncVat,
-          profitDelta: commission,
-          restrictedDelta: vatCollected,
-          vatPositionDelta: -vatCollected,
-          description: `Order #${order._id} payment received`,
+          description: `Order #${order._id} — patient payment received`,
         });
+
+        // ── 2. Card / payment processing fee ─────────────────
+        freshPot.addLedgerEntry({
+          type: "CARD_FEE_DEDUCTED",
+          orderId: order._id,
+          amount: paymentFee,
+          cashDelta: -paymentFee,
+          description: `Order #${order._id} — payment processing fee`,
+        });
+
+        // ── 3. Stock allocated to this order ─────────────────
+        freshPot.addLedgerEntry({
+          type: "STOCK_ALLOCATED_TO_ORDER",
+          orderId: order._id,
+          amount: cogsExVat,
+          stockDelta: -cogsExVat,
+          description: `Order #${order._id} — stock allocated (${orderItems.length} item${orderItems.length > 1 ? 's' : ''})`,
+        });
+
+        // ── 4. Packaging cost ─────────────────────────────────
+        freshPot.addLedgerEntry({
+          type: "PACKAGING_REIMBURSEMENT",
+          orderId: order._id,
+          amount: packaging,
+          cashDelta: -packaging,
+          description: `Order #${order._id} — packaging cost`,
+        });
+
+        // ── 5. Delivery cost ──────────────────────────────────
+        freshPot.addLedgerEntry({
+          type: "DELIVERY_REIMBURSEMENT",
+          orderId: order._id,
+          amount: delivery,
+          cashDelta: -delivery,
+          description: `Order #${order._id} — delivery cost`,
+        });
+
+        // ── 6. Output VAT (charged to patient → owed to HMRC) ─
+        if (outputVat > 0) {
+          freshPot.addLedgerEntry({
+            type: "VAT_OUTPUT_RECORDED",
+            orderId: order._id,
+            amount: outputVat,
+            vatAmount: outputVat,
+            vatPositionDelta: -outputVat,
+            restrictedDelta: outputVat,
+            description: `Order #${order._id} — output VAT payable to HMRC`,
+          });
+        }
+
+        // ── 7. Input VAT (paid on stock purchases → reclaimable) ─
+        if (inputVat > 0) {
+          freshPot.addLedgerEntry({
+            type: "VAT_INPUT_RECORDED",
+            orderId: order._id,
+            amount: inputVat,
+            vatAmount: inputVat,
+            vatPositionDelta: inputVat,
+            description: `Order #${order._id} — input VAT reclaimable from HMRC`,
+          });
+        }
+
+        // ── 8. Commission earned by prescriber ────────────────
+        if (commission > 0) {
+          freshPot.addLedgerEntry({
+            type: "COMMISSION_EARNED",
+            orderId: order._id,
+            amount: commission,
+            profitDelta: commission,
+            description: `Order #${order._id} — commission earned`,
+          });
+        }
+
         await freshPot.save();
       }
     }
@@ -187,14 +270,18 @@ export const createOrder = async (req, res) => {
       message: "Order placed successfully",
       orderId: order._id,
       financialSummary: {
-        revenueExVat: revenueExVat.toFixed(2),
-        cogsExVat: cogsExVat.toFixed(2),
-        packaging: packaging.toFixed(2),
-        delivery: delivery.toFixed(2),
-        paymentFee: paymentFee.toFixed(2),
-        commission: commission.toFixed(2),
-        vatCollected: vatCollected.toFixed(2),
-        totalIncVat: totalIncVat.toFixed(2),
+        revenueExVat:        revenueExVat.toFixed(2),
+        cogsExVat:           cogsExVat.toFixed(2),
+        packaging:           packaging.toFixed(2),
+        delivery:            delivery.toFixed(2),
+        paymentFee:          paymentFee.toFixed(2),
+        commission:          commission.toFixed(2),
+        outputVat:           outputVat.toFixed(2),
+        inputVat:            inputVat.toFixed(2),
+        vatPositionImpact:   vatPositionImpact.toFixed(2),
+        immediateCashImpact: immediateCashImpact.toFixed(2),
+        trueProfitImpact:    trueProfitImpact.toFixed(2),
+        totalIncVat:         totalIncVat.toFixed(2),
       },
     });
   } catch (err) {
@@ -303,7 +390,8 @@ export const getMyStats = async (req, res) => {
           _id:               null,
           totalRevenue:      { $sum: "$financials.revenueExVat" },
           totalCommission:   { $sum: "$financials.commissionExVat" },
-          totalVatCollected: { $sum: "$financials.vatCollected" },
+          totalOutputVat:    { $sum: "$financials.outputVat" },
+          totalInputVat:     { $sum: "$financials.inputVat" },
           totalOrders:       { $sum: 1 },
         },
       },
@@ -328,7 +416,7 @@ export const getMyStats = async (req, res) => {
     res.json({
       totals: totals || {
         totalRevenue: 0, totalCommission: 0,
-        totalVatCollected: 0, totalOrders: 0,
+        totalOutputVat: 0, totalInputVat: 0, totalOrders: 0,
       },
       monthly,
     });

@@ -46,7 +46,7 @@ const PrescriberDashboard = () => {
     </div>
   );
 
-  const onePort = data?.onePort || {}; // Updated from threePot
+  const onePort = data?.threePot || {};
   const orders   = data?.orders   || {};
   const stock    = data?.stock    || {};
   const alerts   = data?.alerts   || { count: 0, items: [] };

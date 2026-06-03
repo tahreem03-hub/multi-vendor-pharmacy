@@ -30,8 +30,8 @@ export const usePrescriberDashboard = () => {
           headers: getHeaders(),
         });
 
-        // Backend sends the data directly — no nested .data.data
-        const d = res.data;
+        // Backend wraps response in { success, data: {...} }
+        const d = res.data.data || res.data;
 
         setData({
           threePot: {

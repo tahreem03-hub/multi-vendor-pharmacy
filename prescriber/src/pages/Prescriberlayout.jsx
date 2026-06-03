@@ -58,8 +58,6 @@ const PrescriberLayout = () => {
     setActivePage(page);
   }, [searchParams]);
 
-  console.log("Current activePage state is:", activePage);
-
   return (
     <div className="flex h-screen overflow-hidden bg-white text-slate-600">
       <PrescriberSidebar activePage={activePage} setActivePage={setActivePage} />
