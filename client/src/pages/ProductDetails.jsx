@@ -71,7 +71,7 @@ const ProductDetails = () => {
     if (!imagePath) return "https://via.placeholder.com/500?text=No+Image";
     if (imagePath.startsWith('http')) return imagePath;
     const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-    return `http://localhost:4000/${cleanPath}`;
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${cleanPath}`;
   };
 
   const extraImages = product.additionalImages || product.images || [];

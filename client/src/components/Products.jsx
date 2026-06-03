@@ -110,9 +110,9 @@ const Products = () => {
       sku:                 product.sku                 || "",
       supplier:            product.supplier            || "",
     });
-    if (product.image) setPreviewUrl(`http://localhost:4000/${product.image}`);
+    if (product.image) setPreviewUrl(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${product.image}`);
     if (product.additionalImages?.length) {
-      setAdditionalPreviews(product.additionalImages.map(img => `http://localhost:4000/${img}`));
+      setAdditionalPreviews(product.additionalImages.map(img => `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${img}`));
     } else {
       setAdditionalPreviews([]);
     }
@@ -322,7 +322,7 @@ const Products = () => {
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
                         {item.image
-                          ? <img src={`http://localhost:4000/${item.image}`} alt={item.name} className="w-full h-full object-cover" />
+                          ? <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${item.image}`} alt={item.name} className="w-full h-full object-cover" />
                           : <Package size={16} className="text-gray-200" />}
                       </div>
                       <div>

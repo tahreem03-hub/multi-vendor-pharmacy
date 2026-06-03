@@ -339,7 +339,7 @@ const HomeHeader = () => {
                         >
                           {product.image ? (
                             <img
-                              src={`http://localhost:4000/${product.image}`}
+                              src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${product.image}`}
                               alt={product.name}
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />

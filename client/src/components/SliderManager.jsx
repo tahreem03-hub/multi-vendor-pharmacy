@@ -22,7 +22,7 @@ const SliderManager = () => {
   const [success, setSuccess] = useState("");
 
   // Base API configuration pointer
-  const API_URL = "http://localhost:4000/api/sliders";
+  const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/sliders`;
 
   // Fetch all active slider records from the database
   const fetchSliders = async () => {
@@ -275,7 +275,7 @@ const SliderManager = () => {
                   // Resolve dynamic URLs: formats back-slashes or missing domain headers automatically
                   const formattedImageUrl = slide.imageUrl?.startsWith("http")
                     ? slide.imageUrl
-                    : `http://localhost:4000/${slide.imageUrl?.replace(/\\/g, "/")}`;
+                    : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${slide.imageUrl?.replace(/\\/g, "/")}`;
 
                   return (
                     <div key={slide._id} className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center shadow-sm relative group hover:border-slate-300 transition-all">

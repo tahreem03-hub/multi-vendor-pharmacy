@@ -6,7 +6,7 @@ import {
 import { toast } from "react-hot-toast";
 import axios from "axios";
 
-const BASE = "http://localhost:4000";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const inputClass = "w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium outline-none focus:border-cyan-500 focus:ring-2 focus:ring-white-500/10 transition-all text-white placeholder:text-slate-500";
 const labelClass = "text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]";

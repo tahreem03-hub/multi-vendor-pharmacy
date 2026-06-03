@@ -184,7 +184,7 @@ const TrendPro = () => {
                       <div className="aspect-square mb-4 flex items-center justify-center bg-gray-50 rounded-xl overflow-hidden p-4">
                         {item.image ? (
                           <img
-src={`http://localhost:4000/uploads/${item.image}`}
+src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${item.image}`}
                             alt={item.name}
                             className="max-w-full max-h-full object-contain transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-1"
                           />

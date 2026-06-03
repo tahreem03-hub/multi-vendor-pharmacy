@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 import {
   ArrowRight, HandCoins, Plus, Minus,
   ShoppingCart, ShoppingCartIcon, Truck, Headset,
@@ -137,7 +138,7 @@ const ProductCard = ({ product }) => {
       <div className="relative overflow-hidden bg-slate-700" style={{ height: '200px' }}>
         {product.image ? (
           <img
-            src={`http://localhost:4000/${product.image}`}
+            src={`${BASE_URL}/${product.image}`}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -236,7 +237,7 @@ const Home = () => {
 
   // Fetch Sliders from API Configuration Track
   useEffect(() => {
-    fetch("http://localhost:4000/api/sliders")
+    fetch(`${BASE_URL}/api/sliders`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -300,7 +301,7 @@ const Home = () => {
                 // Formatting image file URLs matching target upload configurations
                 const formattedImageUrl = slide.imageUrl?.startsWith("http")
                   ? slide.imageUrl
-                  : `http://localhost:4000/${slide.imageUrl?.replace(/\\/g, "/")}`;
+                  : `${BASE_URL}/${slide.imageUrl?.replace(/\\/g, "/")}` ;
 
                 return (
                   <div

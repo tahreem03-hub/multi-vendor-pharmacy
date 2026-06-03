@@ -196,7 +196,7 @@ const Prescriptions = () => {
 
                     {rx.image && (
                       <button
-                        onClick={() => window.open(`http://localhost:4000/${rx.image}`, "_blank")}
+                        onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${rx.image}`, "_blank")}
                         className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10px] font-bold hover:bg-slate-200 transition-colors"
                       >
                         <Eye size={12} /> View Image
