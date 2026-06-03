@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const BASE = 'http://localhost:4000';
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 // ✅ Outside component — fixes focus loss on keystroke
 const inputCls  = 'w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-black placeholder:text-gray-300 outline-none focus:border-black transition-all font-medium';

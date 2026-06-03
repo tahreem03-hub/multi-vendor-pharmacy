@@ -60,7 +60,7 @@ const ProductCard = ({ item, onAdd, delay = 0 }) => {
     >
       <div className="relative aspect-square bg-gray-50 overflow-hidden flex items-center justify-center">
         <img
-          src={item.image ? (item.image.startsWith('http') ? item.image : (item.image.startsWith('uploads') ? `http://localhost:4000/${item.image}` : `http://localhost:4000/uploads/${item.image}`)) : PLACEHOLDER_150}
+          src={item.image ? (item.image.startsWith('http') ? item.image : (item.image.startsWith('uploads') ? `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${item.image}` : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${item.image}`)) : PLACEHOLDER_150}
           alt={item.name}
           className="max-h-[75%] object-contain group-hover:scale-110 transition-transform duration-700"
           onError={e => { e.target.src = PLACEHOLDER_150; }}
@@ -270,7 +270,7 @@ const Home = () => {
               >
                 <div className="absolute inset-0 w-full h-full z-0">
                   <img
-                    src={slide.imageUrl ? (slide.imageUrl.startsWith('http') ? slide.imageUrl : (slide.imageUrl.startsWith('uploads') ? `http://localhost:4000/${slide.imageUrl}` : `http://localhost:4000/uploads/${slide.imageUrl}`)) : PLACEHOLDER_HERO}
+                    src={slide.imageUrl ? (slide.imageUrl.startsWith('http') ? slide.imageUrl : (slide.imageUrl.startsWith('uploads') ? `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${slide.imageUrl}` : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${slide.imageUrl}`)) : PLACEHOLDER_HERO}
                     alt={slide.title}
                     className="w-full h-full object-cover select-none"
                     onError={(e) => { e.target.src = PLACEHOLDER_HERO; }}
@@ -524,7 +524,7 @@ const Home = () => {
                     >
                       <div className="relative aspect-square overflow-hidden rounded-xl">
                         <img
-                          src={item.imageUrl || item.image ? ((item.imageUrl || item.image).startsWith('http') ? (item.imageUrl || item.image) : ((item.imageUrl || item.image).startsWith('uploads') ? `http://localhost:4000/${item.imageUrl || item.image}` : `http://localhost:4000/uploads/${item.imageUrl || item.image}`)) : PLACEHOLDER_150}
+                          src={item.imageUrl || item.image ? ((item.imageUrl || item.image).startsWith('http') ? (item.imageUrl || item.image) : ((item.imageUrl || item.image).startsWith('uploads') ? `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${item.imageUrl || item.image}` : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${item.imageUrl || item.image}`)) : PLACEHOLDER_150}
                           alt={item.title || 'Uploaded Update'}
                           className="w-[600px] h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
@@ -583,7 +583,7 @@ const Home = () => {
                   {/* Portrait 9:16 Video Player Container */}
                   <div className="relative aspect-[9/16] bg-black overflow-hidden w-full">
                     <video
-                      src={`http://localhost:4000/${video.image}`}
+                      src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${video.image}`}
                       className="w-full h-full object-cover"
                       muted
                       loop
@@ -626,7 +626,7 @@ const Home = () => {
           {posts.map(post => (
           <div key={post._id} className="overflow-hidden shadow-sm">
             
-           <img key={post._id} src={`http://localhost:4000/${post.image}`} className="w-full h-48 md:h-72 object-cover rounded-lg" />
+           <img key={post._id} src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${post.image}`} className="w-full h-48 md:h-72 object-cover rounded-lg" />
 
           </div>
         ))}

@@ -99,7 +99,7 @@ const FooterSettings = () => {
           {(formData.logo || file) && (
             <div className="relative inline-block">
               <img
-                src={file ? URL.createObjectURL(file) : `http://localhost:4000${formData.logo}`}
+                src={file ? URL.createObjectURL(file) : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${formData.logo}`}
                 alt="Logo"
                 className="h-16 mb-2 border rounded p-1 b"
               />

@@ -16,7 +16,7 @@ const MediaManager = () => {
 
   const fetchMedia = async () => {
     try {
-      const res = await axios.get('http://localhost:4000/api/media');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/media`);
       setMediaList(res.data);
     } catch (err) {
       console.error("Error loading media:", err);
@@ -44,7 +44,7 @@ const MediaManager = () => {
     formData.append('image', selectedFile);
 
     try {
-      await axios.post('http://localhost:4000/api/media/upload', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/media/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setTitle(''); setType('gallery');
@@ -60,7 +60,7 @@ const MediaManager = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Remove this media?")) return;
     try {
-      await axios.delete(`http://localhost:4000/api/media/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/media/${id}`);
       fetchMedia();
     } catch (err) {
       console.error("Delete failed:", err);
@@ -70,7 +70,7 @@ const MediaManager = () => {
   const getMediaUrl = (filePath) => {
     if (!filePath) return '';
     if (filePath.startsWith('http')) return filePath;
-    return `http://localhost:4000/${filePath.replace(/\\/g, '/')}`;
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${filePath.replace(/\\/g, '/')}` ;
   };
 
   return (

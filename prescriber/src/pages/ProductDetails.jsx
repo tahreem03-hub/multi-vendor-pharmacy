@@ -53,7 +53,7 @@ const ProductDetails = () => {
   const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    return `http://localhost:4000/${path.startsWith('/') ? path.substring(1) : path}`;
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${path.startsWith('/') ? path.substring(1) : path}`;
   };
 
   if (loading) return (

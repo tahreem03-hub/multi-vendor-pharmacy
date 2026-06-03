@@ -149,7 +149,7 @@ const CartPage = () => {
                     <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
                       {item.image
                         ? <img
-                            src={`http://localhost:4000/${item.image}`}
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${item.image}`}
                             alt={item.name}
                             className="w-full h-full object-cover"
                             onError={e => { e.target.style.display = 'none'; }}

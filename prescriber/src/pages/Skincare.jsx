@@ -42,7 +42,7 @@ const Skincare = () => {
   const getProductImage = (imagePath) => {
     if (!imagePath) return LOCAL_PLACEHOLDER;
     if (imagePath.startsWith('http') || imagePath.startsWith('data:')) return imagePath;
-    return `http://localhost:4000/${imagePath.replace(/\\/g, '/')}`;
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${imagePath.replace(/\\/g, '/')}` ;
   };
 
   return (

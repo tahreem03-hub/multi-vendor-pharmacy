@@ -147,7 +147,7 @@ const TrendPro = ({ isHomePage = false }) => {
                     >
                       <div className="aspect-[4/3] mb-4 flex items-center justify-center overflow-hidden bg-white relative border border-slate-100 rounded-sm">
                         {item.image ? (
-                          <img src={item.image.startsWith('http') ? item.image : `http://localhost:4000/${item.image.replace(/\\/g, '/')}`} alt={item.name} className="max-w-full max-h-[85%] object-contain transition-transform duration-500 group-hover:scale-105" draggable="false" onError={(e) => { e.target.src = '/default.png'; }} />
+                          <img src={item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${item.image.replace(/\\/g, '/')}`} alt={item.name} className="max-w-full max-h-[85%] object-contain transition-transform duration-500 group-hover:scale-105" draggable="false" onError={(e) => { e.target.src = '/default.png'; }} />
                         ) : (
                           <div className="w-full h-full bg-white" />
                         )}

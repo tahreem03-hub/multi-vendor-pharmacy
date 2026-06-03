@@ -24,7 +24,7 @@ const Footer = () => {
         <div className="space-y-4">
           {data.logo && (
             <img 
-              src={`http://localhost:4000${data.logo}`} 
+              src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${data.logo}`} 
               alt="Logo" 
               className="h-24 w-auto object-contain rounded-full bg-slate-100 " 
             />

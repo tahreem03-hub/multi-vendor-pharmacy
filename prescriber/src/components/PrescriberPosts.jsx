@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { BiCloudUpload, BiTrash } from 'react-icons/bi';
 
-const BASE_URL = 'http://localhost:4000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return '/default.png';
