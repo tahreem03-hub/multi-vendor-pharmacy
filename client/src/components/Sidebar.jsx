@@ -15,6 +15,7 @@ const navItems = [
       { id: "prescriptions", label: "Prescriptions", icon: "",  },
       { id: "products", label: "Products", icon: "" },
       { id: "customers", label: "Customers", icon: "" },
+      { id: "stock", label: "Stock Allocation", icon: "" },
     ]
   },
   {

@@ -19,6 +19,7 @@ import Customers from './components/Customers';
 import Onepot from './components/Onepot';
 import Invoices from './components/Invoices';
 import Commission from './components/Commission';
+import StockAllocation from './components/StockAllocation';
 import Setting from './components/Setting';
 import SliderManager from './components/SliderManager';
 
@@ -86,6 +87,7 @@ const DashboardLayout = () => {
     products:      <Products />,
     customers:     <Customers />,
     onepot:      <Onepot/>,
+    stock:         <StockAllocation />,
     invoices:      <Invoices />,
     commission:    <Commission />,
     settings:      <Setting />,
