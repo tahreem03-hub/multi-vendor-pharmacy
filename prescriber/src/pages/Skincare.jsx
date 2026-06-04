@@ -218,4 +218,3 @@ const Skincare = () => {
 };
 
 export default Skincare;
-  const [allProducts, setAllProducts] = useState([]);
