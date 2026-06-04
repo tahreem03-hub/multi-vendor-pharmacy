@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   ShoppingCart, Truck, ShieldCheck, RefreshCw, Headphones,
   Star, ChevronRight, Heart, Zap, Award, Users, ArrowRight,
-  CheckCircle, Clock, Package, ChevronLeft, Film
+  CheckCircle, Clock, Package, ChevronLeft, Film, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import API from '../api/axios';
@@ -137,6 +137,18 @@ const Home = () => {
   const [videoSectionRef, videoSectionInView] = useInView();
 
   const [posts, setPosts] = useState([]);
+  const [lightboxIdx, setLightboxIdx] = useState(null);
+
+  // Close lightbox on ESC key
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setLightboxIdx(null);
+      if (e.key === 'ArrowRight') setLightboxIdx(i => i !== null ? (i + 1) % posts.length : null);
+      if (e.key === 'ArrowLeft') setLightboxIdx(i => i !== null ? (i - 1 + posts.length) % posts.length : null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [posts.length]);
 
   // Mouse Drag to Scroll Tracking States
   const isDown = useRef(false);
@@ -447,69 +459,79 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 3. TILES & STATS ── */}
-      <section className="py-20 px-6 md:px-20 bg-white">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 justify-center items-center">
-          <div className="relative group w-full md:w-1/3 overflow-hidden rounded-md shadow-sm cursor-pointer">
-            <img src="/largetile_hainjectables-BTwIh-s7.jpg" alt="HA Injectables" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <button className="absolute bottom-6 left-1/2 -translate-x-1/2 px-2 py-2 bg-white text-black text-md font-medium tracking-wider rounded-xl shadow-md transition-all duration-300 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-105 active:scale-95">Shop Now</button>
+      {/* ── 3. CATEGORY TILES ── */}
+      <section className="py-16 px-6 md:px-20 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-gray-400 mb-2">Browse by Category</p>
+            <h2 className="text-3xl font-black tracking-tight">Shop Our Range</h2>
           </div>
-          <div className="relative group w-full md:w-1/3 overflow-hidden rounded-md shadow-sm cursor-pointer">
-            <img src="/largetile_regensolutions-BDJZDg5h.jpg" alt="Regen Solutions" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <button className="absolute bottom-6 left-1/2 -translate-x-1/2 px-2 py-2 bg-white text-black text-md font-medium tracking-wider rounded-xl shadow-md transition-all duration-300 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-105 active:scale-95">Shop Now</button>
-          </div>
-          <div className="relative group w-full md:w-1/3 overflow-hidden rounded-md shadow-sm cursor-pointer">
-            <img src="/largetile_toxins-CsZ2azkv.jpg" alt="Toxins" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <button className="absolute bottom-6 left-1/2 -translate-x-1/2 px-2 py-2 bg-white text-black text-md font-medium tracking-wider rounded-xl shadow-md transition-all duration-300 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-105 active:scale-95">Shop Now</button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { src: '/largetile_hainjectables-BTwIh-s7.jpg', label: 'HA Injectables', sub: 'Fillers & Boosters', to: '/injectables' },
+              { src: '/largetile_regensolutions-BDJZDg5h.jpg', label: 'Regen Solutions', sub: 'Polynucleotides & Biostimulators', to: '/injectables' },
+              { src: '/largetile_toxins-CsZ2azkv.jpg', label: 'Toxins', sub: 'Botulinum Toxin Range', to: '/injectables' },
+            ].map(({ src, label, sub, to }) => (
+              <Link key={label} to={to}
+                className="group relative overflow-hidden rounded-xl aspect-[4/5] bg-gray-900 block">
+                <img src={src} alt={label}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-70" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-300 mb-1">{sub}</p>
+                  <h3 className="text-xl font-black text-white mb-3">{label}</h3>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-white border border-white/40 px-3 py-1.5 rounded-full group-hover:bg-white group-hover:text-black transition-all duration-300">
+                    Shop Now <ArrowRight size={11} />
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-     <section className="py-4 px-6 md:px-20 bg-white">
- 
-  <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-center items-center gap-8 md:gap-12">
-    
-    
-    <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
-        <img src="/girl.jpg" alt="Obagi Medical" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      </div>
-      <p className="text-xs font-bold tracking-widest text-slate-800">OBAGI MEDICAL</p>
-    </div>
-
-    <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
-        <img src="/sun.jpg" alt="Medik8" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      </div>
-      <p className="text-xs font-bold tracking-widest text-slate-800">MEDIK8</p>
-    </div>
-
-    <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
-        <img src="/jan.jpg" alt="Jan Marini" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      </div>
-      <p className="text-xs font-bold tracking-widest text-slate-800">JAN MARINI</p>
-    </div>
-
-    <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
-        <img src="/yu.jpg" alt="Epionce" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      </div>
-      <p className="text-xs font-bold tracking-widest text-slate-800">EPIONCE</p>
-    </div>
-
-    <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
-        <img src="/jane.jpg" alt="Jane Iredale" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      </div>
-      <p className="text-xs font-bold tracking-widest text-slate-800">JANE IREDALE</p>
-    </div>
-
-  </div>
-</section>
+      {/* ── BRAND LOGOS ── */}
+      <section className="py-12 bg-gray-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-8 flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-[0.4em] text-gray-400">Trusted Brands</p>
+        </div>
+        <style>{`
+          @keyframes brandScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .brand-track {
+            display: flex;
+            gap: 0;
+            width: max-content;
+            animation: brandScroll 20s linear infinite;
+          }
+          .brand-track:hover { animation-play-state: paused; }
+        `}</style>
+        <div className="overflow-hidden">
+          <div className="brand-track">
+            {[
+              { src: '/girl.jpg', name: 'Obagi Medical' },
+              { src: '/sun.jpg',  name: 'Medik8' },
+              { src: '/jan.jpg',  name: 'Jan Marini' },
+              { src: '/yu.jpg',   name: 'Epionce' },
+              { src: '/jane.jpg', name: 'Jane Iredale' },
+              { src: '/girl.jpg', name: 'Obagi Medical' },
+              { src: '/sun.jpg',  name: 'Medik8' },
+              { src: '/jan.jpg',  name: 'Jan Marini' },
+              { src: '/yu.jpg',   name: 'Epionce' },
+              { src: '/jane.jpg', name: 'Jane Iredale' },
+            ].map(({ src, name }, i) => (
+              <div key={i} className="group shrink-0 w-44 flex flex-col items-center px-6 cursor-pointer">
+                <div className="w-28 h-28 rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300 mb-3">
+                  <img src={src} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-600 group-hover:text-black transition-colors text-center">{name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
   
       <section ref={mediaRef} className="py-12 px-6 md:px-20 bg-white select-none overflow-hidden">
@@ -568,98 +590,130 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 5. RESPONSIVE FLEX VIDEO GRID SECTION (FIXED SPACING) ── */}
-      <section ref={videoSectionRef} className="py-16 px-6 md:px-20 bg-slate-50">
-        <div 
-          className={`max-w-7xl mx-auto transition-all duration-1000 ${
-            videoSectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <div>
-  <h1 className="text-base font-medium text-gray-800 mb-2">
-    For more details and if u have any <br />
-    Query just visit our instagram page.
-  </h1>
-  <a 
-    href="https://www.instagram.com/drgclinics?igsh=eDUzMGczc29lY3Jr" 
-    target="_blank" 
-    rel="noopener noreferrer"
-    className="inline-block text-gray-700 hover:text-black font-semibold underline transition-colors mb-3"
-  >
-    Visit our Instagram
-  </a>
-</div>
-          
+      {/* ── 5. VIDEOS SECTION ── */}
+      <section ref={videoSectionRef} className="py-20 px-6 md:px-20 bg-black text-white">
+        <div className={`max-w-7xl mx-auto transition-all duration-1000 ${videoSectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-gray-400 mb-2">Our Work</p>
+              <h2 className="text-3xl font-black tracking-tight">Clinic Showcase</h2>
+            </div>
+            <a href="https://www.instagram.com/drgclinics?igsh=eDUzMGczc29lY3Jr"
+              target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-bold text-white/60 hover:text-white border border-white/20 hover:border-white/60 px-5 py-2.5 rounded-full transition-all duration-300">
+              @drgclinics on Instagram <ArrowRight size={13} />
+            </a>
+          </div>
 
           {videoItems.length === 0 ? (
-            <div className="py-16 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center bg-white">
-              <Film className="text-gray-300 mb-2" size={32} />
-              <p className="text-sm text-gray-400 font-medium">
-                No local showcase videos uploaded yet.
-              </p>
+            <div className="py-20 border border-white/10 rounded-2xl flex flex-col items-center justify-center text-center">
+              <Film className="text-white/20 mb-3" size={36} />
+              <p className="text-sm text-white/30 font-medium">No showcase videos uploaded yet</p>
+              <p className="text-xs text-white/20 mt-1">Upload videos via the prescriber dashboard</p>
             </div>
           ) : (
-            
-            /* Layout container: centers items and manages gap distance tightly */
-            <div className="flex flex-col md:flex-row flex-wrap justify-center items-center md:items-stretch gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
               {videoItems.slice(0, 3).map((video) => (
-                <div 
-                  key={video._id} 
-                  className="w-full sm:w-[280px] md:w-auto md:flex-1 min-w-[240px] max-w-[340px] bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col group hover:shadow-md transition-shadow"
-                >
-                  {/* Portrait 9:16 Video Player Container */}
-                  <div className="relative aspect-[9/16] bg-black overflow-hidden w-full">
+                <div key={video._id}
+                  className="group relative rounded-2xl overflow-hidden bg-gray-900 border border-white/10 hover:border-white/30 transition-all duration-300 hover:shadow-2xl hover:shadow-black/50">
+                  <div className="relative aspect-[9/16]">
                     <video
                       src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${video.image}`}
                       className="w-full h-full object-cover"
-                      muted
-                      loop
-                      autoPlay
-                      playsInline
+                      muted loop autoPlay playsInline
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   </div>
-                  
-                  {/* Footer Text Details */}
                   {video.title && (
-                    <div className="p-4 border-t border-gray-50 bg-white">
-                      <p className="text-xs font-bold text-gray-800 truncate text-center uppercase tracking-wide">
-                        {video.title}
-                      </p>
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <p className="text-xs font-bold uppercase tracking-widest text-white/80">{video.title}</p>
                     </div>
                   )}
                 </div>
               ))}
             </div>
           )}
-          <div>
-            <h1>
-            
-            </h1>
-          </div>
         </div>
-     
-
       </section>
       {/* ── 6. POSTS SECTION ── */}
-<section className="py-16 px-6 md:px-20">
-  <div className="max-w-7xl">
-    
-   <h2 className="text-2xl font-bold mb-8">Updated Posts</h2>
+<section className="py-16 px-6 md:px-20 bg-white">
+  <div className="max-w-7xl mx-auto">
+    <div className="flex items-end justify-between mb-8">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.4em] text-gray-400 mb-1">From Our Clinic</p>
+        <h2 className="text-2xl font-black tracking-tight">Latest Updates</h2>
+      </div>
+      <a href="https://www.instagram.com/drgclinics" target="_blank" rel="noopener noreferrer"
+        className="text-xs font-bold text-black border-b border-black hover:border-gray-400 hover:text-gray-500 transition-colors pb-0.5">
+        Follow on Instagram ↗
+      </a>
+    </div>
 
     {posts.length === 0 ? (
-      <p className="text-gray-400">No posts uploaded yet</p>
+      <p className="text-gray-400 text-sm">No posts uploaded yet</p>
     ) : (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {posts.map(post => (
-          <div key={post._id} className="overflow-hidden shadow-sm">
-            
-           <img key={post._id} src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${post.image}`} className="w-full h-48 md:h-72 object-cover rounded-lg" />
+      <>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {posts.map((post, idx) => (
+            <div key={post._id}
+              onClick={() => setLightboxIdx(idx)}
+              className="group relative overflow-hidden aspect-square bg-gray-100 cursor-pointer">
+              <img
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${post.image}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                alt={post.title || 'Post'}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+                <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity tracking-widest uppercase">View</span>
+              </div>
+            </div>
+          ))}
+        </div>
 
+        {/* ── LIGHTBOX ── */}
+        {lightboxIdx !== null && (
+          <div className="fixed inset-0 z-[600] bg-black/95 flex items-center justify-center"
+            onClick={(e) => { if (e.target === e.currentTarget) setLightboxIdx(null); }}>
+            {/* Close */}
+            <button onClick={() => setLightboxIdx(null)}
+              className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all z-10">
+              <X size={20} />
+            </button>
+            {/* Counter */}
+            <p className="absolute top-6 left-1/2 -translate-x-1/2 text-xs text-white/40 font-medium tracking-widest">
+              {lightboxIdx + 1} / {posts.length}
+            </p>
+            {/* Prev */}
+            <button
+              onClick={() => setLightboxIdx((lightboxIdx - 1 + posts.length) % posts.length)}
+              className="absolute left-4 md:left-8 w-11 h-11 flex items-center justify-center text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all z-10">
+              <ChevronLeft size={22} />
+            </button>
+            {/* Image */}
+            <img
+              key={lightboxIdx}
+              src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/${posts[lightboxIdx].image}`}
+              alt={posts[lightboxIdx].title || 'Post'}
+              className="max-h-[85vh] max-w-[90vw] md:max-w-[70vw] object-contain select-none"
+            />
+            {/* Next */}
+            <button
+              onClick={() => setLightboxIdx((lightboxIdx + 1) % posts.length)}
+              className="absolute right-4 md:right-8 w-11 h-11 flex items-center justify-center text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all z-10">
+              <ChevronRight size={22} />
+            </button>
+            {/* Dot strip */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {posts.map((_, i) => (
+                <button key={i} onClick={() => setLightboxIdx(i)}
+                  className={`rounded-full transition-all duration-200 ${i === lightboxIdx ? 'w-5 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/30'}`} />
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
+        )}
+      </>
     )}
-
   </div>
 </section>
 

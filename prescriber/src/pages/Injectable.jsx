@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Added for navigation
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../api/axios'; 
-import { useCart } from '../context/CartContext'; 
+import { useCart } from '../context/CartContext';
+import { Search, SlidersHorizontal } from 'lucide-react';
 
 const Injectable = () => {
-  const navigate = useNavigate(); // Hook initialization
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortKey, setSortKey] = useState('default');
   
   const subCategoriesList = [
     "Toxins",
@@ -43,6 +46,19 @@ const Injectable = () => {
 
     fetchInjectableProducts();
   }, [activeSubCategory]);
+
+  const filteredProducts = useMemo(() => {
+    let list = [...products];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p => p.name?.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q));
+    }
+    if (sortKey === 'price-asc') list.sort((a, b) => (a.price || 0) - (b.price || 0));
+    else if (sortKey === 'price-desc') list.sort((a, b) => (b.price || 0) - (a.price || 0));
+    else if (sortKey === 'az') list.sort((a, b) => a.name?.localeCompare(b.name));
+    else if (sortKey === 'za') list.sort((a, b) => b.name?.localeCompare(a.name));
+    return list;
+  }, [products, searchQuery, sortKey]);
 
   // Local SVG placeholder encoded to Base64
   const LOCAL_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='100%' height='100%' fill='%23f3f4f6'/><text x='50%' y='50%' font-family='sans-serif' font-size='14' fill='%239ca3af' text-anchor='middle' dominant-baseline='middle'>No Image Available</text></svg>";
@@ -105,19 +121,47 @@ const Injectable = () => {
 
         {/* RIGHT DISPLAY: Filtered Products View Grid */}
         <main className="flex-1">
-          {/* <div className="text-[11px] text-neutral-400 font-medium uppercase tracking-wider mb-6">
-            {products.length} Products Found
-          </div> */}
+          {/* Search + Sort bar */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 text-xs border border-neutral-200 rounded-md focus:outline-none focus:border-black placeholder-neutral-400"
+              />
+            </div>
+            <div className="relative">
+              <SlidersHorizontal size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+              <select
+                value={sortKey}
+                onChange={e => setSortKey(e.target.value)}
+                className="pl-9 pr-8 py-2.5 text-xs border border-neutral-200 rounded-md focus:outline-none focus:border-black bg-white appearance-none cursor-pointer"
+              >
+                <option value="default">Sort: Default</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="price-desc">Price: High → Low</option>
+                <option value="az">Name: A → Z</option>
+                <option value="za">Name: Z → A</option>
+              </select>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-neutral-400 font-medium uppercase tracking-wider mb-5">
+            {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+          </p>
 
           {loading ? (
             <div className="text-sm text-neutral-400 py-12">Loading products...</div>
-          ) : products.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <div className="text-sm text-neutral-400 py-12">
-              No products available in this sub-category yet.
+              No products found.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((item) => (
+              {filteredProducts.map((item) => (
                 <div key={item._id} className="flex flex-col justify-between h-full bg-white p-3 border border-neutral-100 rounded-md shadow-sm hover:shadow-md transition-all group">
                   
                   {/* Click handler added around the upper card content view */}
