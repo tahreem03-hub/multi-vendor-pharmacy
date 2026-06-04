@@ -4,25 +4,25 @@ import { MapPin, Phone, Mail, Globe, ExternalLink } from 'lucide-react';
 
 // ── Fallback footer shown when no CMS data is available ──────
 const FallbackFooter = () => (
-  <footer className="bg-[#02353C] text-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
+  <footer className="bg-[#0a0a0a] text-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
     <div className="max-w-7xl mx-auto px-6 md:px-16 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
       {/* Brand */}
       <div className="space-y-4">
         <h2 className="text-2xl font-bold tracking-tight">
-          Doctor<span className="text-emerald-400">G</span>
+          Doctor<span className="text-gray-300">G</span>
         </h2>
         <p className="text-sm text-slate-300 leading-relaxed">
           Professional aesthetic medicine supplier. Regulated products, expert guidance.
         </p>
         <div className="flex items-start gap-2 text-slate-300 text-sm">
-          <MapPin size={15} className="shrink-0 mt-0.5 text-emerald-400" />
+          <MapPin size={15} className="shrink-0 mt-0.5 text-gray-400" />
           <span>United Kingdom</span>
         </div>
       </div>
 
       {/* Quick Links */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-widest text-emerald-400 mb-5">Quick Links</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-300 mb-5">Quick Links</h3>
         <ul className="space-y-2.5 text-sm text-slate-300">
           {['Home', 'Injectables', 'Skincare', 'About', 'Contact'].map(link => (
             <li key={link}>
@@ -34,14 +34,14 @@ const FallbackFooter = () => (
 
       {/* Contact */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-widest text-emerald-400 mb-5">Contact</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-5">Contact</h3>
         <ul className="space-y-3 text-sm text-slate-300">
           <li className="flex items-center gap-2">
-            <Mail size={14} className="text-emerald-400 shrink-0" />
+            <Mail size={14} className="text-gray-400 shrink-0" />
             <span>info@doctorg.co.uk</span>
           </li>
           <li className="flex items-center gap-2">
-            <Phone size={14} className="text-emerald-400 shrink-0" />
+            <Phone size={14} className="text-gray-400 shrink-0" />
             <span>+44 (0) 800 000 0000</span>
           </li>
         </ul>
@@ -49,7 +49,7 @@ const FallbackFooter = () => (
 
       {/* Regulatory */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-widest text-emerald-400 mb-5">Regulatory</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-300 mb-5">Regulatory</h3>
         <p className="text-xs text-slate-400 leading-relaxed">
           All products are supplied for professional use only. By purchasing, you confirm you are a registered healthcare professional. Not for resale to the general public.
         </p>
@@ -78,7 +78,7 @@ const Footer = () => {
   if (!data) return <FallbackFooter />;
 
   return (
-    <footer className="bg-[#02353C] text-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <footer className="bg-[#0a0a0a] text-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
       <div className="max-w-7xl mx-auto px-6 md:px-16 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
 
         {/* Brand / Logo */}
@@ -91,7 +91,7 @@ const Footer = () => {
             />
           ) : (
             <h2 className="text-2xl font-bold tracking-tight">
-              Doctor<span className="text-emerald-400">G</span>
+              Doctor<span className="text-gray-300">G</span>
             </h2>
           )}
 
@@ -99,7 +99,7 @@ const Footer = () => {
             <div className="space-y-2 mt-2">
               {data.addresses.map((addr, i) => (
                 <div key={i} className="flex items-start gap-2 text-slate-300 text-sm">
-                  <MapPin size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                  <MapPin size={14} className="text-gray-300 shrink-0 mt-0.5" />
                   <span className="leading-relaxed">{addr}</span>
                 </div>
               ))}
@@ -109,7 +109,7 @@ const Footer = () => {
 
         {/* Quick Links */}
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-emerald-400 mb-5">Quick Links</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-300 mb-5">Quick Links</h3>
           <ul className="space-y-2.5 text-sm text-slate-300">
             {['Home', 'Injectables', 'Skincare', 'About', 'Contact'].map(link => (
               <li key={link}>
@@ -122,7 +122,7 @@ const Footer = () => {
         {/* Social Links */}
         {Array.isArray(data.socialLinks) && data.socialLinks.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-emerald-400 mb-5">Follow Us</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-300 mb-5">Follow Us</h3>
             <ul className="space-y-3">
               {data.socialLinks.map((link, i) => (
                 <li key={i}>
@@ -132,7 +132,7 @@ const Footer = () => {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2.5 text-slate-300 hover:text-white text-sm transition-colors"
                   >
-                    <span className="text-emerald-400"><Globe size={16} /></span>
+                    <span className="text-gray-300"><Globe size={16} /></span>
                     {link.platform}
                   </a>
                 </li>
@@ -143,7 +143,7 @@ const Footer = () => {
 
         {/* Regulatory */}
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-emerald-400 mb-5">Regulatory</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-300 mb-5">Regulatory</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
             {data.regulatoryText || 'All products are supplied for professional use only. By purchasing, you confirm you are a registered healthcare professional.'}
           </p>

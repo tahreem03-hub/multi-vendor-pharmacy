@@ -50,14 +50,14 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-slate-900 text-white  font-sans">
+    <header className="bg-black text-white font-sans">
       {/* Top Bar Layout: Added flex-wrap for mobile */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center justify-between gap-4">
         
         {/* Logo Section */}
         <Link to="/" className="flex items-center gap-1 shrink-0 select-none">
           <span className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-            Doctor<span className="text-indigo-400">G</span>
+            Doctor<span className="text-gray-300">G</span>
           </span>
         </Link>
 
@@ -123,7 +123,7 @@ const Header = () => {
       
 
       {/* Sub-Navigation Strip: Added flex-wrap for smaller screens */}
-      <div className="border-t border-neutral-900 bg-slate-900">
+      <div className="border-t border-neutral-800 bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-[14px] sm:text-sm font-bold tracking-wider text-white">
           <Link to="/Skincare" className="hover:text-slate-300 transition-colors hover:underline">Skincare</Link>
           <Link to="/injectables" className="hover:text-slate-300 transition-colors hover:underline">Injectables</Link>

@@ -37,12 +37,12 @@ const Feature = ({ icon, title, desc, delay = 0 }) => {
       style={{ transitionDelay: `${delay}ms` }}
       className={`flex items-center gap-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
     >
-      <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0 text-white">
+      <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center shrink-0 text-white">
         {icon}
       </div>
       <div>
         <p className="font-bold text-gray-900 text-sm">{title}</p>
-        <p className="text-indigo-600 font-semibold text-xs mt-0.5">{desc}</p>
+        <p className="text-gray-500 font-semibold text-xs mt-0.5">{desc}</p>
       </div>
     </div>
   );
@@ -87,12 +87,12 @@ const ProductCard = ({ item, onAdd, delay = 0 }) => {
         <h3 className="font-bold text-gray-800 mb-1 truncate text-sm">{item.name}</h3>
         {item.category && <p className="text-xs text-gray-400 mb-3">{item.category}</p>}
         <div className="flex justify-between items-center">
-          <span className="text-lg font-black text-indigo-900">
+          <span className="text-lg font-black text-gray-900">
             £{(item.sellingPrice || item.price || 0).toFixed(2)}
           </span>
           <button
             onClick={() => onAdd(item)}
-            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            className="flex items-center gap-1.5 bg-black hover:bg-gray-800 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
           >
             <ShoppingCart size={13} /> Add
           </button>
@@ -111,8 +111,8 @@ const StatCard = ({ value, label, icon: Icon, delay = 0 }) => {
       style={{ transitionDelay: `${delay}ms` }}
       className={`flex flex-col items-center text-center transition-all duration-700 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
     >
-      <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-3">
-        <Icon size={22} className="text-indigo-700" />
+      <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-3">
+        <Icon size={22} className="text-gray-900" />
       </div>
       <p className="text-3xl font-black text-gray-900">{value}</p>
       <p className="text-sm text-gray-500 font-medium mt-1">{label}</p>
@@ -259,7 +259,34 @@ const Home = () => {
    
      {/* ── 1. DYNAMIC HERO SLIDER SECTION ── */}
       <section className="min-h-[80vh]  relative overflow-hidden flex items-center">
-        {sliders.length > 0 && (
+        {sliders.length === 0 && (
+        <div className="relative w-full h-[80vh] min-h-[480px] bg-black flex items-center overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1600&q=80"
+            alt="DoctorG Clinic"
+            className="absolute inset-0 w-full h-full object-cover opacity-25 select-none"
+          />
+          <div className="relative z-10 text-white px-8 md:px-20 max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-gray-400 mb-4">
+              Professional Aesthetic Medicine
+            </p>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
+              Premium<br />Clinical Supply
+            </h1>
+            <p className="text-gray-300 text-base md:text-lg max-w-xl mb-8 leading-relaxed">
+              Exclusive access to regulated aesthetic medicines and premium skincare for registered healthcare professionals.
+            </p>
+            <Link
+              to="/trendpro"
+              className="inline-flex items-center gap-2 bg-white text-black px-8 py-4 font-bold text-sm hover:bg-gray-200 transition"
+            >
+              Browse Products <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {sliders.length > 0 && (
           <div className="w-full relative h-[80vh] flex items-center">
             {sliders.map((slide, index) => (
               <div
@@ -342,7 +369,7 @@ const Home = () => {
       </section>
 
       {/* ── 2. FEATURES MARQUEE ── */}
-      <section className="py-4 bg-white text-black overflow-hidden border-b border-indigo-100 select-none relative">
+      <section className="py-4 bg-white text-black overflow-hidden border-b border-gray-100 select-none relative">
         <style>{`
           @keyframes marquee {
             0% { transform: translateX(0%); }
@@ -361,32 +388,32 @@ const Home = () => {
         <div className="flex whitespace-nowrap">
           <div className="animate-marquee flex items-center gap-16 text-md font-semibold tracking-wide">
             <span>Free delivery on orders over £400</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Exclusive Brands</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Multi Award Winning</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Skincare</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Market Leading Distribution</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Fat Dissolvers</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Botulinum Toxins</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
 
             <span>Free delivery on orders over £400</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Exclusive Brands</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Multi Award Winning Market Leading Distribution</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Skincare</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Fat Dissolvers</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             <span>Botulinum Toxins</span>
-            <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
           </div>
         </div>
       </section>
@@ -447,35 +474,35 @@ const Home = () => {
     
     
     <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-indigo-100 transition-all duration-300">
+      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
         <img src="/girl.jpg" alt="Obagi Medical" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
       </div>
       <p className="text-xs font-bold tracking-widest text-slate-800">OBAGI MEDICAL</p>
     </div>
 
     <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-indigo-100 transition-all duration-300">
+      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
         <img src="/sun.jpg" alt="Medik8" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
       </div>
       <p className="text-xs font-bold tracking-widest text-slate-800">MEDIK8</p>
     </div>
 
     <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-indigo-100 transition-all duration-300">
+      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
         <img src="/jan.jpg" alt="Jan Marini" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
       </div>
       <p className="text-xs font-bold tracking-widest text-slate-800">JAN MARINI</p>
     </div>
 
     <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-indigo-100 transition-all duration-300">
+      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
         <img src="/yu.jpg" alt="Epionce" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
       </div>
       <p className="text-xs font-bold tracking-widest text-slate-800">EPIONCE</p>
     </div>
 
     <div className="flex flex-col items-center text-center group cursor-pointer w-full sm:w-auto flex-shrink-0">
-      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-indigo-100 transition-all duration-300">
+      <div className="w-full sm:w-48 h-64 md:h-52 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300">
         <img src="/jane.jpg" alt="Jane Iredale" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
       </div>
       <p className="text-xs font-bold tracking-widest text-slate-800">JANE IREDALE</p>
@@ -557,7 +584,7 @@ const Home = () => {
     href="https://www.instagram.com/drgclinics?igsh=eDUzMGczc29lY3Jr" 
     target="_blank" 
     rel="noopener noreferrer"
-    className="inline-block text-indigo-600 hover:text-indigo-800 font-semibold underline transition-colors mb-3"
+    className="inline-block text-gray-700 hover:text-black font-semibold underline transition-colors mb-3"
   >
     Visit our Instagram
   </a>
