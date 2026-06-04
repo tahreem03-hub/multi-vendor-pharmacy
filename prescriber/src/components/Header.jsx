@@ -1,8 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Search, X, Menu } from 'lucide-react';
+import { ShoppingCart, Search, X, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import API from '../api/axios';
+
+const ANNOUNCEMENTS = [
+  'Free UK delivery on orders over £99',
+  '10% off your first order — use code WELCOME10',
+  'Same-day dispatch on orders placed before 2pm',
+  'Registered prescribers only · Rx verification required',
+  'New stock: Sculptra, Profhilo & Teoxane now available',
+];
+
+const AnnouncementBar = () => {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % ANNOUNCEMENTS.length);
+        setVisible(true);
+      }, 350);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const prev = () => { setIdx(i => (i - 1 + ANNOUNCEMENTS.length) % ANNOUNCEMENTS.length); };
+  const next = () => { setIdx(i => (i + 1) % ANNOUNCEMENTS.length); };
+
+  return (
+    <div className="bg-white border-b border-gray-100 text-black text-[11px] font-semibold tracking-wide py-2 px-4 flex items-center justify-center gap-3 select-none">
+      <button onClick={prev} className="opacity-30 hover:opacity-70 transition-opacity shrink-0">
+        <ChevronLeft size={13} />
+      </button>
+      <p
+        className="text-center transition-all duration-300"
+        style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-4px)' }}
+      >
+        {ANNOUNCEMENTS[idx]}
+      </p>
+      <button onClick={next} className="opacity-30 hover:opacity-70 transition-opacity shrink-0">
+        <ChevronRight size={13} />
+      </button>
+      {/* dot indicators */}
+      <div className="absolute right-4 hidden sm:flex gap-1">
+        {ANNOUNCEMENTS.map((_, i) => (
+          <button key={i} onClick={() => setIdx(i)}
+            className={`rounded-full transition-all ${i === idx ? 'w-3 h-1.5 bg-black' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const NAV_LINKS = [
   { to: '/Skincare',    label: 'Skincare' },
@@ -95,8 +146,11 @@ const Header = () => {
         </div>
       )}
 
-      <header className="bg-black text-white font-sans sticky top-0 z-[200]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      {/* ── STICKY WRAPPER (announcement + nav together) ── */}
+      <div className="sticky top-0 z-[200]">
+        <AnnouncementBar />
+        <header className="bg-black text-white font-sans">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
 
           {/* Logo */}
           <Link to="/" className="shrink-0 select-none">
@@ -155,7 +209,8 @@ const Header = () => {
             ))}
           </div>
         )}
-      </header>
+        </header>
+      </div>
     </>
   );
 };

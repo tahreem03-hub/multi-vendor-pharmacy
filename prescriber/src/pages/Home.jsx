@@ -491,42 +491,35 @@ const Home = () => {
       </section>
 
       {/* ── BRAND LOGOS ── */}
-      <section className="py-12 bg-gray-50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-8 flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-[0.4em] text-gray-400">Trusted Brands</p>
-        </div>
+      <section className="py-10 bg-white border-y border-gray-100 overflow-hidden">
         <style>{`
           @keyframes brandScroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
           }
-          .brand-track {
+          .brand-text-track {
             display: flex;
-            gap: 0;
+            align-items: center;
             width: max-content;
-            animation: brandScroll 20s linear infinite;
+            animation: brandScroll 28s linear infinite;
           }
-          .brand-track:hover { animation-play-state: paused; }
+          .brand-text-track:hover { animation-play-state: paused; }
         `}</style>
         <div className="overflow-hidden">
-          <div className="brand-track">
+          <div className="brand-text-track gap-0">
             {[
-              { src: '/girl.jpg', name: 'Obagi Medical' },
-              { src: '/sun.jpg',  name: 'Medik8' },
-              { src: '/jan.jpg',  name: 'Jan Marini' },
-              { src: '/yu.jpg',   name: 'Epionce' },
-              { src: '/jane.jpg', name: 'Jane Iredale' },
-              { src: '/girl.jpg', name: 'Obagi Medical' },
-              { src: '/sun.jpg',  name: 'Medik8' },
-              { src: '/jan.jpg',  name: 'Jan Marini' },
-              { src: '/yu.jpg',   name: 'Epionce' },
-              { src: '/jane.jpg', name: 'Jane Iredale' },
-            ].map(({ src, name }, i) => (
-              <div key={i} className="group shrink-0 w-44 flex flex-col items-center px-6 cursor-pointer">
-                <div className="w-28 h-28 rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm group-hover:shadow-md group-hover:border-gray-300 transition-all duration-300 mb-3">
-                  <img src={src} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-600 group-hover:text-black transition-colors text-center">{name}</p>
+              'ALLERGAN AESTHETICS', 'GALDERMA', 'TEOXANE', 'MERZ AESTHETICS',
+              'SINCLAIR PHARMA', 'PROLLENIUM', 'HUGEL', 'REVANCE', 'IPSEN',
+              'Q-MED', 'CROMA PHARMA', 'FILLMED',
+              'ALLERGAN AESTHETICS', 'GALDERMA', 'TEOXANE', 'MERZ AESTHETICS',
+              'SINCLAIR PHARMA', 'PROLLENIUM', 'HUGEL', 'REVANCE', 'IPSEN',
+              'Q-MED', 'CROMA PHARMA', 'FILLMED',
+            ].map((name, i) => (
+              <div key={i} className="flex items-center shrink-0">
+                <span className="text-[11px] font-black tracking-[0.35em] text-gray-800 px-7 whitespace-nowrap hover:text-black transition-colors cursor-default">
+                  {name}
+                </span>
+                <span className="text-gray-200 text-lg shrink-0">·</span>
               </div>
             ))}
           </div>
