@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 import {
-  ArrowRight, HandCoins, Plus, Minus,
-  ShoppingCart, ShoppingCartIcon, Truck, Headset,
+  ArrowRight, HandCoins, Plus, Minus, Check, Heart, CreditCard,
+  ShoppingCart, Truck, Headset, Quote,
   Mail, Phone, MapPin, ShieldCheck, Zap, Pill,
-  Package, Star, ShoppingBag, Syringe, ClipboardList, Users, ChevronLeft, ChevronRight
+  Package, Star, ClipboardList, Users, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -36,70 +36,74 @@ const LinkedinIcon = () => (
   </svg>
 );
 
+const Eyebrow = ({ children }) => (
+  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-100 mb-4 tracking-wide uppercase">
+    {children}
+  </span>
+);
+
 const faqData = [
   {
-    question: "Do I need a prescription to buy medicines online?",
-    answer: "Prescription-only medicines require a valid prescription from a licensed doctor. Over-the-counter medicines can be purchased without a prescription.",
+    question: "Do I need a validated prescriber account to purchase Prescription-Only Medicines (POM)?",
+    answer: "Yes. All Prescription-Only Medicines require clinical validation. Registered GMC, GPhC, NMC, or HCPC prescribers can order directly after professional verification, while non-prescribers must link accounts with their designated prescriber via PrescribeLink.",
   },
   {
-    question: "How can I verify that the medicines are genuine?",
-    answer: "All medicines are sourced from licensed and authorized suppliers. Each product is checked for authenticity, batch number, and expiry date before dispatch.",
+    question: "How do you guarantee and verify product authenticity?",
+    answer: "All injectables, toxins, and dermal fillers are sourced directly from licensed UK distributors and manufacturers. We operate under strict quality management procedures, maintaining full batch traceability and cold-chain logging.",
   },
   {
-    question: "What should I do if I receive the wrong medicine?",
-    answer: "Contact our support team immediately. We will verify the issue and arrange a replacement or refund according to our pharmacy policy.",
+    question: "How are temperature-sensitive products like botulinum toxins shipped?",
+    answer: "We use validated cold-chain packaging designed to maintain stable, chilled temperatures for up to 72 hours. All toxin shipments are dispatched via next-day delivery partners to guarantee clinical efficacy upon arrival.",
   },
   {
-    question: "Can I return medicines after purchase?",
-    answer: "Due to health and safety regulations, medicines are generally non-returnable unless they are damaged, defective, or supplied incorrectly.",
+    question: "What is the daily cut-off time for next-day dispatch?",
+    answer: "Orders submitted, payment cleared, and prescriptions approved before 3:00 PM Monday through Thursday are processed and shipped for next-working-day delivery.",
   },
   {
-    question: "How do I know if a medicine is in stock?",
-    answer: "Product availability is displayed on each product page. If a medicine is temporarily unavailable, you can contact us for expected restock dates.",
+    question: "Can I return items if I order the incorrect product by mistake?",
+    answer: "Due to MHRA regulations governing professional medical supplies, we cannot accept returns on prescription medications or temperature-sensitive items once they have left our pharmacy premises.",
   },
 ];
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(0);
   return (
-    <div className="bg-slate-900 py-24 px-8 lg:px-24">
+    <div className="bg-slate-50 py-24 px-8 lg:px-24 border-t border-slate-200">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-14">
-          <span className="inline-flex px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 mb-5">
-            FAQs
-          </span>
-          <h2 className="text-3xl font-black text-white mb-3 tracking-tight">
+          <Eyebrow>Support & Compliance</Eyebrow>
+          <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 mb-3 tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="text-slate-400 text-sm max-w-md mx-auto">
-            Everything you need to know about our platform and services.
+          <p className="text-slate-600 text-base max-w-lg mx-auto">
+            Important information regarding account validation, regulatory compliance, and distribution policies.
           </p>
         </div>
         <div className="space-y-3">
           {faqData.map((item, index) => (
             <div
               key={index}
-              className={`rounded-2xl transition-all duration-300 border ${
+              className={`rounded-xl transition-all duration-300 border ${
                 openIndex === index
-                  ? 'bg-slate-800 border-slate-600'
-                  : 'bg-white/5 border-white/5 hover:border-slate-600'
+                  ? 'bg-white border-slate-300 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300'
               }`}
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
                 className="w-full flex items-center justify-between p-6 text-left gap-4"
               >
-                <span className={`text-sm font-bold ${openIndex === index ? 'text-white' : 'text-slate-300'}`}>
+                <span className={`text-base font-semibold ${openIndex === index ? 'text-slate-900' : 'text-slate-700'}`}>
                   {item.question}
                 </span>
-                <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center ${openIndex === index ? 'bg-white' : 'bg-slate-700'}`}>
+                <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center ${openIndex === index ? 'bg-emerald-600' : 'bg-slate-100'}`}>
                   {openIndex === index
-                    ? <Minus className="text-slate-900 w-3.5 h-3.5" />
-                    : <Plus className="text-slate-300 w-3.5 h-3.5" />}
+                    ? <Minus className="text-white w-3.5 h-3.5" />
+                    : <Plus className="text-slate-500 w-3.5 h-3.5" />}
                 </div>
               </button>
               <div className={`overflow-hidden transition-all duration-300 ${openIndex === index ? 'max-h-40' : 'max-h-0'}`}>
-                <div className="px-6 pb-6 text-slate-400 text-sm leading-relaxed">{item.answer}</div>
+                <div className="px-6 pb-6 text-slate-600 text-sm leading-relaxed">{item.answer}</div>
               </div>
             </div>
           ))}
@@ -109,11 +113,11 @@ const FAQ = () => {
   );
 };
 
-// ── Product Card ──────────────────────────────────────────────────────────────
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const [wished, setWished] = useState(false);
 
   const handleAdd = async (e) => {
     e.stopPropagation();
@@ -131,11 +135,15 @@ const ProductCard = ({ product }) => {
   };
 
   const price = product.sellingPrice || product.price || 0;
+  const original = product.originalPrice || product.mrp || 0;
+  const hasDiscount = original > price && price > 0;
+  const discountPct = hasDiscount ? Math.round(((original - price) / original) * 100) : 0;
+  const inStock = (product.stock ?? 1) > 0;
+  const lowStock = inStock && product.stock <= 5;
 
   return (
-    <div className="group bg-slate-800 rounded-2xl border border-slate-700 hover:border-slate-500 hover:shadow-xl hover:shadow-black/30 transition-all duration-300 flex flex-col overflow-hidden">
-      {/* Image area */}
-      <div className="relative overflow-hidden bg-slate-700" style={{ height: '200px' }}>
+    <div className="group bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/60 transition-all duration-300 flex flex-col overflow-hidden">
+      <div className="relative overflow-hidden bg-slate-100" style={{ height: '200px' }}>
         {product.image ? (
           <img
             src={`${BASE_URL}/${product.image}`}
@@ -143,25 +151,41 @@ const ProductCard = ({ product }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-slate-700">
-            <Package className="w-12 h-12 text-slate-500" />
-            <span className="text-xs text-slate-500 font-semibold">No Image</span>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-slate-100">
+            <Package className="w-12 h-12 text-slate-300" />
+            <span className="text-xs text-slate-400 font-semibold">No Image</span>
           </div>
         )}
 
-        {/* Category pill */}
-        <div className="absolute top-3 left-3">
-          <span className="text-[9px] font-black uppercase tracking-wider bg-slate-900/90 text-slate-200 px-2.5 py-1 rounded-full border border-slate-600">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+          {hasDiscount && (
+            <span className="text-[10px] font-bold tracking-wide bg-emerald-600 text-white px-2.5 py-1 rounded-md shadow-sm">
+              {discountPct}% OFF
+            </span>
+          )}
+          {product.isBestSeller && (
+            <span className="text-[10px] font-bold tracking-wide bg-amber-400 text-slate-900 px-2.5 py-1 rounded-md shadow-sm">
+              BEST SELLER
+            </span>
+          )}
+          <span className="text-[9px] font-semibold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">
             {product.category}
           </span>
         </div>
 
-        {/* Quick add on hover */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setWished(!wished); }}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center border border-slate-200 hover:bg-white shadow-sm transition-all"
+          aria-label="Add to wishlist"
+        >
+          <Heart className={`w-4 h-4 transition-colors ${wished ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
+        </button>
+
         <div className="absolute bottom-0 left-0 right-0 p-3 flex justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
           <button
             onClick={handleAdd}
-            disabled={adding}
-            className="flex items-center gap-2 bg-white text-slate-900 px-5 py-2 rounded-full text-xs font-black shadow-lg hover:bg-slate-100 transition-all active:scale-95"
+            disabled={adding || !inStock}
+            className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-lg hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             {adding ? 'Adding...' : 'Quick Add'}
@@ -169,44 +193,51 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-5 flex flex-col flex-1">
-        {/* Stars */}
         <div className="flex gap-0.5 mb-3">
           {[...Array(5)].map((_, i) => (
             <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
           ))}
         </div>
 
-        {/* Name */}
-        <h3 className="text-[15px] font-black text-white leading-snug mb-1.5 line-clamp-2">
+        <h3 className="text-[15px] font-semibold text-slate-900 leading-snug mb-1.5 line-clamp-2">
           {product.name}
         </h3>
 
-        {/* Brand */}
         {product.brand && (
-          <p className="text-xs text-slate-400 font-medium mb-auto">{product.brand}</p>
+          <p className="text-xs text-slate-500 font-medium mb-auto">{product.brand}</p>
         )}
 
-        {/* Stock warning */}
-        {product.stock <= 5 && product.stock > 0 && (
-          <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider mt-2">
-            Only {product.stock} left
-          </p>
-        )}
+        <div className="mt-3">
+          {!inStock ? (
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Out of stock
+            </p>
+          ) : lowStock ? (
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-orange-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Only {product.stock} left
+            </p>
+          ) : (
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> In stock
+            </p>
+          )}
+        </div>
 
-        {/* Price + Add */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700">
-          <p className="text-lg font-black text-white">
-            £{Number(price).toFixed(2)}
-          </p>
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+          <div className="flex items-baseline gap-2">
+            <p className="text-lg font-bold text-slate-900">£{Number(price).toFixed(2)}</p>
+            {hasDiscount && (
+              <p className="text-xs text-slate-400 line-through">£{Number(original).toFixed(2)}</p>
+            )}
+          </div>
           <button
             onClick={handleAdd}
-            disabled={adding}
-            className={`w-9 h-9 rounded-xl flex items-center justify-center font-black transition-all active:scale-90 ${
+            disabled={adding || !inStock}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold transition-all active:scale-90 disabled:opacity-50 ${
               added
-                ? 'bg-green-500 text-white'
-                : 'bg-slate-700 text-slate-300 hover:bg-white hover:text-slate-900'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white'
             }`}
           >
             {added ? '✓' : <Plus className="w-4 h-4" />}
@@ -217,43 +248,102 @@ const ProductCard = ({ product }) => {
   );
 };
 
-// ── Home ──────────────────────────────────────────────────────────────────────
+const reviews = [
+  {
+    name: "Dr. Sarah Mitchell",
+    role: "Aesthetic Clinic Owner",
+    text: "Reliable next-day cold-chain logistics. Our botulinum toxin consignments arrive properly insulated and monitored. The digital signature framework on SwiftRx saves valuable clinic management hours.",
+  },
+  {
+    name: "James Okafor",
+    role: "Independent Prescriber",
+    text: "PrescribeLink streamlines clinical approval pipelines between prescribers and partner clinics. The compliance controls are highly professional, providing excellent oversight of prescribing files.",
+  },
+  {
+    name: "Lena Fischer",
+    role: "Nurse Prescriber",
+    text: "The inventory visibility is consistent and transparent. Dispatch notifications include batch numbers and expiry data, which makes clinic stock audits and logging direct and simple.",
+  },
+];
+
+const Reviews = () => (
+  <section className="py-24 px-8 lg:px-24 bg-white border-t border-slate-200">
+    <div className="max-w-7xl mx-auto">
+      <div className="text-center mb-14">
+        <Eyebrow>Clinical Feedback</Eyebrow>
+        <div className="flex justify-center gap-1 mb-3">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
+          ))}
+        </div>
+        <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+          Verified UK Practitioner Reviews
+        </h2>
+        <p className="text-slate-600 text-base mt-3 max-w-lg mx-auto">
+          Providing compliant pharmaceutical distribution and digital prescription tooling for clinics nationwide.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {reviews.map((r, i) => (
+          <div
+            key={i}
+            className="bg-slate-50 rounded-xl border border-slate-200 p-7 flex flex-col hover:border-slate-300 hover:shadow-md transition-all duration-300"
+          >
+            <Quote className="w-8 h-8 text-emerald-200 mb-4" />
+            <p className="text-slate-700 text-sm leading-relaxed mb-6 flex-1">"{r.text}"</p>
+            <div className="flex gap-0.5 mb-3">
+              {[...Array(5)].map((_, j) => (
+                <Star key={j} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+                {r.name.charAt(0)}
+              </div>
+              <div>
+                <p className="text-slate-900 text-sm font-semibold">{r.name}</p>
+                <p className="text-slate-500 text-xs">{r.role}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
 const Home = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-
-  // Dynamic slider trackers 
   const [sliders, setSliders] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const productCategories = [
-    { name: 'Botulinum Toxins', count: '45 Products', icon: Pill },
-    { name: 'Dermal Fillers', count: '82 Products', icon: Zap },
-    { name: 'Skin Boosters', count: '34 Products', icon: HandCoins },
-    { name: 'Fat Dissolvers', count: '28 Products', icon: Package },
-    { name: 'Consumables', count: '40 Products', icon: ShieldCheck },
+    { name: 'Botulinum Toxins', count: '45 Products', icon: Pill, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Botulinum+Toxins' },
+    { name: 'Dermal Fillers', count: '82 Products', icon: Zap, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Dermal+Fillers' },
+    { name: 'Skin Boosters', count: '34 Products', icon: HandCoins, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Skin+Boosters' },
+    { name: 'Fat Dissolvers', count: '28 Products', icon: Package, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Fat+Dissolvers' },
+    { name: 'Consumables', count: '40 Products', icon: ShieldCheck, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Consumables' },
   ];
 
-  // Fetch Sliders from API Configuration Track
+  const heroTrust = ['GPhC Premises Registered', 'Validated Cold-Chain Shipping', 'Same-Day Dispatch Cut-off', 'MHRA Verified Wholesalers'];
+
   useEffect(() => {
     fetch(`${BASE_URL}/api/sliders`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          setSliders(data);
-        }
+        if (Array.isArray(data)) setSliders(data);
       })
       .catch((err) => console.error("Error setting up homepage hero sliders:", err));
   }, []);
 
-  // Set up an autoplay lifecycle timer for the home track slider carousel
   useEffect(() => {
     if (sliders.length <= 1) return;
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliders.length);
-    }, 6000); // Transitions slide every 6 seconds
-
+    }, 6000);
     return () => clearInterval(slideInterval);
   }, [sliders]);
 
@@ -267,103 +357,103 @@ const Home = () => {
       .finally(() => setLoadingProducts(false));
   }, []);
 
-  // Inline Handlers to toggle manual track changes
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? sliders.length - 1 : prev - 1));
-  };
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % sliders.length);
-  };
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? sliders.length - 1 : prev - 1));
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % sliders.length);
 
   return (
-    <div className="font-poppins bg-slate-950">
+    <div className="font-sans bg-white text-slate-900">
       <main className="w-full">
 
-        {/* ── NEW DYNAMIC HERO SLIDER ── */}
-        <div className="relative bg-slate-950 min-h-[580px] flex items-center overflow-hidden border-b border-white/5">
+        {/* ── HERO SECTION ── */}
+        <div className="relative bg-gradient-to-b from-slate-100 via-slate-50 to-white overflow-hidden border-b border-slate-200">
+          
+          {/* Subtle Grid Background Pattern for clean division */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+
           {sliders.length === 0 ? (
-            /* Fallback default background layer if backend slider tracks are completely empty */
-            <div className="w-full px-8 md:px-24 py-20 flex flex-col md:flex-row items-center justify-between gap-16 max-w-7xl mx-auto text-white">
+            <div className="w-full px-8 md:px-24 py-24 flex flex-col md:flex-row items-center justify-between gap-16 max-w-7xl mx-auto relative z-10">
               <div className="space-y-6 max-w-xl">
-                <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-[1.1]">
-                  Premium Aesthetic <br /><span className="text-slate-400">Pharmacy</span> Platform
+                <h1 className="font-serif text-4xl md:text-6xl font-semibold tracking-tight leading-[1.15] text-slate-900">
+                  Licensed UK Aesthetic <br /><span className="text-emerald-700">Pharmacy Supply</span>
                 </h1>
-                <p className="text-sm text-slate-400 leading-relaxed">
-                  Welcome to DrGPharma. Log into the console to manage and view promotional displays here.
+                <p className="text-base text-slate-600 leading-relaxed">
+                  Log in to your clinic profile to access prescription-only stocks, prepare prescription forms, and coordinate shipping dates.
                 </p>
               </div>
             </div>
           ) : (
-            /* Main Render Carousels Loop Frame Section Wrapper */
-            <div className="w-full relative min-h-[580px] flex items-center">
+            <div className="w-full relative min-h-[550px] md:min-h-[500px]">
               {sliders.map((slide, index) => {
-                // Formatting image file URLs matching target upload configurations
+                const isActive = index === currentSlide;
                 const formattedImageUrl = slide.imageUrl?.startsWith("http")
                   ? slide.imageUrl
-                  : `${BASE_URL}/${slide.imageUrl?.replace(/\\/g, "/")}` ;
+                  : `${BASE_URL}/${slide.imageUrl?.replace(/\\/g, "/")}`;
 
                 return (
                   <div
                     key={slide._id}
-                    className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out flex items-center py-20 px-8 md:px-24 ${
-                      index === currentSlide 
-                        ? "opacity-100 pointer-events-auto z-10 scale-100" 
-                        : "opacity-0 pointer-events-none z-0 scale-95"
+                    className={`w-full transition-all duration-700 ease-in-out px-8 md:px-24 py-16 md:py-20 ${
+                      isActive ? "block relative opacity-100 z-10" : "hidden absolute opacity-0 z-0"
                     }`}
                   >
-                    {/* Blurry Background Glowing Aesthetic Orbs */}
-                    <div className="absolute top-0 right-0 w-[550px] h-[550px] bg-slate-500/10 rounded-full blur-[140px] -mr-32 -mt-32 pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-emerald-100/30 rounded-full blur-[90px] -mr-24 -mt-24 pointer-events-none" />
 
-                    <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-16 z-10">
+                    <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16 relative z-10">
                       
-                      {/* Formatted Content Side Panel Container */}
-                      <div className="md:w-3/5 text-white space-y-8">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10">
-                          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
-                            GPhC Registered · 229 Products · Next Day Delivery
+                      {/* Left: Copywriting Content */}
+                      <div className="md:w-3/5 space-y-7 text-left">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm">
+                          <span className="w-2 h-2 bg-emerald-500 rounded-full" />
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
+                            Professional Sourcing · Batch Traceability · Temperature Tracked
                           </p>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight break-words">
+                        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold leading-[1.1] tracking-tight text-slate-900">
                           {slide.title}
                         </h1>
 
-                        <p className="text-sm text-slate-400 max-w-md leading-relaxed">
+                        <p className="text-base text-slate-600 max-w-lg leading-relaxed">
                           {slide.description}
                         </p>
 
-                        <div className="flex flex-wrap gap-4 pt-2">
+                        <div className="flex flex-wrap gap-3 pt-1">
                           <button
-                            onClick={() => navigate(slide.buttonLink || "/")}
-                            className="group flex items-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 transition-all shadow-2xl active:scale-95"
+                            onClick={() => navigate(slide.buttonLink || "/trendpro")}
+                            className="group flex items-center gap-3 bg-emerald-600 text-white px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10 active:scale-95"
                           >
-                            {slide.buttonText || "Learn More"}{" "}
+                            {slide.buttonText || "Shop Products"}{" "}
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                          <button
+                            onClick={() => navigate("/trendpro")}
+                            className="flex items-center gap-2 bg-white text-slate-900 px-7 py-3.5 rounded-xl font-bold text-sm border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95"
+                          >
+                            View Categories
                           </button>
                         </div>
 
-                        <div className="flex gap-10 pt-4 border-t border-white/8">
-                          {[['229+', 'Products'], ['48hr', 'Dispatch'], ['GPhC', 'Registered']].map(([val, label]) => (
-                            <div key={label}>
-                              <p className="text-2xl font-black text-white">{val}</p>
-                              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-0.5">{label}</p>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-5 border-t border-slate-200 max-w-lg">
+                          {heroTrust.map((t) => (
+                            <div key={t} className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-700">
+                              <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              </span>
+                              {t}
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Display Image Uploaded File Asset Container Node */}
-                      <div className="md:w-2/5 flex justify-center md:justify-end z-10">
+                      {/* Right: Graphic Container */}
+                      <div className="md:w-2/5 flex justify-center md:justify-end">
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-slate-400/15 rounded-[3rem] blur-3xl group-hover:bg-slate-400/25 transition-colors duration-700" />
+                          <div className="absolute inset-0 bg-emerald-200/20 rounded-2xl blur-2xl group-hover:bg-emerald-200/30 transition-colors duration-700" />
                           <img
                             src={formattedImageUrl}
                             alt={slide.title}
-                            className="w-72 md:w-80 lg:w-[380px] h-[450px] rounded-[3rem] shadow-2xl object-cover relative border border-white/8 transition-transform duration-500 group-hover:scale-[1.01]"
-                            onError={(e) => { e.target.src = "https://placehold.co/600x800/0f172a/f1f5f9?text=Product+Display"; }}
+                            className="w-72 md:w-80 lg:w-[460px] h-[300px] rounded-2xl shadow-md border border-slate-200/80 object-cover relative transition-transform duration-500 group-hover:scale-[1.01]"
+                            onError={(e) => { e.target.src = "https://placehold.co/600x800/f1f5f9/64748b?text=Product+Display"; }}
                           />
                         </div>
                       </div>
@@ -373,30 +463,28 @@ const Home = () => {
                 );
               })}
 
-              {/* Slider Manual Trigger Navigation Toggles (Only show if multiple items are rendered) */}
               {sliders.length > 1 && (
                 <>
                   <button
                     onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-slate-900/60 text-slate-400 border border-white/10 hover:bg-white hover:text-slate-900 transition-all shadow-lg backdrop-blur-sm"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-md"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-slate-900/60 text-slate-400 border border-white/10 hover:bg-white hover:text-slate-900 transition-all shadow-lg backdrop-blur-sm"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-md"
                   >
                     <ChevronRight size={20} />
                   </button>
 
-                  {/* Dot Map Track Progress Array Indicators */}
                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
                     {sliders.map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setCurrentSlide(i)}
                         className={`h-1.5 rounded-full transition-all duration-300 ${
-                          i === currentSlide ? "w-6 bg-white" : "w-1.5 bg-white/30"
+                          i === currentSlide ? "w-6 bg-emerald-600" : "w-1.5 bg-slate-300"
                         }`}
                       />
                     ))}
@@ -407,76 +495,36 @@ const Home = () => {
           )}
         </div>
 
-        {/* ── Feature Bar ── */}
-        <div className="flex flex-nowrap justify-between items-center gap-8 px-10 lg:px-24 py-12 bg-slate-900 border-b border-slate-800 overflow-x-auto">
-          {[
-            { icon: Truck, title: "Free Shipping", sub: "Orders over £199" },
-            { icon: ShieldCheck, title: "Secure Ordering", sub: "SSL Encrypted" },
-            { icon: Zap, title: "Fast Dispatch", sub: "Next Working Day" },
-            { icon: Pill, title: "Genuine Medicines", sub: "Licensed UK Supplier" },
-            { icon: Headset, title: "Expert Support", sub: "Pharmacy Team" },
-          ].map((f, i) => (
-            <div key={i} className="flex items-center gap-4 group shrink-0">
-              <span className="p-3.5 bg-slate-800 text-slate-400 rounded-xl group-hover:bg-white group-hover:text-slate-900 transition-all duration-300">
-                <f.icon className="w-5 h-5" />
-              </span>
-              <div>
-                <h3 className="font-black text-white text-sm">{f.title}</h3>
-                <p className="text-xs text-slate-500 mt-0.5">{f.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Marquee ── */}
-        <div className="w-full overflow-hidden bg-slate-900 py-4 border-y border-slate-800">
-          <div className="relative flex overflow-x-hidden py-3">
-            {[1, 2].map(n => (
-              <div key={n} className={`whitespace-nowrap flex gap-12 items-center ${n === 1 ? 'animate-marquee' : 'animate-marquee2 absolute top-3'}`}>
-                {['Skin Boosters: Profhilo, Seventy Hyal, Jalupro', 'Weight Management: Fat Dissolving, Vitamin B12', 'Dermal Fillers: Lip, Cheek, Jawline', 'Botulinum Toxins: Anti-Wrinkle, Fine Lines'].map((t, i) => (
-                  <React.Fragment key={i}>
-                    <span className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t}</span>
-                    <span className="text-white font-bold">✦</span>
-                  </React.Fragment>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Featured Products ── */}
-        <section className="py-20 bg-slate-900 px-8 lg:px-24">
+        {/* ── FEATURED PRODUCTS ── */}
+        <section className="py-20 bg-white px-8 lg:px-24">
           <div className="max-w-7xl mx-auto">
-
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
               <div>
-                <span className="inline-flex px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 mb-4">
-                  Best Sellers
-                </span>
-                <h2 className="text-3xl font-black text-white tracking-tight">
-                  Featured Products
+                <Eyebrow>Clinic Essentials</Eyebrow>
+                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+                  Featured Supplies
                 </h2>
-                <p className="text-slate-400 text-sm mt-2">
-                  Top-rated aesthetic medicines from verified suppliers
+                <p className="text-slate-600 text-base mt-2">
+                  Traceable clinic stocks from MHRA-regulated UK distributors
                 </p>
               </div>
               <button
                 onClick={() => navigate('/trendpro')}
-                className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors group shrink-0"
+                className="flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800 transition-colors group shrink-0"
               >
-                View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Browse Catalog <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
 
             {loadingProducts ? (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden animate-pulse">
-                    <div className="bg-slate-700" style={{ height: '200px' }} />
+                  <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+                    <div className="bg-slate-100" style={{ height: '200px' }} />
                     <div className="p-5 space-y-3">
-                      <div className="h-3 bg-slate-700 rounded-full w-3/4" />
-                      <div className="h-3 bg-slate-700 rounded-full w-1/2" />
-                      <div className="h-5 bg-slate-700 rounded-full w-1/3 mt-4" />
+                      <div className="h-3 bg-slate-100 rounded-full w-3/4" />
+                      <div className="h-3 bg-slate-100 rounded-full w-1/2" />
+                      <div className="h-5 bg-slate-100 rounded-full w-1/3 mt-4" />
                     </div>
                   </div>
                 ))}
@@ -490,120 +538,117 @@ const Home = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-slate-800 rounded-2xl border border-slate-700">
-                <Package className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400 font-semibold text-sm">No products available yet</p>
+              <div className="text-center py-20 bg-slate-50 rounded-xl border border-slate-200">
+                <Package className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500 font-semibold text-sm">No products available yet</p>
               </div>
             )}
           </div>
         </section>
 
-        {/* ── Browse By Category ── */}
-        <section className="py-20 bg-slate-950 px-8 lg:px-24">
+        {/* ── POPULAR CATEGORIES ── */}
+        <section className="py-20 bg-slate-50 px-8 lg:px-24 border-t border-b border-slate-200">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-14">
-              <span className="inline-flex px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 mb-5">
-                Browse by Category
-              </span>
-              <h2 className="text-3xl font-black text-white tracking-tight">
-                Everything for Your Practice
+              <Eyebrow>Inventory Categories</Eyebrow>
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+                Product Categories
               </h2>
-              <p className="text-slate-500 text-sm mt-3">Premium products across all specialised categories</p>
+              <p className="text-slate-600 text-base mt-3">Direct wholesale distribution of licensed cosmetic formulations</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
               {productCategories.map((cat, i) => (
                 <div
                   key={i}
                   onClick={() => navigate('/trendpro')}
-                  className="group relative bg-slate-800 p-7 rounded-2xl border border-slate-700 hover:bg-slate-700 hover:border-slate-500 cursor-pointer transition-all duration-300 flex flex-col items-start overflow-hidden"
+                  className="group relative bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md cursor-pointer transition-all duration-300 overflow-hidden flex flex-col"
                 >
-                  <div className="w-11 h-11 bg-slate-700 group-hover:bg-white rounded-xl flex items-center justify-center mb-6 transition-all duration-300">
-                    <cat.icon className="w-5 h-5 text-slate-300 group-hover:text-slate-900" />
+                  <div className="relative h-32 overflow-hidden bg-slate-100">
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                    />
+                    <div className="absolute top-3 left-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center border border-slate-200 shadow-sm">
+                      <cat.icon className="w-5 h-5 text-emerald-600" />
+                    </div>
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-1">{cat.name}</h3>
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{cat.count}</p>
-                  <div className="mt-5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-300">View All</span>
-                    <ArrowRight className="w-3 h-3 text-slate-300" />
+
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="text-base font-semibold text-slate-900 mb-1">{cat.name}</h3>
+                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{cat.count}</p>
+                    <div className="mt-4 flex items-center gap-2 text-emerald-700 group-hover:text-emerald-800 transition-colors">
+                      <span className="text-xs font-semibold">View Products</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
-                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-white group-hover:w-full transition-all duration-500" />
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Why DrGPharma ── */}
-        <section className="py-24 bg-slate-900 px-8 lg:px-24">
+        {/* ── FEATURE BAR ── */}
+        <div className="flex flex-nowrap justify-between items-center gap-8 px-10 lg:px-24 py-12 bg-white border-b border-slate-200 overflow-x-auto">
+          {[
+            { icon: Truck, title: "Free Shipping", sub: "Orders over £199" },
+            { icon: ShieldCheck, title: "SSL Encrypted", sub: "Secure Order System" },
+            { icon: Zap, title: "Fast Dispatch", sub: "Cut-off at 3:00 PM" },
+            { icon: Pill, title: "Verified Sourcing", sub: "GPhC/MHRA Supply Chains" },
+            { icon: Headset, title: "Clinical Support", sub: "Registered Pharmacists" },
+          ].map((f, i) => (
+            <div key={i} className="flex items-center gap-4 group shrink-0">
+              <span className="p-3.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                <f.icon className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="font-semibold text-slate-900 text-sm">{f.title}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{f.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── WHY DRGPHARMA ── */}
+        <section className="py-24 bg-slate-50 px-8 lg:px-24">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <span className="inline-flex px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 mb-5">
-                Why DrGPharma
-              </span>
-              <h2 className="text-3xl font-black text-white tracking-tight">
-                Built for Aesthetic Professionals
+              <Eyebrow>Pharmacy Standard</Eyebrow>
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+                Designed For Clinical Operations
               </h2>
-              <p className="text-slate-400 text-sm mt-3 max-w-xl mx-auto">
-                Everything a modern aesthetic clinic needs, from a fully licensed UK pharmacy partner
+              <p className="text-slate-600 text-base mt-3 max-w-xl mx-auto">
+                Supporting clinical safety and supply-chain efficiency for independent UK cosmetic practitioners.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[
-                { icon: ShieldCheck, title: "Genuine Products", desc: "All medicines sourced from licensed UK wholesalers with full cold chain integrity." },
-                { icon: ClipboardList, title: "SwiftRx™", desc: "Integrated e-prescribing portal to generate and manage prescriptions in seconds." },
-                { icon: Users, title: "PrescribeLink", desc: "Seamlessly link non-prescribers with registered partners for script validation." },
-                { icon: Zap, title: "Fast Dispatch", desc: "Order by 3pm for next working day delivery in temperature-controlled packaging." },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="group bg-slate-800 rounded-2xl border border-slate-700 p-8 flex flex-col items-center text-center hover:border-slate-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 transition-all duration-300"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-slate-700 text-slate-300 flex items-center justify-center mb-6 group-hover:bg-white group-hover:text-slate-900 transition-all duration-300">
-                    <item.icon className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-sm font-black text-white mb-3 uppercase tracking-tight">{item.title}</h3>
-                  <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="relative">
+                <div className="absolute -inset-3 bg-emerald-100/30 rounded-2xl blur-2xl" />
+                <img
+                  src="https://placehold.co/800x600/e2e8f0/475569?text=Licensed+UK+Pharmacy"
+                  alt="DrGPharma licensed UK pharmacy"
+                  className="relative w-full h-[380px] object-cover rounded-2xl border border-slate-200 shadow"
+                />
+              </div>
 
-        {/* ── How It Works ── */}
-        <section className="py-24 bg-slate-950 px-8 lg:px-24 overflow-hidden">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <span className="inline-flex px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 mb-5">
-                Process
-              </span>
-              <h2 className="text-3xl font-black text-white tracking-tight">
-                How DrGPharma Works
-              </h2>
-              <p className="text-slate-400 text-sm mt-4 max-w-xl mx-auto">
-                A simple, compliant ordering process for aesthetic professionals
-              </p>
-            </div>
-
-            <div className="relative">
-              <div className="hidden lg:block absolute top-12 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[
-                  { num: "1", title: "Register & Verify", desc: "Create your account. Prescribers verify their registration number. Non-prescribers link via PrescribeLink." },
-                  { num: "2", title: "Browse & Select", desc: "Browse 229 products across 13 categories. Add OTC products directly. Request POM items via SwiftRx™." },
-                  { num: "3", title: "Prescribe & Approve", desc: "Prescribers issue digital prescriptions via SwiftRx™. Time Pharmacy reviews and dispenses." },
-                  { num: "4", title: "Deliver to Your Door", desc: "Orders dispatched next working day. Cold chain maintained for toxins and temperature-sensitive products." },
-                ].map((step, idx) => (
-                  <div key={idx} className="flex flex-col items-center text-center group">
-                    <div className="w-20 h-20 rounded-full border-2 border-slate-700 bg-slate-900 flex items-center justify-center mb-8 relative z-10 group-hover:border-slate-500 transition-all duration-300">
-                      <span className="text-2xl font-black text-white">{step.num}</span>
-                      <div className="absolute inset-2 rounded-full border border-slate-800 group-hover:border-slate-600 transition-colors" />
+                  { icon: ShieldCheck, title: "Direct Wholesaling", desc: "No grey-market products. Every batch is direct from MHRA-regulated UK supply structures." },
+                  { icon: ClipboardList, title: "SwiftRx™ Portal", desc: "Write, sign, and authorize prescriptions digitally without physical documentation hold-ups." },
+                  { icon: Users, title: "PrescribeLink Integration", desc: "Allows non-prescribing medical injectors to coordinate clinical oversight with validated prescribers." },
+                  { icon: Zap, title: "Cold-Chain Control", desc: "A temperature-controlled logistics environment protecting protein structure integrity." },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="group bg-white rounded-xl border border-slate-200 p-6 hover:border-slate-300 hover:shadow-md transition-all duration-300"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                      <item.icon className="w-5 h-5" />
                     </div>
-                    <div className="absolute inset-2 rounded-full border border-slate-800 group-hover:border-slate-600 transition-colors" />
-                    <h3 className="text-base font-bold text-white mb-3 tracking-tight">{step.title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed px-2">{step.desc}</p>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">{item.title}</h3>
+                    <p className="text-slate-600 text-xs leading-relaxed">{item.desc}</p>
                   </div>
                 ))}
               </div>
@@ -611,31 +656,71 @@ const Home = () => {
           </div>
         </section>
 
+        {/* ── HOW IT WORKS ── */}
+        <section className="py-24 bg-white px-8 lg:px-24 overflow-hidden border-t border-slate-200">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <Eyebrow>Clinical Workflow</Eyebrow>
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+                Account Validation & Ordering
+              </h2>
+              <p className="text-slate-600 text-base mt-4 max-w-xl mx-auto">
+                A regulatory-compliant structure matching GPhC distribution standards
+              </p>
+            </div>
+
+            <div className="relative">
+              <div className="hidden lg:block absolute top-12 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
+                {[
+                  { num: "1", title: "Practitioner Onboarding", desc: "Complete account sign-up and register professional credentials (GMC, NMC, GPhC, HCPC) for quick validation." },
+                  { num: "2", title: "Select Inventory", desc: "Select and secure emergency consumables, skin boosters, dermal fillers, or add POM items to prescription pipelines." },
+                  { num: "3", title: "Prescription Sign-off", desc: "Complete clinical prescriptions digitally within the SwiftRx™ portal, or route them via your PrescribeLink partner." },
+                  { num: "4", title: "Dispensing & Dispatch", desc: "Our registered UK pharmacy dispatches verified stock in chilled packaging where temperature monitoring is required." },
+                ].map((step, idx) => (
+                  <div key={idx} className="flex flex-col items-center text-center group">
+                    <div className="w-20 h-20 rounded-full border-2 border-slate-200 bg-white flex items-center justify-center mb-8 relative z-10 group-hover:border-emerald-500 transition-all duration-300 shadow-sm">
+                      <span className="font-serif text-2xl font-semibold text-emerald-600">{step.num}</span>
+                    </div>
+                    <h3 className="text-base font-semibold text-slate-900 mb-3 tracking-tight">{step.title}</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed px-2">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CUSTOMER REVIEWS ── */}
+        <Reviews />
+
         <FAQ />
 
-        {/* ── Footer ── */}
-        <footer className="bg-slate-950 text-white pt-20 pb-10 px-8 md:px-24 border-t border-slate-800">
+        {/* ── FOOTER ── */}
+        <footer className="bg-slate-900 text-white pt-20 pb-10 px-8 md:px-24">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-14 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-14 mb-14">
 
               <div className="flex flex-col gap-5">
-                <div className="text-xl font-black tracking-tight flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
+                <div className="text-xl font-bold tracking-tight flex items-center gap-2.5">
+                  <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center">
                     <Pill className="w-4 h-4 text-white" />
                   </div>
                   DrGPharma
                 </div>
-                <p className="text-slate-500 text-sm leading-relaxed">
-                  Empowering your health journey through expert medical guidance and technology-driven healthcare.
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Registered clinical supply routes delivering authentic pharmaceuticals, dermal fillers, and clinic-ready injectables across the United Kingdom.
                 </p>
                 <div className="flex flex-col gap-3">
                   {[
-                    { icon: MapPin, text: '123 Health Street, London, UK' },
+                    { icon: ShieldCheck, text: 'GPhC Registration No. 0000000' },
+                    { icon: MapPin, text: 'Registered in England & Wales · Co. No. 00000000' },
                     { icon: Phone, text: '+44 20 0000 0000' },
                     { icon: Mail, text: 'support@drgpharma.com' },
                   ].map(({ icon: Icon, text }) => (
-                    <span key={text} className="flex items-center gap-3 text-sm text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
-                      <div className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
+                    <span key={text} className="flex items-center gap-3 text-sm text-slate-400 hover:text-white transition-colors cursor-pointer">
+                      <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
                         <Icon size={13} />
                       </div>
                       {text}
@@ -645,8 +730,8 @@ const Home = () => {
               </div>
 
               <div className="flex flex-col gap-5">
-                <h3 className="text-xs font-black text-white uppercase tracking-widest">Quick Links</h3>
-                <ul className="flex flex-col gap-3 text-slate-500 text-sm">
+                <h3 className="text-xs font-semibold text-white uppercase tracking-widest">Quick Links</h3>
+                <ul className="flex flex-col gap-3 text-slate-400 text-sm">
                   {[
                     ['/', 'Home'],
                     ['/medicines', 'Medicines'],
@@ -656,52 +741,66 @@ const Home = () => {
                     ['/register', 'Register'],
                   ].map(([to, label]) => (
                     <li key={to}>
-                      <Link to={to} className="hover:text-slate-300 transition-colors">{label}</Link>
+                      <Link to={to} className="hover:text-white transition-colors">{label}</Link>
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div className="flex flex-col gap-5">
-                <h3 className="text-xs font-black text-white uppercase tracking-widest">Services</h3>
-                <ul className="flex flex-col gap-3 text-slate-500 text-sm">
-                  {['Online Pharmacy', 'Prescription Upload', 'Doctor Consultation', 'Health Diagnostics', 'Privacy Policy', 'Terms of Service'].map(s => (
+                <h3 className="text-xs font-semibold text-white uppercase tracking-widest">Pharmacy Services</h3>
+                <ul className="flex flex-col gap-3 text-slate-400 text-sm">
+                  {['Online Prescriptions', 'SwiftRx™ Tooling', 'PrescribeLink Accounts', 'Validated Cold Chain', 'Privacy Policy', 'Terms & Conditions'].map(s => (
                     <li key={s}>
-                      <span className="hover:text-slate-300 transition-colors cursor-pointer">{s}</span>
+                      <span className="hover:text-white transition-colors cursor-pointer">{s}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div className="flex flex-col gap-5">
-                <h3 className="text-xs font-black text-white uppercase tracking-widest">Stay Connected</h3>
-                <p className="text-slate-500 text-sm">Follow us for health tips, promotions and updates.</p>
+                <h3 className="text-xs font-semibold text-white uppercase tracking-widest">Stay Connected</h3>
+                <p className="text-slate-400 text-sm">Sign up for stock restock alerts, regulatory compliance news, and professional service notifications.</p>
                 <div className="flex gap-2.5">
                   {[FacebookIcon, TwitterIcon, InstagramIcon, LinkedinIcon].map((Icon, i) => (
-                    <a key={i} href="#" className="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 hover:bg-white/15 hover:text-white transition-all">
+                    <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-emerald-600 hover:text-white transition-all">
                       <Icon />
                     </a>
                   ))}
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-white mb-3 uppercase tracking-widest">Newsletter</h4>
+                  <h4 className="text-xs font-semibold text-white mb-3 uppercase tracking-widest">Newsletter</h4>
                   <div className="flex gap-2">
                     <input
                       type="email"
-                      placeholder="Your email"
-                      className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-slate-500"
+                      placeholder="Your email address"
+                      className="flex-1 px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500"
                     />
-                    <button className="px-4 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-bold hover:bg-slate-100 transition-all">
-                      Go
+                    <button className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-all">
+                      Submit
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-3 text-slate-600 text-xs">
+            <div className="flex flex-wrap items-center justify-center gap-3 pb-8 border-b border-white/10">
+              {[
+                { icon: ShieldCheck, label: 'GPhC Registered' },
+                { icon: ShieldCheck, label: 'Secure Checkout' },
+                { icon: CreditCard, label: 'Visa' },
+                { icon: CreditCard, label: 'Mastercard' },
+              ].map(({ icon: Icon, label }) => (
+                <span key={label} className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-medium text-slate-300">
+                  <Icon className="w-4 h-4 text-slate-400" />
+                  {label}
+                </span>
+              ))}
+            </div>
+
+            <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-3 text-slate-500 text-xs">
               <p>© 2026 DrGPharma. All rights reserved.</p>
-              <p>Designed for better healthcare ❤️</p>
+              <p>Registered GPhC Pharmacy Premises</p>
             </div>
           </div>
         </footer>
