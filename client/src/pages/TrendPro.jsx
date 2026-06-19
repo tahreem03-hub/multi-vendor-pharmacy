@@ -98,7 +98,7 @@ const TrendPro = () => {
       {loading && (
         <div className="h-0.5 bg-gray-100 rounded mb-8 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded"
+            className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded"
             style={{ animation: 'loadBar 1.2s ease forwards' }}
           />
         </div>
@@ -110,7 +110,7 @@ const TrendPro = () => {
         <aside className="w-full md:w-64 flex-shrink-0">
           <div className="sticky top-24">
             <div className="flex items-center gap-2 mb-6 px-2">
-              <LayoutGrid className="w-5 h-5 text-green-600" />
+              <LayoutGrid className="w-5 h-5 text-blue-600" />
               <h3 className="text-lg font-bold text-gray-800 uppercase tracking-wider">Categories</h3>
             </div>
             <nav className="space-y-1">
@@ -120,8 +120,8 @@ const TrendPro = () => {
                   onClick={() => setSelectedCategory(cat)}
                   className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex justify-between items-center group ${
                     selectedCategory === cat 
-                    ? 'bg-green-600 text-white shadow-lg shadow-green-100' 
-                    : 'text-gray-500 hover:bg-green-50 hover:text-green-600'
+                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100' 
+                    : 'text-gray-500 hover:bg-cyan-50 hover:text-cyan-600'
                   }`}
                 >
                   {cat}
@@ -140,10 +140,10 @@ const TrendPro = () => {
                 className="text-3xl font-semibold text-gray-800"
                 style={{ fontFamily: 'Georgia, serif' }}
               >
-                {selectedCategory === "All" ? "Trending" : selectedCategory} <span className="text-green-600">Products</span>
+                {selectedCategory === "All" ? "Trending" : selectedCategory} <span className="text-cyan-600">Products</span>
               </h2>
             </div>
-            <button className="flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 px-3 py-2 rounded-lg transition-all group">
+            <button className="flex items-center gap-1 text-sm font-medium text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 px-3 py-2 rounded-lg transition-all group">
               View All
               <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
@@ -220,11 +220,12 @@ src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${item.
                             £{price}.00
                           </p>
                         </div>
+                        
                         <button
                           onClick={(e) => handleAddToCart(e, item)}
                           disabled={added[item._id]}
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shadow-green-200 transition-all duration-200 active:scale-90 relative z-10"
-                          style={{ background: isAdded ? '#15803d' : '#16a34a' }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shadow-cyan-200 transition-all duration-200 active:scale-90 relative z-10"
+                          style={{ background: isAdded ? '#0e7490' : '#0891b2' }}
                           onMouseEnter={e => { if (!isAdded) e.currentTarget.style.transform = 'scale(1.1)'; }}
                           onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
                         >

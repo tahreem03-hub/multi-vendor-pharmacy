@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin, Clock, ShieldCheck, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Eyebrow = ({ children }) => (
-  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-100 mb-4 tracking-wide uppercase">
+  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-cyan-700 bg-cyan-50 border border-cyan-100 mb-4 tracking-wide uppercase">
     {children}
   </span>
 );
@@ -207,7 +207,7 @@ export default function ContactUs() {
               <button
                 type="submit"
                 disabled={sending}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold text-sm py-3 px-6 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                className="w-full bg-teal-950 hover:bg-teal-800 disabled:bg-slate-300 text-white font-bold text-sm py-3 px-6 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
               >
                 {sending ? 'Submitting...' : 'Submit Form'}
                 <Send className="w-3.5 h-3.5" />
@@ -221,7 +221,7 @@ export default function ContactUs() {
       {/* COMPLIANCE FOOTNOTE */}
       <section className="bg-slate-50 border-t border-slate-200 py-10 px-8 text-center text-xs text-slate-500">
         <div className="max-w-2xl mx-auto flex items-center justify-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-slate-600 shrink-0" />
           <span>Form data processed in accordance with clinical privacy standards and SSL data encryption.</span>
         </div>
       </section>

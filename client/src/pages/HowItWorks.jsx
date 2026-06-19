@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ShieldCheck, FileText, Link as LinkIcon, UserCheck, 
-  Truck, Coins, AlertCircle, ArrowRight, CheckCircle2 
+import {
+  ShieldCheck, FileText, Link as LinkIcon, UserCheck,
+  Truck, Coins, AlertCircle, ArrowRight, CheckCircle2
 } from 'lucide-react';
 
 const Eyebrow = ({ children }) => (
-  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-100 mb-4 tracking-wide uppercase">
+  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-cyan-800 bg-cyan-50 border border-cyan-100 mb-4 tracking-wide uppercase">
     {children}
   </span>
 );
@@ -48,21 +48,19 @@ export default function HowItWorks() {
           <div className="inline-flex bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner">
             <button
               onClick={() => setActiveTab('prescriber')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                activeTab === 'prescriber'
+              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'prescriber'
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
                   : 'text-slate-500 hover:text-slate-800'
-              }`}
+                }`}
             >
               Verified Prescriber (SwiftRx™)
             </button>
             <button
               onClick={() => setActiveTab('non-prescriber')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                activeTab === 'non-prescriber'
+              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'non-prescriber'
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
                   : 'text-slate-500 hover:text-slate-800'
-              }`}
+                }`}
             >
               Non-Prescriber (PrescribeLink™)
             </button>
@@ -79,7 +77,7 @@ export default function HowItWorks() {
               <p className="text-slate-600 text-sm leading-relaxed">
                 Registered GMC, NMC, GPhC, or GDC practitioners with independent prescribing authority (V300 or equivalent) can issue compliant digital prescriptions in under 2 minutes.
               </p>
-              
+
               <ul className="space-y-4">
                 {[
                   { title: "Identify Patient Details", desc: "Input demographics, allergen profiles, and clinical contraindications directly into the form." },
@@ -88,7 +86,7 @@ export default function HowItWorks() {
                   { title: "Auto-Linked Checkout", desc: "Proceed immediately to secure payment; orders are queued automatically for dispensing." }
                 ].map((step, idx) => (
                   <li key={idx} className="flex gap-3">
-                    <span className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                    <span className="w-6 h-6 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                       {idx + 1}
                     </span>
                     <div>
@@ -99,10 +97,10 @@ export default function HowItWorks() {
                 ))}
               </ul>
             </div>
-            
+
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 space-y-6">
               <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+                <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center text-cyan-700">
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
@@ -112,19 +110,19 @@ export default function HowItWorks() {
               </div>
               <div className="space-y-3.5 text-xs">
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Direct prescribing of POM & OTC lines</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Customizable prescription validity terms</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Integrated, FMD-compliant patient logs</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Automatic wholesale pre-order triggers</span>
                 </div>
               </div>
@@ -147,7 +145,7 @@ export default function HowItWorks() {
               <p className="text-slate-600 text-sm leading-relaxed">
                 Aesthetic therapists and non-prescribing injectors can source prescription items (POM) by linking with a verified prescriber on our network.
               </p>
-              
+
               <ul className="space-y-4">
                 {[
                   { title: "Register Clinic Profile", desc: "Submit your professional credentials (GDC, NMC, etc.) for registration validation." },
@@ -156,7 +154,7 @@ export default function HowItWorks() {
                   { title: "Prescriber Sign-off & Payment", desc: "Once authorized by your linked prescriber, clear the balance to trigger immediate fulfillment." }
                 ].map((step, idx) => (
                   <li key={idx} className="flex gap-3">
-                    <span className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                    <span className="w-6 h-6 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                       {idx + 1}
                     </span>
                     <div>
@@ -170,7 +168,7 @@ export default function HowItWorks() {
 
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 space-y-6">
               <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+                <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center text-cyan-700">
                   <LinkIcon className="w-5 h-5" />
                 </div>
                 <div>
@@ -180,19 +178,19 @@ export default function HowItWorks() {
               </div>
               <div className="space-y-3.5 text-xs">
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Supports multiple concurrent prescriber links</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Secure patient consent file uploading (PDF, PNG)</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Independent checkout and delivery coordination</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>Comprehensive, compliant audit-trail logging</span>
                 </div>
               </div>
@@ -253,22 +251,23 @@ export default function HowItWorks() {
 
       {/* SECTION 3: COLD-CHAIN CUSTODY */}
       <section className="py-20 px-8 lg:px-24 max-w-7xl mx-auto">
-        <div className="bg-emerald-950 text-white rounded-2xl p-8 md:p-12 relative overflow-hidden">
-          {/* Accent glow */}
-          <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-emerald-800/30 rounded-full blur-[80px]" />
-          
+        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-teal-950 text-white rounded-2xl p-8 md:p-12 relative overflow-hidden border border-white/5">
+          {/* Accent glows */}
+          <div className="absolute top-0 right-0 w-[320px] h-[320px] bg-teal-500/20 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[260px] h-[260px] bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
+
           <div className="max-w-2xl space-y-6 relative z-10">
-            <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-800/80 text-emerald-300 tracking-wider uppercase">
+            <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-teal-500/15 text-teal-300 border border-teal-500/20 tracking-wider uppercase">
               Cold-Chain Safety Note
             </span>
-            <h3 className="font-serif text-2xl md:text-3xl font-semibold tracking-tight">
+            <h3 className="font-serif text-2xl md:text-3xl font-semibold tracking-tight text-white">
               Preserving Formulation Activity
             </h3>
             <p className="text-slate-300 text-sm leading-relaxed">
               Botulinum toxins and specific GLP-1 weight-management treatments are strictly temperature-sensitive. To protect product safety and comply with pharmacy standards, these items require validated, temperature-controlled packaging.
             </p>
-            <div className="flex items-start gap-3 bg-emerald-900/40 border border-emerald-800 p-4 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 bg-white/5 border border-teal-500/20 p-4 rounded-xl backdrop-blur-sm">
+              <AlertCircle className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
               <p className="text-xs text-slate-300 leading-relaxed">
                 Chilled products are packaged in validated insulated containers containing logged coolant packs. Orders containing cold-chain items are shipped exclusively via tracked next-day delivery (Monday through Thursday) to guarantee safe arrival.
               </p>
@@ -289,7 +288,7 @@ export default function HowItWorks() {
           <div className="flex justify-center gap-4">
             <button
               onClick={() => navigate('/register')}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2"
+              className="bg-teal-950 hover:bg-teal-900 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2"
             >
               Create Account <ArrowRight className="w-4 h-4" />
             </button>

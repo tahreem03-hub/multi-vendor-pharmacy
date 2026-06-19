@@ -37,7 +37,7 @@ const LinkedinIcon = () => (
 );
 
 const Eyebrow = ({ children }) => (
-  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-100 mb-4 tracking-wide uppercase">
+  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-cyan-700 bg-cyan-50 border border-cyan-100 mb-4 tracking-wide uppercase">
     {children}
   </span>
 );
@@ -84,8 +84,8 @@ const FAQ = () => {
             <div
               key={index}
               className={`rounded-xl transition-all duration-300 border ${openIndex === index
-                  ? 'bg-white border-slate-300 shadow-sm'
-                  : 'bg-white border-slate-200 hover:border-slate-300'
+                ? 'bg-white border-slate-300 shadow-sm'
+                : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}
             >
               <button
@@ -95,7 +95,7 @@ const FAQ = () => {
                 <span className={`text-base font-semibold ${openIndex === index ? 'text-slate-900' : 'text-slate-700'}`}>
                   {item.question}
                 </span>
-                <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center ${openIndex === index ? 'bg-blue-500' : 'bg-slate-100'}`}>
+                <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center ${openIndex === index ? 'bg-cyan-500' : 'bg-slate-100'}`}>
                   {openIndex === index
                     ? <Minus className="text-white w-3.5 h-3.5" />
                     : <Plus className="text-slate-500 w-3.5 h-3.5" />}
@@ -165,7 +165,7 @@ const ProductCard = ({ product }) => {
           <button
             onClick={handleAdd}
             disabled={adding || !inStock}
-            className="flex items-center gap-2 bg-blue-500 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-lg hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 bg-cyan-500 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-lg hover:bg-cyan-600 transition-all active:scale-95 disabled:opacity-50"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             {adding ? 'Adding...' : 'Quick Add'}
@@ -199,8 +199,8 @@ const ProductCard = ({ product }) => {
             onClick={handleAdd}
             disabled={adding || !inStock}
             className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold transition-all active:scale-90 disabled:opacity-50 ${added
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white'
+              ? 'bg-cyan-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-cyan-600 hover:text-white'
               }`}
           >
             {added ? '✓' : <Plus className="w-4 h-4" />}
@@ -253,7 +253,7 @@ const Reviews = () => (
             key={i}
             className="bg-slate-50 rounded-xl border border-slate-200 p-7 flex flex-col hover:border-slate-300 hover:shadow-md transition-all duration-300"
           >
-            <Quote className="w-8 h-8 text-blue-200 mb-4" />
+            <Quote className="w-8 h-8 text-cyan-200 mb-4" />
             <p className="text-slate-700 text-sm leading-relaxed mb-6 flex-1">"{r.text}"</p>
             <div className="flex gap-0.5 mb-3">
               {[...Array(5)].map((_, j) => (
@@ -261,7 +261,7 @@ const Reviews = () => (
               ))}
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-10 h-10 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold text-sm">
                 {r.name.charAt(0)}
               </div>
               <div>
@@ -337,7 +337,7 @@ const Home = () => {
             <div className="w-full px-8 md:px-24 py-24 flex flex-col md:flex-row items-center justify-between gap-16 max-w-7xl mx-auto relative z-10">
               <div className="space-y-6 max-w-xl">
                 <h1 className="font-serif text-4xl md:text-6xl font-semibold tracking-tight leading-[1.15] text-slate-900">
-                  Licensed UK Aesthetic <br /><span className="text-blue-700">Pharmacy Supply</span>
+                  Licensed UK Aesthetic <br /><span className="text-cyan-700">Pharmacy Supply</span>
                 </h1>
                 <p className="text-base text-slate-600 leading-relaxed">
                   Log in to your clinic profile to access prescription-only stocks, prepare prescription forms, and coordinate shipping dates.
@@ -358,14 +358,14 @@ const Home = () => {
                     className={`w-full transition-all duration-700 ease-in-out px-8 md:px-24 py-16 md:py-20 ${isActive ? "block relative opacity-100 z-10" : "hidden absolute opacity-0 z-0"
                       }`}
                   >
-                    <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-blue-100/30 rounded-full blur-[90px] -mr-24 -mt-24 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-cyan-100/30 rounded-full blur-[90px] -mr-24 -mt-24 pointer-events-none" />
 
                     <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16 relative z-10">
 
                       {/* Left: Copywriting Content */}
                       <div className="md:w-3/5 space-y-7 text-left">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                          <span className="w-2 h-2 bg-cyan-500 rounded-full" />
                           <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
                             Professional Sourcing · Batch Traceability · Temperature Tracked
                           </p>
@@ -382,10 +382,10 @@ const Home = () => {
                         <div className="flex flex-wrap gap-3 pt-1">
                           <button
                             onClick={() => navigate(slide.buttonLink || "/trendpro")}
-                            className="group flex items-center gap-3 bg-blue-600 text-white px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95"
+                            className="group flex items-center gap-3 rounded-xl bg-[#0D1F3C] px-7 py-3.5 text-sm font-bold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
                           >
-                            {slide.buttonText || "Shop Products"}{" "}
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            {slide.buttonText || "Shop Products"}
+                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                           </button>
                           <button
                             onClick={() => navigate("/trendpro")}
@@ -410,7 +410,7 @@ const Home = () => {
                       {/* Right: Graphic Container */}
                       <div className="md:w-2/5 flex justify-center md:justify-end">
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-blue-200/20 rounded-2xl blur-2xl group-hover:bg-blue-200/30 transition-colors duration-700" />
+                          <div className="absolute inset-0 bg-cyan-200/20 rounded-2xl blur-2xl group-hover:bg-cyan-200/30 transition-colors duration-700" />
                           <img
                             src={formattedImageUrl}
                             alt={slide.title}
@@ -429,13 +429,13 @@ const Home = () => {
                 <>
                   <button
                     onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-md"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 transition-all shadow-md"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-md"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 transition-all shadow-md"
                   >
                     <ChevronRight size={20} />
                   </button>
@@ -445,7 +445,7 @@ const Home = () => {
                       <button
                         key={i}
                         onClick={() => setCurrentSlide(i)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? "w-6 bg-blue-600" : "w-1.5 bg-slate-300"
+                        className={`h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? "w-6 bg-cyan-600" : "w-1.5 bg-slate-300"
                           }`}
                       />
                     ))}
@@ -471,9 +471,10 @@ const Home = () => {
               </div>
               <button
                 onClick={() => navigate('/trendpro')}
-                className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors group shrink-0"
+                className="group shrink-0 inline-flex items-center gap-2 rounded-xl bg-[#0D1F3C] px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
-                Browse Catalog <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Browse Catalog
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
 
@@ -532,14 +533,14 @@ const Home = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                     />
                     <div className="absolute top-3 left-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center border border-slate-200 shadow-sm">
-                      <cat.icon className="w-5 h-5 text-blue-600" />
+                      <cat.icon className="w-5 h-5 text-cyan-600" />
                     </div>
                   </div>
 
                   <div className="p-5 flex flex-col flex-1">
                     <h3 className="text-base font-semibold text-slate-900 mb-1">{cat.name}</h3>
                     <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{cat.count}</p>
-                    <div className="mt-4 flex items-center gap-2 text-blue-700 group-hover:text-blue-800 transition-colors">
+                    <div className="mt-4 flex items-center gap-2 text-cyan-700 group-hover:text-cyan-800 transition-colors">
                       <span className="text-xs font-semibold">View Products</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -560,7 +561,7 @@ const Home = () => {
             { icon: Headset, title: "Clinical Support", sub: "Registered Pharmacists" },
           ].map((f, i) => (
             <div key={i} className="flex items-center gap-4 group shrink-0">
-              <span className="p-3.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+              <span className="p-3.5 bg-cyan-50 text-cyan-600 rounded-xl group-hover:bg-cyan-600 group-hover:text-white transition-all duration-300">
                 <f.icon className="w-5 h-5" />
               </span>
               <div>
@@ -586,7 +587,7 @@ const Home = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="relative">
-                <div className="absolute -inset-3 bg-blue-100/30 rounded-2xl blur-2xl" />
+                <div className="absolute -inset-3 bg-cyan-100/30 rounded-2xl blur-2xl" />
                 <img
                   src="https://placehold.co/800x600/e2e8f0/475569?text=Licensed+UK+Pharmacy"
                   alt="DrGPharma licensed UK pharmacy"
@@ -605,7 +606,7 @@ const Home = () => {
                     key={idx}
                     className="group bg-white rounded-xl border border-slate-200 p-6 hover:border-slate-300 hover:shadow-md transition-all duration-300"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-5 group-hover:bg-cyan-600 group-hover:text-white transition-all duration-300">
                       <item.icon className="w-5 h-5" />
                     </div>
                     <h3 className="text-sm font-semibold text-slate-900 mb-2">{item.title}</h3>
@@ -641,8 +642,8 @@ const Home = () => {
                   { num: "4", title: "Dispensing & Dispatch", desc: "Our registered UK pharmacy dispatches verified stock in chilled packaging where temperature monitoring is required." },
                 ].map((step, idx) => (
                   <div key={idx} className="flex flex-col items-center text-center group">
-                    <div className="w-20 h-20 rounded-full border-2 border-slate-200 bg-white flex items-center justify-center mb-8 relative z-10 group-hover:border-blue-500 transition-all duration-300 shadow-sm">
-                      <span className="font-serif text-2xl font-semibold text-blue-600">{step.num}</span>
+                    <div className="w-20 h-20 rounded-full border-2 border-slate-200 bg-white flex items-center justify-center mb-8 relative z-10 group-hover:border-cyan-500 transition-all duration-300 shadow-sm">
+                      <span className="font-serif text-2xl font-semibold text-cyan-600">{step.num}</span>
                     </div>
                     <h3 className="text-base font-semibold text-slate-900 mb-3 tracking-tight">{step.title}</h3>
                     <p className="text-slate-600 text-sm leading-relaxed px-2">{step.desc}</p>
@@ -665,7 +666,7 @@ const Home = () => {
 
               <div className="flex flex-col gap-5">
                 <div className="text-xl font-bold tracking-tight flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+                  <div className="w-9 h-9 bg-cyan-600 rounded-xl flex items-center justify-center">
                     <Pill className="w-4 h-4 text-white" />
                   </div>
                   DrGPharma
@@ -724,7 +725,7 @@ const Home = () => {
                 <p className="text-slate-400 text-sm">Sign up for stock restock alerts, regulatory compliance news, and professional service notifications.</p>
                 <div className="flex gap-2.5">
                   {[FacebookIcon, TwitterIcon, InstagramIcon, LinkedinIcon].map((Icon, i) => (
-                    <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-blue-600 hover:text-white transition-all">
+                    <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-cyan-600 hover:text-white transition-all">
                       <Icon />
                     </a>
                   ))}
@@ -735,9 +736,9 @@ const Home = () => {
                     <input
                       type="email"
                       placeholder="Your email address"
-                      className="flex-1 px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                      className="flex-1 px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
                     />
-                    <button className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all">
+                    <button className="px-4 py-2.5 bg-cyan-600 text-white rounded-xl text-sm font-semibold hover:bg-cyan-700 transition-all">
                       Submit
                     </button>
                   </div>
