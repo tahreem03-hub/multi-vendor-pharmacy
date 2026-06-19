@@ -13,31 +13,31 @@ import API from '../api/axios';
 
 const FacebookIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
 const TwitterIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
   </svg>
 );
 const InstagramIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
   </svg>
 );
 const LinkedinIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-    <rect x="2" y="9" width="4" height="12"/>
-    <circle cx="4" cy="4" r="2"/>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect x="2" y="9" width="4" height="12" />
+    <circle cx="4" cy="4" r="2" />
   </svg>
 );
 
 const Eyebrow = ({ children }) => (
-  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-100 mb-4 tracking-wide uppercase">
+  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-100 mb-4 tracking-wide uppercase">
     {children}
   </span>
 );
@@ -83,11 +83,10 @@ const FAQ = () => {
           {faqData.map((item, index) => (
             <div
               key={index}
-              className={`rounded-xl transition-all duration-300 border ${
-                openIndex === index
+              className={`rounded-xl transition-all duration-300 border ${openIndex === index
                   ? 'bg-white border-slate-300 shadow-sm'
                   : 'bg-white border-slate-200 hover:border-slate-300'
-              }`}
+                }`}
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
@@ -96,7 +95,7 @@ const FAQ = () => {
                 <span className={`text-base font-semibold ${openIndex === index ? 'text-slate-900' : 'text-slate-700'}`}>
                   {item.question}
                 </span>
-                <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center ${openIndex === index ? 'bg-emerald-600' : 'bg-slate-100'}`}>
+                <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center ${openIndex === index ? 'bg-blue-500' : 'bg-slate-100'}`}>
                   {openIndex === index
                     ? <Minus className="text-white w-3.5 h-3.5" />
                     : <Plus className="text-slate-500 w-3.5 h-3.5" />}
@@ -157,35 +156,16 @@ const ProductCard = ({ product }) => {
           </div>
         )}
 
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-          {hasDiscount && (
-            <span className="text-[10px] font-bold tracking-wide bg-emerald-600 text-white px-2.5 py-1 rounded-md shadow-sm">
-              {discountPct}% OFF
-            </span>
-          )}
-          {product.isBestSeller && (
-            <span className="text-[10px] font-bold tracking-wide bg-amber-400 text-slate-900 px-2.5 py-1 rounded-md shadow-sm">
-              BEST SELLER
-            </span>
-          )}
-          <span className="text-[9px] font-semibold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">
-            {product.category}
-          </span>
-        </div>
 
-        <button
-          onClick={(e) => { e.stopPropagation(); setWished(!wished); }}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center border border-slate-200 hover:bg-white shadow-sm transition-all"
-          aria-label="Add to wishlist"
-        >
-          <Heart className={`w-4 h-4 transition-colors ${wished ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
-        </button>
+        <span className="absolute top-3 left-3 flex flex-col gap-1.5 items-start text-[9px] font-semibold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">
+          {product.category}
+        </span>
 
         <div className="absolute bottom-0 left-0 right-0 p-3 flex justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
           <button
             onClick={handleAdd}
             disabled={adding || !inStock}
-            className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-lg hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 bg-blue-500 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-lg hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             {adding ? 'Adding...' : 'Quick Add'}
@@ -208,22 +188,6 @@ const ProductCard = ({ product }) => {
           <p className="text-xs text-slate-500 font-medium mb-auto">{product.brand}</p>
         )}
 
-        <div className="mt-3">
-          {!inStock ? (
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Out of stock
-            </p>
-          ) : lowStock ? (
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-orange-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Only {product.stock} left
-            </p>
-          ) : (
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> In stock
-            </p>
-          )}
-        </div>
-
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
           <div className="flex items-baseline gap-2">
             <p className="text-lg font-bold text-slate-900">£{Number(price).toFixed(2)}</p>
@@ -234,11 +198,10 @@ const ProductCard = ({ product }) => {
           <button
             onClick={handleAdd}
             disabled={adding || !inStock}
-            className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold transition-all active:scale-90 disabled:opacity-50 ${
-              added
-                ? 'bg-emerald-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white'
-            }`}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold transition-all active:scale-90 disabled:opacity-50 ${added
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white'
+              }`}
           >
             {added ? '✓' : <Plus className="w-4 h-4" />}
           </button>
@@ -290,7 +253,7 @@ const Reviews = () => (
             key={i}
             className="bg-slate-50 rounded-xl border border-slate-200 p-7 flex flex-col hover:border-slate-300 hover:shadow-md transition-all duration-300"
           >
-            <Quote className="w-8 h-8 text-emerald-200 mb-4" />
+            <Quote className="w-8 h-8 text-blue-200 mb-4" />
             <p className="text-slate-700 text-sm leading-relaxed mb-6 flex-1">"{r.text}"</p>
             <div className="flex gap-0.5 mb-3">
               {[...Array(5)].map((_, j) => (
@@ -298,7 +261,7 @@ const Reviews = () => (
               ))}
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
                 {r.name.charAt(0)}
               </div>
               <div>
@@ -366,7 +329,7 @@ const Home = () => {
 
         {/* ── HERO SECTION ── */}
         <div className="relative bg-gradient-to-b from-slate-100 via-slate-50 to-white overflow-hidden border-b border-slate-200">
-          
+
           {/* Subtle Grid Background Pattern for clean division */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
 
@@ -374,7 +337,7 @@ const Home = () => {
             <div className="w-full px-8 md:px-24 py-24 flex flex-col md:flex-row items-center justify-between gap-16 max-w-7xl mx-auto relative z-10">
               <div className="space-y-6 max-w-xl">
                 <h1 className="font-serif text-4xl md:text-6xl font-semibold tracking-tight leading-[1.15] text-slate-900">
-                  Licensed UK Aesthetic <br /><span className="text-emerald-700">Pharmacy Supply</span>
+                  Licensed UK Aesthetic <br /><span className="text-blue-700">Pharmacy Supply</span>
                 </h1>
                 <p className="text-base text-slate-600 leading-relaxed">
                   Log in to your clinic profile to access prescription-only stocks, prepare prescription forms, and coordinate shipping dates.
@@ -392,18 +355,17 @@ const Home = () => {
                 return (
                   <div
                     key={slide._id}
-                    className={`w-full transition-all duration-700 ease-in-out px-8 md:px-24 py-16 md:py-20 ${
-                      isActive ? "block relative opacity-100 z-10" : "hidden absolute opacity-0 z-0"
-                    }`}
+                    className={`w-full transition-all duration-700 ease-in-out px-8 md:px-24 py-16 md:py-20 ${isActive ? "block relative opacity-100 z-10" : "hidden absolute opacity-0 z-0"
+                      }`}
                   >
-                    <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-emerald-100/30 rounded-full blur-[90px] -mr-24 -mt-24 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-blue-100/30 rounded-full blur-[90px] -mr-24 -mt-24 pointer-events-none" />
 
                     <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16 relative z-10">
-                      
+
                       {/* Left: Copywriting Content */}
                       <div className="md:w-3/5 space-y-7 text-left">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm">
-                          <span className="w-2 h-2 bg-emerald-500 rounded-full" />
+                          <span className="w-2 h-2 bg-blue-500 rounded-full" />
                           <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
                             Professional Sourcing · Batch Traceability · Temperature Tracked
                           </p>
@@ -420,7 +382,7 @@ const Home = () => {
                         <div className="flex flex-wrap gap-3 pt-1">
                           <button
                             onClick={() => navigate(slide.buttonLink || "/trendpro")}
-                            className="group flex items-center gap-3 bg-emerald-600 text-white px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10 active:scale-95"
+                            className="group flex items-center gap-3 bg-blue-600 text-white px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10 active:scale-95"
                           >
                             {slide.buttonText || "Shop Products"}{" "}
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -436,8 +398,8 @@ const Home = () => {
                         <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-5 border-t border-slate-200 max-w-lg">
                           {heroTrust.map((t) => (
                             <div key={t} className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-700">
-                              <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                                <Check className="w-3.5 h-3.5 text-green-500" />
                               </span>
                               {t}
                             </div>
@@ -448,7 +410,7 @@ const Home = () => {
                       {/* Right: Graphic Container */}
                       <div className="md:w-2/5 flex justify-center md:justify-end">
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-emerald-200/20 rounded-2xl blur-2xl group-hover:bg-emerald-200/30 transition-colors duration-700" />
+                          <div className="absolute inset-0 bg-blue-200/20 rounded-2xl blur-2xl group-hover:bg-blue-200/30 transition-colors duration-700" />
                           <img
                             src={formattedImageUrl}
                             alt={slide.title}
@@ -467,13 +429,13 @@ const Home = () => {
                 <>
                   <button
                     onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-md"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-md"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-md"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-md"
                   >
                     <ChevronRight size={20} />
                   </button>
@@ -483,9 +445,8 @@ const Home = () => {
                       <button
                         key={i}
                         onClick={() => setCurrentSlide(i)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          i === currentSlide ? "w-6 bg-emerald-600" : "w-1.5 bg-slate-300"
-                        }`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? "w-6 bg-blue-600" : "w-1.5 bg-slate-300"
+                          }`}
                       />
                     ))}
                   </div>
@@ -510,7 +471,7 @@ const Home = () => {
               </div>
               <button
                 onClick={() => navigate('/trendpro')}
-                className="flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800 transition-colors group shrink-0"
+                className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors group shrink-0"
               >
                 Browse Catalog <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -571,14 +532,14 @@ const Home = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                     />
                     <div className="absolute top-3 left-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center border border-slate-200 shadow-sm">
-                      <cat.icon className="w-5 h-5 text-emerald-600" />
+                      <cat.icon className="w-5 h-5 text-blue-600" />
                     </div>
                   </div>
 
                   <div className="p-5 flex flex-col flex-1">
                     <h3 className="text-base font-semibold text-slate-900 mb-1">{cat.name}</h3>
                     <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{cat.count}</p>
-                    <div className="mt-4 flex items-center gap-2 text-emerald-700 group-hover:text-emerald-800 transition-colors">
+                    <div className="mt-4 flex items-center gap-2 text-blue-700 group-hover:text-blue-800 transition-colors">
                       <span className="text-xs font-semibold">View Products</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -599,7 +560,7 @@ const Home = () => {
             { icon: Headset, title: "Clinical Support", sub: "Registered Pharmacists" },
           ].map((f, i) => (
             <div key={i} className="flex items-center gap-4 group shrink-0">
-              <span className="p-3.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+              <span className="p-3.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                 <f.icon className="w-5 h-5" />
               </span>
               <div>
@@ -625,7 +586,7 @@ const Home = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="relative">
-                <div className="absolute -inset-3 bg-emerald-100/30 rounded-2xl blur-2xl" />
+                <div className="absolute -inset-3 bg-blue-100/30 rounded-2xl blur-2xl" />
                 <img
                   src="https://placehold.co/800x600/e2e8f0/475569?text=Licensed+UK+Pharmacy"
                   alt="DrGPharma licensed UK pharmacy"
@@ -644,7 +605,7 @@ const Home = () => {
                     key={idx}
                     className="group bg-white rounded-xl border border-slate-200 p-6 hover:border-slate-300 hover:shadow-md transition-all duration-300"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                       <item.icon className="w-5 h-5" />
                     </div>
                     <h3 className="text-sm font-semibold text-slate-900 mb-2">{item.title}</h3>
@@ -680,8 +641,8 @@ const Home = () => {
                   { num: "4", title: "Dispensing & Dispatch", desc: "Our registered UK pharmacy dispatches verified stock in chilled packaging where temperature monitoring is required." },
                 ].map((step, idx) => (
                   <div key={idx} className="flex flex-col items-center text-center group">
-                    <div className="w-20 h-20 rounded-full border-2 border-slate-200 bg-white flex items-center justify-center mb-8 relative z-10 group-hover:border-emerald-500 transition-all duration-300 shadow-sm">
-                      <span className="font-serif text-2xl font-semibold text-emerald-600">{step.num}</span>
+                    <div className="w-20 h-20 rounded-full border-2 border-slate-200 bg-white flex items-center justify-center mb-8 relative z-10 group-hover:border-blue-500 transition-all duration-300 shadow-sm">
+                      <span className="font-serif text-2xl font-semibold text-blue-600">{step.num}</span>
                     </div>
                     <h3 className="text-base font-semibold text-slate-900 mb-3 tracking-tight">{step.title}</h3>
                     <p className="text-slate-600 text-sm leading-relaxed px-2">{step.desc}</p>
@@ -704,7 +665,7 @@ const Home = () => {
 
               <div className="flex flex-col gap-5">
                 <div className="text-xl font-bold tracking-tight flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center">
+                  <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
                     <Pill className="w-4 h-4 text-white" />
                   </div>
                   DrGPharma
@@ -763,7 +724,7 @@ const Home = () => {
                 <p className="text-slate-400 text-sm">Sign up for stock restock alerts, regulatory compliance news, and professional service notifications.</p>
                 <div className="flex gap-2.5">
                   {[FacebookIcon, TwitterIcon, InstagramIcon, LinkedinIcon].map((Icon, i) => (
-                    <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-emerald-600 hover:text-white transition-all">
+                    <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-blue-600 hover:text-white transition-all">
                       <Icon />
                     </a>
                   ))}
@@ -774,9 +735,9 @@ const Home = () => {
                     <input
                       type="email"
                       placeholder="Your email address"
-                      className="flex-1 px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500"
+                      className="flex-1 px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                     />
-                    <button className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-all">
+                    <button className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all">
                       Submit
                     </button>
                   </div>
