@@ -17,6 +17,10 @@ import {
   FileText,
   Info,
   Mail,
+  Menu,
+  Sparkles,
+  Award,
+  Clock
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -30,13 +34,21 @@ const HomeHeader = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [activeNav, setActiveNav] = useState('home');
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const navigate = useNavigate();
   const { cart, cartCount } = useCart();
   const { user, isAdmin, isLoggedIn, logout } = useAuth();
   const searchRef = useRef(null);
 
-  // Close search results when clicking outside
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -107,91 +119,92 @@ const HomeHeader = () => {
   const navLinkStyle = (key) => ({
     display: 'flex',
     alignItems: 'center',
-    gap: '7px',
+    gap: '8px',
     padding: '0 20px',
     height: '100%',
     textDecoration: 'none',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '600',
-    color: activeNav === key ? '#ffffff' : 'rgba(255,255,255,0.6)',
-    borderBottom: activeNav === key ? '2px solid #ffffff' : '2px solid transparent',
-    transition: 'all 0.2s',
+    letterSpacing: '0.01em',
+    color: activeNav === key ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
+    borderBottom: activeNav === key ? '2.5px solid #0F766E' : '2.5px solid transparent',
+    transition: 'all 0.25s ease',
     boxSizing: 'border-box',
     whiteSpace: 'nowrap',
+    position: 'relative',
   });
 
   return (
     <header
-      className="sticky top-0 z-50"
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'shadow-2xl shadow-slate-900/20' : ''
+      }`}
       style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}
     >
-      {/* ───────────────────── Top Bar ───────────────────── */}
-<div style={{ background: '#0a1628', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-  <div style={{
-    maxWidth: '1400px', margin: '0 auto', padding: '0 40px',
-    height: '72px', display: 'flex', alignItems: 'center', gap: '32px',
-  }}>
-
-    {/* Logo */}
-    <Link
-      to="/home"
-      onClick={() => setActiveNav('home')}
-      style={{ display: 'flex', alignItems: 'center', gap: '14px', textDecoration: 'none', flexShrink: 0 }}
-    >
-      {/* Icon mark */}
-      <div style={{ position: 'relative', flexShrink: 0 }}>
-        {/* Glow ring */}
+      {/* ─── Top Bar ─── */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #0f1a2e 0%, #1a2a45 100%)',
+        borderBottom: `1px solid ${isScrolled ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.06)'}`,
+      }}>
         <div style={{
-          position: 'absolute', inset: '-3px',
-          borderRadius: '14px',
-          background: 'linear-gradient(135deg, rgba(56,189,248,0.3), rgba(99,102,241,0.3))',
-          filter: 'blur(6px)',
-        }} />
-        <div style={{
-          position: 'relative',
-          width: '42px', height: '42px',
-          borderRadius: '11px',
-          background: 'linear-gradient(135deg, #0f2d5c 0%, #1a4080 100%)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          maxWidth: '1440px', 
+          margin: '0 auto', 
+          padding: '0 40px',
+          height: '76px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '32px',
         }}>
-          {/* Cross/pill icon */}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <rect x="10" y="3" width="4" height="18" rx="2" fill="rgba(255,255,255,0.9)"/>
-            <rect x="3" y="10" width="18" height="4" rx="2" fill="rgba(255,255,255,0.9)"/>
-          </svg>
-        </div>
-      </div>
 
-      {/* Brand text */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1px' }}>
-          <span style={{ fontSize: '19px', fontWeight: '900', color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            DrG
-          </span>
-          <span style={{ fontSize: '19px', fontWeight: '900', color: 'rgba(255,255,255,0.55)', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            Pharma
-          </span>
-        </div>
-        {/* Pill badge under text */}
-        <div style={{
-          marginTop: '4px',
-          display: 'inline-flex', alignItems: 'center', gap: '5px',
-          background: 'rgba(56,189,248,0.1)',
-          border: '1px solid rgba(56,189,248,0.2)',
-          borderRadius: '20px',
-          padding: '1px 8px',
-        }}>
-          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#38bdf8' }} />
-          <span style={{ fontSize: '8px', fontWeight: '700', color: '#38bdf8', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-            Aesthetic Pharmacy
-          </span>
-        </div>
-      </div>
-    </Link>
+          {/* ─── Logo ─── */}
+          <Link
+            to="/home"
+            onClick={() => setActiveNav('home')}
+            style={{ display: 'flex', alignItems: 'center', gap: '14px', textDecoration: 'none', flexShrink: 0 }}
+          >
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{
+                position: 'relative',
+                width: '44px', height: '44px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #0F766E 0%, #115E59 100%)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 16px rgba(15,118,110,0.3)',
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="10" y="3" width="4" height="18" rx="2" fill="rgba(255,255,255,0.95)"/>
+                  <rect x="3" y="10" width="18" height="4" rx="2" fill="rgba(255,255,255,0.95)"/>
+                </svg>
+              </div>
+            </div>
 
-          {/* Search */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                <span style={{ fontSize: '20px', fontWeight: '800', color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
+                  DrG
+                </span>
+                <span style={{ fontSize: '20px', fontWeight: '300', color: 'rgba(255,255,255,0.4)', letterSpacing: '-0.04em', lineHeight: 1 }}>
+                  Pharma
+                </span>
+              </div>
+              <div style={{
+                marginTop: '2px',
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                background: 'rgba(15,118,110,0.15)',
+                border: '1px solid rgba(15,118,110,0.2)',
+                borderRadius: '20px',
+                padding: '1px 8px',
+              }}>
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#0F766E' }} />
+                <span style={{ fontSize: '7px', fontWeight: '700', color: '#0F766E', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+                  Aesthetic Pharmacy
+                </span>
+              </div>
+            </div>
+          </Link>
+
+          {/* ─── Search Bar ─── */}
           <div
             ref={searchRef}
             style={{
@@ -200,13 +213,7 @@ const HomeHeader = () => {
               position: 'relative',
             }}
           >
-            <div
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <input
                 type="text"
                 value={searchQuery}
@@ -216,19 +223,20 @@ const HomeHeader = () => {
                     setShowResults(true);
                   }
                 }}
-                placeholder="Search your medicine product..."
+                placeholder="Search products, brands, categories..."
                 style={{
                   width: '100%',
-                  padding: '11px 44px 11px 20px',
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1.5px solid rgba(255,255,255,0.1)',
-                  borderRadius: '30px',
+                  padding: '10px 44px 10px 18px',
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1.5px solid rgba(255,255,255,0.08)',
+                  borderRadius: '40px',
                   fontSize: '14px',
                   color: '#fff',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.3s ease',
                 }}
+                className="focus:border-teal-400 focus:bg-white/10"
               />
 
               {searchQuery ? (
@@ -241,30 +249,31 @@ const HomeHeader = () => {
                   }}
                   style={{
                     position: 'absolute',
-                    right: '16px',
+                    right: '14px',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'rgba(255,255,255,0.3)',
                     display: 'flex',
+                    padding: '4px',
+                    borderRadius: '50%',
                   }}
                 >
                   <X size={15} />
                 </button>
               ) : (
                 <Search
-                  size={16}
+                  size={17}
                   style={{
                     position: 'absolute',
                     right: '16px',
-                    color: 'rgba(255,255,255,0.35)',
+                    color: 'rgba(255,255,255,0.25)',
                     pointerEvents: 'none',
                   }}
                 />
               )}
             </div>
 
-            {/* Search Results Dropdown */}
             {showResults && (
               <div
                 style={{
@@ -272,11 +281,11 @@ const HomeHeader = () => {
                   top: 'calc(100% + 10px)',
                   left: 0,
                   right: 0,
-                  background: '#fff',
+                  background: '#FFFFFF',
                   borderRadius: '16px',
                   overflow: 'hidden',
                   zIndex: 200,
-                  boxShadow: '0 16px 50px rgba(0,0,0,0.28)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
                 }}
               >
                 {searchLoading ? (
@@ -287,7 +296,7 @@ const HomeHeader = () => {
                   <>
                     <div
                       style={{
-                        padding: '10px 16px 8px',
+                        padding: '10px 18px 8px',
                         borderBottom: '1px solid #f1f5f9',
                         background: '#f8fafc',
                       }}
@@ -298,7 +307,7 @@ const HomeHeader = () => {
                           fontWeight: '800',
                           color: '#94a3b8',
                           textTransform: 'uppercase',
-                          letterSpacing: '0.1em',
+                          letterSpacing: '0.08em',
                         }}
                       >
                         {searchResults.length} results found
@@ -317,16 +326,16 @@ const HomeHeader = () => {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '12px',
-                          padding: '12px 16px',
+                          padding: '12px 18px',
                           cursor: 'pointer',
-                          transition: 'background 0.15s',
+                          transition: 'background 0.15s ease',
                         }}
-                        className="hover:bg-blue-50"
+                        className="hover:bg-teal-50"
                       >
                         <div
                           style={{
-                            width: '42px',
-                            height: '42px',
+                            width: '44px',
+                            height: '44px',
                             borderRadius: '10px',
                             flexShrink: 0,
                             background: '#f1f5f9',
@@ -344,7 +353,7 @@ const HomeHeader = () => {
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                           ) : (
-                            <Pill size={16} color="#0891b2" />
+                            <Pill size={16} color="#0F766E" />
                           )}
                         </div>
 
@@ -354,7 +363,7 @@ const HomeHeader = () => {
                               margin: 0,
                               fontSize: '14px',
                               fontWeight: '600',
-                              color: '#0f172a',
+                              color: '#0f1a2e',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
@@ -362,12 +371,12 @@ const HomeHeader = () => {
                           >
                             {product.name}
                           </p>
-                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94a3b8' }}>
-                            {product.category} {product.brand ? ` · ${product.brand}` : ''}
+                          <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#94a3b8' }}>
+                            {product.category} {product.brand ? `· ${product.brand}` : ''}
                           </p>
                         </div>
 
-                        <span style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a', flexShrink: 0 }}>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f1a2e', flexShrink: 0 }}>
                           £{product.sellingPrice || product.price}
                         </span>
                       </div>
@@ -375,24 +384,24 @@ const HomeHeader = () => {
                   </>
                 ) : (
                   <div style={{ padding: '24px', textAlign: 'center', fontSize: '13px', color: '#94a3b8' }}>
-                    No results for "{searchQuery}"
+                    No results for "<span style={{ color: '#0f1a2e', fontWeight: '600' }}>{searchQuery}</span>"
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Right Actions */}
+          {/* ─── Right Actions ─── */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
+              gap: '10px',
               marginLeft: 'auto',
               flexShrink: 0,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 14px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
               {isLoggedIn ? (
                 <>
                   {isAdmin ? (
@@ -401,35 +410,37 @@ const HomeHeader = () => {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        gap: '6px',
                         padding: '7px 12px',
-                        borderRadius: '20px',
-                        background: '#334155',
-                        border: '1px solid rgba(51,65,85,0.4)',
+                        borderRadius: '30px',
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.08)',
                         color: '#ffffff',
                         textDecoration: 'none',
-                        fontSize: '13px',
+                        fontSize: '12px',
                         fontWeight: '600',
+                        transition: 'all 0.2s ease',
                       }}
+                      className="hover:bg-white/10"
                     >
-                      <User size={14} /> Admin
+                      <User size={13} /> Admin
                     </Link>
                   ) : (
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        gap: '6px',
                         padding: '7px 12px',
-                        borderRadius: '20px',
-                        background: '#334155',
-                        border: '1px solid rgba(51,65,85,0.4)',
+                        borderRadius: '30px',
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.08)',
                         color: '#ffffff',
-                        fontSize: '13px',
+                        fontSize: '12px',
                         fontWeight: '600',
                       }}
                     >
-                      <User size={14} /> User
+                      <User size={13} /> {user?.name || 'User'}
                     </div>
                   )}
 
@@ -439,18 +450,20 @@ const HomeHeader = () => {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
+                      gap: '5px',
                       padding: '7px 12px',
-                      borderRadius: '20px',
-                      background: '#334155',
-                      border: '1px solid rgba(51,65,85,0.4)',
-                      color: '#ffffff',
-                      fontSize: '13px',
-                      fontWeight: '600',
+                      borderRadius: '30px',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      color: 'rgba(255,255,255,0.6)',
+                      fontSize: '12px',
+                      fontWeight: '500',
                       cursor: 'pointer',
+                      transition: 'all 0.2s ease',
                     }}
+                    className="hover:bg-white/10 hover:text-white"
                   >
-                    <LogOut size={14} /> Logout
+                    <LogOut size={13} />
                   </button>
                 </>
               ) : (
@@ -461,17 +474,19 @@ const HomeHeader = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      padding: '7px 12px',
-                      borderRadius: '20px',
-                      background: '#334155',
-                      border: '1px solid rgba(51,65,85,0.4)',
+                      padding: '7px 14px',
+                      borderRadius: '30px',
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.08)',
                       color: '#ffffff',
                       textDecoration: 'none',
-                      fontSize: '13px',
+                      fontSize: '12px',
                       fontWeight: '600',
+                      transition: 'all 0.2s ease',
                     }}
+                    className="hover:bg-white/10"
                   >
-                    <LogIn size={14} /> Login
+                    <LogIn size={13} /> Login
                   </Link>
 
                   <Link
@@ -480,93 +495,103 @@ const HomeHeader = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      padding: '7px 12px',
-                      borderRadius: '20px',
-                      background: 'rgba(6,182,212,0.12)',
-                      border: '1px solid rgba(6,182,212,0.25)',
-                      color: '#22d3ee',
+                      padding: '7px 16px',
+                      borderRadius: '30px',
+                      background: 'rgba(15,118,110,0.2)',
+                      border: '1px solid rgba(15,118,110,0.25)',
+                      color: '#0F766E',
                       textDecoration: 'none',
-                      fontSize: '13px',
-                      fontWeight: '600',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      transition: 'all 0.2s ease',
                     }}
+                    className="hover:bg-teal-500/20 hover:border-teal-400"
                   >
-                    <UserPlus size={14} /> Register
+                    <UserPlus size={13} /> Register
                   </Link>
                 </>
               )}
             </div>
 
-            {/* Cart */}
+            {/* ─── Cart ─── */}
             <Link
-  to="/cart"
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '10px 22px',
-    borderRadius: '30px',
-    background: '#334155', // slate-700
-    textDecoration: 'none',
-    position: 'relative',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-  }}
->
-  <div style={{ position: 'relative' }}>
-    <ShoppingCart size={18} color="#fff" />
+              to="/cart"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '8px 20px',
+                borderRadius: '40px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                textDecoration: 'none',
+                position: 'relative',
+                transition: 'all 0.3s ease',
+              }}
+              className="hover:bg-white/10 hover:border-white/15"
+            >
+              <div style={{ position: 'relative' }}>
+                <ShoppingCart size={18} color="#fff" strokeWidth={1.8} />
 
-    {cartCount > 0 && (
-      <span
-        style={{
-          position: 'absolute',
-          top: '-9px',
-          right: '-9px',
-          background: '#fff',
-          color: '#0f172a',
-          fontSize: '9px',
-          fontWeight: '900',
-          borderRadius: '10px',
-          minWidth: '17px',
-          height: '17px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '0 3px',
-        }}
-      >
-        {cartCount}
-      </span>
-    )}
-  </div>
+                {cartCount > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-9px',
+                      right: '-9px',
+                      background: '#0F766E',
+                      color: '#fff',
+                      fontSize: '8px',
+                      fontWeight: '800',
+                      borderRadius: '50%',
+                      minWidth: '17px',
+                      height: '17px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0 3px',
+                      border: '2px solid #0f1a2e',
+                    }}
+                  >
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </div>
 
-  <span
-    style={{
-      fontSize: '14px',
-      fontWeight: '700',
-      color: '#ffffff', // white text
-    }}
-  >
-    Cart
-  </span>
-</Link>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                Cart
+              </span>
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* ───────────────────── Navigation Row ───────────────────── */}
-      <div style={{ background: '#0d1f3c', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      {/* ─── Navigation Row ─── */}
+      <div style={{ 
+        background: 'rgba(15, 26, 46, 0.95)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+      }}>
         <div
           style={{
-            maxWidth: '1400px',
+            maxWidth: '1440px',
             margin: '0 auto',
             padding: '0 40px',
             display: 'flex',
             alignItems: 'center',
-            height: '50px',
-            gap: '6px',
+            height: '48px',
+            gap: '2px',
           }}
         >
           <Link to="/home" onClick={() => setActiveNav('home')} style={navLinkStyle('home')}>
-            <Home size={15} /> Home
+            <Home size={13} /> Home
           </Link>
 
           <div
@@ -577,15 +602,24 @@ const HomeHeader = () => {
             <button
               type="button"
               onClick={() => handleCategoryClick()}
-              style={{ ...navLinkStyle('products'), background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ 
+                ...navLinkStyle('products'), 
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
             >
-              <Package size={15} /> Products
+              <Package size={13} /> Products
               <ChevronDown
-                size={13}
+                size={12}
                 style={{
                   transform: showProductsMenu ? 'rotate(180deg)' : 'rotate(0)',
-                  transition: 'transform 0.2s',
-                  marginLeft: '4px'
+                  transition: 'transform 0.3s ease',
+                  marginLeft: '2px',
+                  opacity: showProductsMenu ? 1 : 0.4,
                 }}
               />
             </button>
@@ -594,19 +628,19 @@ const HomeHeader = () => {
               <div
                 style={{
                   position: 'absolute',
-                  top: '100%',
+                  top: 'calc(100% + 2px)',
                   left: 0,
-                  background: '#fff',
+                  background: '#FFFFFF',
                   borderRadius: '14px',
                   minWidth: '220px',
                   border: '1px solid #e2e8f0',
                   overflow: 'hidden',
                   zIndex: 1000,
-                  boxShadow: '0 16px 50px rgba(0,0,0,0.18)',
+                  boxShadow: '0 16px 50px rgba(0,0,0,0.12)',
                 }}
               >
-                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
-                  <span style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase' }}>
+                <div style={{ padding: '10px 18px 8px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Categories
                   </span>
                 </div>
@@ -620,25 +654,25 @@ const HomeHeader = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '10px',
-                      padding: '12px 16px',
-                      fontSize: '14px',
+                      padding: '10px 18px',
+                      fontSize: '13px',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#1e293b',
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
                       textAlign: 'left',
+                      transition: 'all 0.15s ease',
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f8fafc';
-                      e.currentTarget.style.color = '#0f172a';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'none';
-                      e.currentTarget.style.color = '#374151';
-                    }}
+                    className="hover:bg-teal-50 hover:text-slate-900"
                   >
-                    <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#06b6d4' }} />
+                    <div style={{ 
+                      width: '5px', 
+                      height: '5px', 
+                      borderRadius: '50%', 
+                      background: '#0F766E',
+                      flexShrink: 0,
+                    }} />
                     {cat}
                   </button>
                 ))}
@@ -647,19 +681,19 @@ const HomeHeader = () => {
           </div>
 
           <Link to="/prescription-form" onClick={() => setActiveNav('prescription')} style={navLinkStyle('prescription')}>
-            <FileText size={15} /> Prescription
+            <FileText size={13} /> Prescription
           </Link>
 
           <Link to="/how-it-works" onClick={() => setActiveNav('howItWorks')} style={navLinkStyle('howItWorks')}>
-            How It Works
+            <Sparkles size={13} /> How It Works
           </Link>
 
           <Link to="/about" onClick={() => setActiveNav('about')} style={navLinkStyle('about')}>
-            <Info size={15} /> About Us
+            <Info size={13} /> About Us
           </Link>
 
           <Link to="/contact" onClick={() => setActiveNav('contact')} style={navLinkStyle('contact')}>
-            <Mail size={15} /> Contact
+            <Mail size={13} /> Contact
           </Link>
         </div>
       </div>

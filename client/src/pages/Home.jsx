@@ -4,13 +4,17 @@ import {
   ArrowRight, HandCoins, Plus, Minus, Check, Heart, CreditCard,
   ShoppingCart, Truck, Headset, Quote,
   Mail, Phone, MapPin, ShieldCheck, Zap, Pill,
-  Package, Star, ClipboardList, Users, ChevronLeft, ChevronRight
+  Package, Star, ClipboardList, Users, ChevronLeft, ChevronRight,
+  Award, Clock, Thermometer, FileCheck, Sparkles, Layers,
+  Target, TrendingUp, BadgeCheck
 } from "lucide-react";
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-hot-toast';
 import API from '../api/axios';
 
+
+// ─── Social Icons ───
 const FacebookIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
@@ -36,12 +40,191 @@ const LinkedinIcon = () => (
   </svg>
 );
 
+// ─── Components ───
+
 const Eyebrow = ({ children }) => (
-  <span className="inline-flex px-3.5 py-1 rounded-full text-xs font-semibold text-cyan-700 bg-cyan-50 border border-cyan-100 mb-4 tracking-wide uppercase">
+  <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-100 mb-4 tracking-wide uppercase">
+    <span className="w-1.5 h-1.5 rounded-full bg-teal-600 mr-2" />
     {children}
   </span>
 );
 
+const SectionHeading = ({ eyebrow, title, description, align = 'center' }) => (
+  <div className={`mb-12 ${align === 'center' ? 'text-center' : 'text-left'}`}>
+    {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+    <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-slate-900 tracking-tight leading-[1.15]">
+      {title}
+    </h2>
+    {description && (
+      <p className="text-slate-600 text-base max-w-2xl mx-auto mt-3 leading-relaxed">
+        {description}
+      </p>
+    )}
+  </div>
+);
+
+const PlaceholderImage = ({ icon: Icon = Package, label = 'No Image' }) => (
+  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center">
+      <Icon className="w-7 h-7 text-slate-400" />
+    </div>
+    <span className="text-[10px] font-medium text-slate-400 mt-3 tracking-wider uppercase">
+      {label}
+    </span>
+  </div>
+);
+
+// ─── Product Card ───
+const ProductCard = ({ product }) => {
+  const { addToCart } = useCart();
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [wished, setWished] = useState(false);
+
+  const handleAdd = async (e) => {
+    e.stopPropagation();
+    if (adding) return;
+    setAdding(true);
+    try {
+      await addToCart(product);
+      setAdded(true);
+      toast.success(`${product.name} added to cart`);
+      setTimeout(() => setAdded(false), 2000);
+    } catch {
+      toast.error('Failed to add to cart');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const price = product.sellingPrice || product.price || 0;
+  const original = product.originalPrice || product.mrp || 0;
+  const hasDiscount = original > price && price > 0;
+  const discountPct = hasDiscount ? Math.round(((original - price) / original) * 100) : 0;
+  const inStock = (product.stock ?? 1) > 0;
+  const lowStock = inStock && product.stock <= 5;
+
+  return (
+    <div className="group bg-white rounded-2xl border border-slate-200 hover:border-teal-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-400 flex flex-col overflow-hidden relative">
+
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100" style={{ height: '220px' }}>
+        {product.image ? (
+          <img
+            src={`${BASE_URL}/${product.image}`}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            loading="lazy"
+          />
+        ) : (
+          <PlaceholderImage label={product.category || 'Product'} />
+        )}
+
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          {hasDiscount && (
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-red-500 text-white px-2.5 py-1 rounded-md shadow-sm">
+              Save {discountPct}%
+            </span>
+          )}
+          {product.category && (
+            <span className="text-[9px] font-semibold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-slate-700 px-2.5 py-1 rounded-md border border-slate-200/50 shadow-sm">
+              {product.category}
+            </span>
+          )}
+        </div>
+
+
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 translate-y-4 group-hover:translate-y-0">
+          <button
+            onClick={handleAdd}
+            disabled={adding || !inStock}
+            className="w-full flex items-center justify-center gap-2 bg-white text-slate-900 px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-teal-600 hover:text-white transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {added ? (
+              <>
+                <Check className="w-4 h-4" /> Added
+              </>
+            ) : adding ? (
+              'Adding...'
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4" /> Quick Add
+              </>
+            )}
+          </button>
+        </div>
+
+        {!inStock && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+            <span className="text-white font-bold text-sm bg-red-500/90 px-4 py-2 rounded-lg">Out of Stock</span>
+          </div>
+        )}
+        {lowStock && inStock && (
+          <div className="absolute bottom-20 right-3">
+            <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white px-2 py-0.5 rounded shadow-sm">
+              Low Stock
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-center gap-1 mb-2">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          ))}
+          <span className="text-[10px] text-slate-400 ml-1">(24)</span>
+        </div>
+
+        {product.brand && (
+          <p className="text-[10px] font-semibold text-teal-600 uppercase tracking-wider mb-1">
+            {product.brand}
+          </p>
+        )}
+
+        <h3 className="text-[15px] font-semibold text-slate-900 leading-snug mb-1 line-clamp-2 group-hover:text-teal-700 transition-colors">
+          {product.name}
+        </h3>
+
+        <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+          SKU: {product.sku || 'N/A'}
+        </p>
+
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+          <div>
+            <div className="flex items-baseline gap-2">
+              <p className="text-xl font-bold text-slate-900">£{Number(price).toFixed(2)}</p>
+              {hasDiscount && (
+                <p className="text-sm text-slate-400 line-through">£{Number(original).toFixed(2)}</p>
+              )}
+            </div>
+            {hasDiscount && (
+              <p className="text-[10px] font-semibold text-green-600">Save {discountPct}%</p>
+            )}
+          </div>
+
+          <button
+            onClick={handleAdd}
+            disabled={adding || !inStock}
+            className={`h-10 px-4 rounded-xl flex items-center gap-2 font-bold text-sm transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${added
+              ? 'bg-teal-600 text-white'
+              : 'bg-slate-800 text-white hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-600/20'
+              }`}
+          >
+            {added ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+            {added ? 'Added' : 'Add'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── FAQ Component ───
 const faqData = [
   {
     question: "Do I need a validated prescriber account to purchase Prescription-Only Medicines (POM)?",
@@ -68,23 +251,19 @@ const faqData = [
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(0);
   return (
-    <div className="bg-slate-50 py-24 px-8 lg:px-24 border-t border-slate-200">
+    <div className="bg-slate-50/80 py-20 px-8 lg:px-24 border-t border-slate-200">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-14">
-          <Eyebrow>Support & Compliance</Eyebrow>
-          <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 mb-3 tracking-tight">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-slate-600 text-base max-w-lg mx-auto">
-            Important information regarding account validation, regulatory compliance, and distribution policies.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Support & Compliance"
+          title="Frequently Asked Questions"
+          description="Important information regarding account validation, regulatory compliance, and distribution policies."
+        />
         <div className="space-y-3">
           {faqData.map((item, index) => (
             <div
               key={index}
-              className={`rounded-xl transition-all duration-300 border ${openIndex === index
-                ? 'bg-white border-slate-300 shadow-sm'
+              className={`rounded-2xl transition-all duration-300 border ${openIndex === index
+                ? 'bg-white border-teal-200 shadow-md shadow-teal-50/50'
                 : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}
             >
@@ -95,10 +274,11 @@ const FAQ = () => {
                 <span className={`text-base font-semibold ${openIndex === index ? 'text-slate-900' : 'text-slate-700'}`}>
                   {item.question}
                 </span>
-                <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center ${openIndex === index ? 'bg-cyan-500' : 'bg-slate-100'}`}>
+                <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 ${openIndex === index ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-500'
+                  }`}>
                   {openIndex === index
-                    ? <Minus className="text-white w-3.5 h-3.5" />
-                    : <Plus className="text-slate-500 w-3.5 h-3.5" />}
+                    ? <Minus className="w-4 h-4" />
+                    : <Plus className="w-4 h-4" />}
                 </div>
               </button>
               <div className={`overflow-hidden transition-all duration-300 ${openIndex === index ? 'max-h-40' : 'max-h-0'}`}>
@@ -112,105 +292,7 @@ const FAQ = () => {
   );
 };
 
-const ProductCard = ({ product }) => {
-  const { addToCart } = useCart();
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-  const [wished, setWished] = useState(false);
-
-  const handleAdd = async (e) => {
-    e.stopPropagation();
-    setAdding(true);
-    try {
-      await addToCart(product);
-      setAdded(true);
-      toast.success(`${product.name} added!`);
-      setTimeout(() => setAdded(false), 2000);
-    } catch {
-      toast.error('Failed to add to cart');
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  const price = product.sellingPrice || product.price || 0;
-  const original = product.originalPrice || product.mrp || 0;
-  const hasDiscount = original > price && price > 0;
-  const discountPct = hasDiscount ? Math.round(((original - price) / original) * 100) : 0;
-  const inStock = (product.stock ?? 1) > 0;
-  const lowStock = inStock && product.stock <= 5;
-
-  return (
-    <div className="group bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/60 transition-all duration-300 flex flex-col overflow-hidden">
-      <div className="relative overflow-hidden bg-slate-100" style={{ height: '200px' }}>
-        {product.image ? (
-          <img
-            src={`${BASE_URL}/${product.image}`}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-slate-100">
-            <Package className="w-12 h-12 text-slate-300" />
-            <span className="text-xs text-slate-400 font-semibold">No Image</span>
-          </div>
-        )}
-
-
-        <span className="absolute top-3 left-3 flex flex-col gap-1.5 items-start text-[9px] font-semibold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">
-          {product.category}
-        </span>
-
-        <div className="absolute bottom-0 left-0 right-0 p-3 flex justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-          <button
-            onClick={handleAdd}
-            disabled={adding || !inStock}
-            className="flex items-center gap-2 bg-cyan-500 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-lg hover:bg-cyan-600 transition-all active:scale-95 disabled:opacity-50"
-          >
-            <ShoppingCart className="w-3.5 h-3.5" />
-            {adding ? 'Adding...' : 'Quick Add'}
-          </button>
-        </div>
-      </div>
-
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex gap-0.5 mb-3">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-          ))}
-        </div>
-
-        <h3 className="text-[15px] font-semibold text-slate-900 leading-snug mb-1.5 line-clamp-2">
-          {product.name}
-        </h3>
-
-        {product.brand && (
-          <p className="text-xs text-slate-500 font-medium mb-auto">{product.brand}</p>
-        )}
-
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-          <div className="flex items-baseline gap-2">
-            <p className="text-lg font-bold text-slate-900">£{Number(price).toFixed(2)}</p>
-            {hasDiscount && (
-              <p className="text-xs text-slate-400 line-through">£{Number(original).toFixed(2)}</p>
-            )}
-          </div>
-          <button
-            onClick={handleAdd}
-            disabled={adding || !inStock}
-            className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold transition-all active:scale-90 disabled:opacity-50 ${added
-              ? 'bg-cyan-600 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-cyan-600 hover:text-white'
-              }`}
-          >
-            {added ? '✓' : <Plus className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
+// ─── Reviews Component ───
 const reviews = [
   {
     name: "Dr. Sarah Mitchell",
@@ -230,30 +312,21 @@ const reviews = [
 ];
 
 const Reviews = () => (
-  <section className="py-24 px-8 lg:px-24 bg-white border-t border-slate-200">
+  <section className="py-20 px-8 lg:px-24 bg-white border-t border-slate-200">
     <div className="max-w-7xl mx-auto">
-      <div className="text-center mb-14">
-        <Eyebrow>Clinical Feedback</Eyebrow>
-        <div className="flex justify-center gap-1 mb-3">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
-          ))}
-        </div>
-        <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
-          Verified UK Practitioner Reviews
-        </h2>
-        <p className="text-slate-600 text-base mt-3 max-w-lg mx-auto">
-          Providing compliant pharmaceutical distribution and digital prescription tooling for clinics nationwide.
-        </p>
-      </div>
+      <SectionHeading
+        eyebrow="Clinical Feedback"
+        title="Verified UK Practitioner Reviews"
+        description="Providing compliant pharmaceutical distribution and digital prescription tooling for clinics nationwide."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {reviews.map((r, i) => (
           <div
             key={i}
-            className="bg-slate-50 rounded-xl border border-slate-200 p-7 flex flex-col hover:border-slate-300 hover:shadow-md transition-all duration-300"
+            className="bg-slate-50 rounded-2xl border border-slate-200 p-8 flex flex-col hover:border-teal-200 hover:shadow-lg hover:shadow-slate-100/50 transition-all duration-300"
           >
-            <Quote className="w-8 h-8 text-cyan-200 mb-4" />
+            <Quote className="w-8 h-8 text-teal-200 mb-4" />
             <p className="text-slate-700 text-sm leading-relaxed mb-6 flex-1">"{r.text}"</p>
             <div className="flex gap-0.5 mb-3">
               {[...Array(5)].map((_, j) => (
@@ -261,7 +334,7 @@ const Reviews = () => (
               ))}
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold text-sm">
                 {r.name.charAt(0)}
               </div>
               <div>
@@ -276,6 +349,7 @@ const Reviews = () => (
   </section>
 );
 
+// ─── Main Home Component ───
 const Home = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
@@ -284,14 +358,14 @@ const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const productCategories = [
-    { name: 'Botulinum Toxins', count: '45 Products', icon: Pill, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Botulinum+Toxins' },
-    { name: 'Dermal Fillers', count: '82 Products', icon: Zap, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Dermal+Fillers' },
-    { name: 'Skin Boosters', count: '34 Products', icon: HandCoins, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Skin+Boosters' },
-    { name: 'Fat Dissolvers', count: '28 Products', icon: Package, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Fat+Dissolvers' },
-    { name: 'Consumables', count: '40 Products', icon: ShieldCheck, image: 'https://placehold.co/600x400/f1f5f9/64748b?text=Consumables' },
+    { name: 'Botulinum Toxins', count: '45 Products', image: '/1.jpg' },
+    { name: 'Dermal Fillers', count: '82 Products', image: '/2.jpg' },
+    { name: 'Skin Boosters', count: '34 Products', image: '/3.jpg' },
+    { name: 'Fat Dissolvers', count: '28 Products', image: '/4.jpg' },
+    { name: 'Consumables', count: '40 Products', image: '/5.jpg' },
   ];
 
-  const heroTrust = ['GPhC Premises Registered', 'Validated Cold-Chain Shipping', 'Same-Day Dispatch Cut-off', 'MHRA Verified Wholesalers'];
+  const heroTrust = ['GPhC Registered Pharmacy', 'Cold-Chain Verified', 'Same-Day Dispatch', 'MHRA Licensed'];
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/sliders`)
@@ -327,25 +401,63 @@ const Home = () => {
     <div className="font-sans bg-white text-slate-900">
       <main className="w-full">
 
-        {/* ── HERO SECTION ── */}
-        <div className="relative bg-gradient-to-b from-slate-100 via-slate-50 to-white overflow-hidden border-b border-slate-200">
-
-          {/* Subtle Grid Background Pattern for clean division */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+        {/* ─── HERO SECTION ─── */}
+        <div className="relative overflow-hidden border-b border-slate-200" style={{ minHeight: '520px' }}>
 
           {sliders.length === 0 ? (
-            <div className="w-full px-8 md:px-24 py-24 flex flex-col md:flex-row items-center justify-between gap-16 max-w-7xl mx-auto relative z-10">
-              <div className="space-y-6 max-w-xl">
-                <h1 className="font-serif text-4xl md:text-6xl font-semibold tracking-tight leading-[1.15] text-slate-900">
-                  Licensed UK Aesthetic <br /><span className="text-cyan-700">Pharmacy Supply</span>
-                </h1>
-                <p className="text-base text-slate-600 leading-relaxed">
-                  Log in to your clinic profile to access prescription-only stocks, prepare prescription forms, and coordinate shipping dates.
-                </p>
+            <div className="relative w-full px-8 md:px-24 py-16 flex items-center min-h-[480px]">
+              <div className="absolute inset-0">
+                <img
+                  src="/hero-bg.jpg"
+                  alt="Hero background"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-slate-900/60" />
+              </div>
+
+              <div className="max-w-7xl mx-auto relative z-10 w-full">
+                <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-6">
+                    <span className="w-2 h-2 bg-teal-400 rounded-full" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white">Licensed UK Pharmacy</span>
+                  </div>
+                  <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1] text-white">
+                    Premium Aesthetic <br />
+                    <span className="text-teal-400">Pharmacy Supply</span>
+                  </h1>
+                  <p className="text-lg text-white/80 leading-relaxed max-w-lg mt-4">
+                    Log in to your clinic profile to access prescription-only stocks, prepare prescription forms, and coordinate shipping dates.
+                  </p>
+                  <div className="flex flex-wrap gap-4 mt-6">
+                    <button
+                      onClick={() => navigate("/trendpro")}
+                      className="group flex items-center gap-3 rounded-2xl bg-teal-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
+                    >
+                      Shop Products
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </button>
+                    <button
+                      onClick={() => navigate("/how-it-works")}
+                      className="flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-3.5 rounded-2xl font-bold text-sm border border-white/20 hover:bg-white/20 transition-all duration-300 active:scale-95"
+                    >
+                      Learn More
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 pt-6 border-t border-white/20 max-w-lg mt-6">
+                    {heroTrust.map((t) => (
+                      <div key={t} className="flex items-center gap-2.5 text-sm font-medium text-white/90">
+                        <div className="w-5 h-5 rounded-full bg-teal-500/30 flex items-center justify-center shrink-0">
+                          <Check className="w-3 h-3 text-teal-300" />
+                        </div>
+                        {t}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="w-full relative min-h-[550px] md:min-h-[500px]">
+            <div className="w-full relative min-h-[480px]">
               {sliders.map((slide, index) => {
                 const isActive = index === currentSlide;
                 const formattedImageUrl = slide.imageUrl?.startsWith("http")
@@ -355,71 +467,63 @@ const Home = () => {
                 return (
                   <div
                     key={slide._id}
-                    className={`w-full transition-all duration-700 ease-in-out px-8 md:px-24 py-16 md:py-20 ${isActive ? "block relative opacity-100 z-10" : "hidden absolute opacity-0 z-0"
+                    className={`w-full transition-all duration-700 ease-in-out ${isActive ? "block relative" : "hidden"
                       }`}
                   >
-                    <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-cyan-100/30 rounded-full blur-[90px] -mr-24 -mt-24 pointer-events-none" />
+                    <div className="absolute inset-0">
+                      <img
+                        src={formattedImageUrl}
+                        alt={slide.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.src = "https://placehold.co/1920x600/e2e8f0/475569?text=Pharmacy+Supply"; }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-900/50 to-slate-900/30" />
+                    </div>
 
-                    <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16 relative z-10">
-
-                      {/* Left: Copywriting Content */}
-                      <div className="md:w-3/5 space-y-7 text-left">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm">
-                          <span className="w-2 h-2 bg-cyan-500 rounded-full" />
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
-                            Professional Sourcing · Batch Traceability · Temperature Tracked
+                    <div className="relative z-10 max-w-7xl mx-auto px-8 md:px-24 py-16 flex items-center min-h-[480px]">
+                      <div className="max-w-2xl">
+                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-6">
+                          <span className="w-2 h-2 bg-teal-400 rounded-full" />
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white">
+                            Professional Sourcing · Batch Traceability
                           </p>
                         </div>
 
-                        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold leading-[1.1] tracking-tight text-slate-900">
+                        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold leading-[1.1] tracking-tight text-white">
                           {slide.title}
                         </h1>
 
-                        <p className="text-base text-slate-600 max-w-lg leading-relaxed">
+                        <p className="text-lg text-white/80 max-w-lg leading-relaxed mt-4">
                           {slide.description}
                         </p>
 
-                        <div className="flex flex-wrap gap-3 pt-1">
+                        <div className="flex flex-wrap gap-4 mt-6">
                           <button
                             onClick={() => navigate(slide.buttonLink || "/trendpro")}
-                            className="group flex items-center gap-3 rounded-xl bg-[#0D1F3C] px-7 py-3.5 text-sm font-bold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
+                            className="group flex items-center gap-3 rounded-2xl bg-teal-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
                           >
                             {slide.buttonText || "Shop Products"}
                             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                           </button>
                           <button
                             onClick={() => navigate("/trendpro")}
-                            className="flex items-center gap-2 bg-white text-slate-900 px-7 py-3.5 rounded-xl font-bold text-sm border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95"
+                            className="flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-3.5 rounded-2xl font-bold text-sm border border-white/20 hover:bg-white/20 transition-all duration-300 active:scale-95"
                           >
                             View Categories
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-5 border-t border-slate-200 max-w-lg">
+                        <div className="grid grid-cols-2 gap-3 pt-6 border-t border-white/20 max-w-lg mt-6">
                           {heroTrust.map((t) => (
-                            <div key={t} className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-700">
-                              <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                                <Check className="w-3.5 h-3.5 text-green-500" />
-                              </span>
+                            <div key={t} className="flex items-center gap-2.5 text-sm font-medium text-white/90">
+                              <div className="w-5 h-5 rounded-full bg-teal-500/30 flex items-center justify-center shrink-0">
+                                <Check className="w-3 h-3 text-teal-300" />
+                              </div>
                               {t}
                             </div>
                           ))}
                         </div>
                       </div>
-
-                      {/* Right: Graphic Container */}
-                      <div className="md:w-2/5 flex justify-center md:justify-end">
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-cyan-200/20 rounded-2xl blur-2xl group-hover:bg-cyan-200/30 transition-colors duration-700" />
-                          <img
-                            src={formattedImageUrl}
-                            alt={slide.title}
-                            className="w-72 md:w-80 lg:w-[460px] h-[300px] rounded-2xl shadow-md border border-slate-200/80 object-cover relative transition-transform duration-500 group-hover:scale-[1.01]"
-                            onError={(e) => { e.target.src = "https://placehold.co/600x800/f1f5f9/64748b?text=Product+Display"; }}
-                          />
-                        </div>
-                      </div>
-
                     </div>
                   </div>
                 );
@@ -429,23 +533,23 @@ const Home = () => {
                 <>
                   <button
                     onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 transition-all shadow-md"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/20 hover:bg-white/40 transition-all shadow-lg"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 transition-all shadow-md"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/20 hover:bg-white/40 transition-all shadow-lg"
                   >
                     <ChevronRight size={20} />
                   </button>
 
-                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2.5">
                     {sliders.map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setCurrentSlide(i)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? "w-6 bg-cyan-600" : "w-1.5 bg-slate-300"
+                        className={`h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? "w-8 bg-teal-400" : "w-1.5 bg-white/40"
                           }`}
                       />
                     ))}
@@ -456,22 +560,22 @@ const Home = () => {
           )}
         </div>
 
-        {/* ── FEATURED PRODUCTS ── */}
-        <section className="py-20 bg-white px-8 lg:px-24">
+        {/* ─── FEATURED PRODUCTS ─── */}
+        <section className="py-16 bg-white px-8 lg:px-24">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
               <div>
                 <Eyebrow>Clinic Essentials</Eyebrow>
-                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+                <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-slate-900 tracking-tight">
                   Featured Supplies
                 </h2>
-                <p className="text-slate-600 text-base mt-2">
+                <p className="text-slate-600 text-base mt-2 max-w-lg">
                   Traceable clinic stocks from MHRA-regulated UK distributors
                 </p>
               </div>
               <button
                 onClick={() => navigate('/trendpro')}
-                className="group shrink-0 inline-flex items-center gap-2 rounded-xl bg-[#0D1F3C] px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                className="group shrink-0 inline-flex items-center gap-3 rounded-2xl bg-slate-800 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-800/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
               >
                 Browse Catalog
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -481,12 +585,12 @@ const Home = () => {
             {loadingProducts ? (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
-                    <div className="bg-slate-100" style={{ height: '200px' }} />
+                  <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
+                    <div className="bg-slate-100" style={{ height: '220px' }} />
                     <div className="p-5 space-y-3">
                       <div className="h-3 bg-slate-100 rounded-full w-3/4" />
                       <div className="h-3 bg-slate-100 rounded-full w-1/2" />
-                      <div className="h-5 bg-slate-100 rounded-full w-1/3 mt-4" />
+                      <div className="h-6 bg-slate-100 rounded-full w-1/3 mt-4" />
                     </div>
                   </div>
                 ))}
@@ -494,53 +598,90 @@ const Home = () => {
             ) : products.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                 {products.map((product) => (
-                  <div key={product._id} className="w-full max-w-sm mx-auto">
-                    <ProductCard product={product} />
-                  </div>
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-slate-50 rounded-xl border border-slate-200">
-                <Package className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500 font-semibold text-sm">No products available yet</p>
+              <div className="text-center py-16 bg-slate-50 rounded-3xl border border-slate-200">
+                <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500 font-semibold text-base">No products available yet</p>
               </div>
             )}
           </div>
         </section>
 
-        {/* ── POPULAR CATEGORIES ── */}
-        <section className="py-20 bg-slate-50 px-8 lg:px-24 border-t border-b border-slate-200">
+        {/* ─── TRUST SECTION ─── */}
+        <section className="py-16 px-8 lg:px-24 bg-slate-800 text-white border-t border-white/10">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-14">
-              <Eyebrow>Inventory Categories</Eyebrow>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
-                Product Categories
+            <div className="text-center mb-10">
+              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold text-teal-300 bg-teal-500/10 border border-teal-500/20 mb-4 tracking-wide uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-400 mr-2" />
+                Quality Assured
+              </span>
+              <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-white">
+                Built for Clinical Excellence
               </h2>
-              <p className="text-slate-600 text-base mt-3">Direct wholesale distribution of licensed cosmetic formulations</p>
+              <p className="text-slate-300 text-base max-w-2xl mx-auto mt-3">
+                Every product meets the highest standards of pharmaceutical regulation and quality assurance.
+              </p>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {[
+                { icon: ShieldCheck, label: 'Licensed Pharmacy', sub: 'GPhC Registration No. 0000000' },
+                { icon: Thermometer, label: 'Cold Chain Verified', sub: 'Temperature-monitored logistics' },
+                { icon: Award, label: 'MHRA Licensed', sub: 'Wholesaler Distribution Authorisation' },
+                { icon: Clock, label: 'Same-Day Dispatch', sub: 'Cut-off at 3:00 PM' },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white/5 rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-teal-400/30 transition-all duration-300"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center mb-4">
+                    <item.icon className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white mb-1">{item.label}</h3>
+                  <p className="text-sm text-slate-400">{item.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── POPULAR CATEGORIES ─── */}
+        {/* ─── POPULAR CATEGORIES ─── */}
+        <section className="py-16 bg-slate-50/80 px-8 lg:px-24 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeading
+              eyebrow="Inventory Categories"
+              title="Product Categories"
+              description="Direct wholesale distribution of licensed cosmetic formulations"
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
               {productCategories.map((cat, i) => (
                 <div
                   key={i}
-                  onClick={() => navigate('/trendpro')}
-                  className="group relative bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md cursor-pointer transition-all duration-300 overflow-hidden flex flex-col"
+                  onClick={() => navigate('/trendpro', { state: { category: cat.name } })}
+                  className="group relative bg-white rounded-2xl border border-slate-200 hover:border-teal-200 hover:shadow-xl hover:shadow-slate-200/50 cursor-pointer transition-all duration-400 overflow-hidden"
                 >
-                  <div className="relative h-32 overflow-hidden bg-slate-100">
+                  <div className="relative h-40 overflow-hidden bg-slate-100">
                     <img
                       src={cat.image}
                       alt={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        // Fallback if image doesn't exist
+                        e.target.src = `https://placehold.co/400x300/e2e8f0/475569?text=${cat.name.replace(/ /g, '+')}`;
+                      }}
                     />
-                    <div className="absolute top-3 left-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center border border-slate-200 shadow-sm">
-                      <cat.icon className="w-5 h-5 text-cyan-600" />
-                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
                   </div>
 
-                  <div className="p-5 flex flex-col flex-1">
-                    <h3 className="text-base font-semibold text-slate-900 mb-1">{cat.name}</h3>
-                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{cat.count}</p>
-                    <div className="mt-4 flex items-center gap-2 text-cyan-700 group-hover:text-cyan-800 transition-colors">
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <h3 className="text-base font-semibold text-white mb-0.5">{cat.name}</h3>
+                    <p className="text-xs text-white/80 font-medium">{cat.count}</p>
+                    <div className="mt-2 flex items-center gap-2 text-teal-300 group-hover:text-teal-200 transition-colors">
                       <span className="text-xs font-semibold">View Products</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -551,65 +692,71 @@ const Home = () => {
           </div>
         </section>
 
-        {/* ── FEATURE BAR ── */}
-        <div className="flex flex-nowrap justify-between items-center gap-8 px-10 lg:px-24 py-12 bg-white border-b border-slate-200 overflow-x-auto">
-          {[
-            { icon: Truck, title: "Free Shipping", sub: "Orders over £199" },
-            { icon: ShieldCheck, title: "SSL Encrypted", sub: "Secure Order System" },
-            { icon: Zap, title: "Fast Dispatch", sub: "Cut-off at 3:00 PM" },
-            { icon: Pill, title: "Verified Sourcing", sub: "GPhC/MHRA Supply Chains" },
-            { icon: Headset, title: "Clinical Support", sub: "Registered Pharmacists" },
-          ].map((f, i) => (
-            <div key={i} className="flex items-center gap-4 group shrink-0">
-              <span className="p-3.5 bg-cyan-50 text-cyan-600 rounded-xl group-hover:bg-cyan-600 group-hover:text-white transition-all duration-300">
-                <f.icon className="w-5 h-5" />
-              </span>
-              <div>
-                <h3 className="font-semibold text-slate-900 text-sm">{f.title}</h3>
-                <p className="text-xs text-slate-500 mt-0.5">{f.sub}</p>
+        {/* ─── FEATURE BAR ─── */}
+        <div className="bg-slate-800 border-y border-white/10 px-8 lg:px-24 py-6">
+          <div className="max-w-7xl mx-auto flex flex-nowrap justify-between items-center gap-6 overflow-x-auto">
+            {[
+              { icon: Truck, title: "Free Shipping", sub: "Orders over £199" },
+              { icon: ShieldCheck, title: "SSL Encrypted", sub: "Secure Order System" },
+              { icon: Zap, title: "Fast Dispatch", sub: "Cut-off at 3:00 PM" },
+              { icon: FileCheck, title: "Verified Sourcing", sub: "GPhC/MHRA Supply Chains" },
+              { icon: Headset, title: "Clinical Support", sub: "Registered Pharmacists" },
+            ].map((f, i) => (
+              <div key={i} className="flex items-center gap-4 group shrink-0">
+                <span className="p-2.5 bg-teal-500/20 text-teal-300 rounded-xl group-hover:bg-teal-500/30 transition-all duration-300">
+                  <f.icon className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="font-semibold text-white text-sm">{f.title}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{f.sub}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* ── WHY DRGPHARMA ── */}
-        <section className="py-24 bg-slate-50 px-8 lg:px-24">
+        {/* ─── WHY DRGPHARMA ─── */}
+        <section className="py-16 bg-white px-8 lg:px-24 border-t border-slate-200">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <Eyebrow>Pharmacy Standard</Eyebrow>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
-                Designed For Clinical Operations
-              </h2>
-              <p className="text-slate-600 text-base mt-3 max-w-xl mx-auto">
-                Supporting clinical safety and supply-chain efficiency for independent UK cosmetic practitioners.
-              </p>
-            </div>
+            <SectionHeading
+              eyebrow="Pharmacy Standard"
+              title="Designed For Clinical Operations"
+              description="Supporting clinical safety and supply-chain efficiency for independent UK cosmetic practitioners."
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="relative">
-                <div className="absolute -inset-3 bg-cyan-100/30 rounded-2xl blur-2xl" />
-                <img
-                  src="https://placehold.co/800x600/e2e8f0/475569?text=Licensed+UK+Pharmacy"
-                  alt="DrGPharma licensed UK pharmacy"
-                  className="relative w-full h-[380px] object-cover rounded-2xl border border-slate-200 shadow"
-                />
+                <div className="relative w-full h-[380px] rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
+                  <img
+                    src="/pharmacy-bg.jpg"
+                    alt="Licensed UK Pharmacy"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "https://placehold.co/800x500/e2e8f0/475569?text=Licensed+UK+Pharmacy";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <p className="text-white text-sm font-medium">Licensed UK Pharmacy</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {[
                   { icon: ShieldCheck, title: "Direct Wholesaling", desc: "No grey-market products. Every batch is direct from MHRA-regulated UK supply structures." },
                   { icon: ClipboardList, title: "SwiftRx™ Portal", desc: "Write, sign, and authorize prescriptions digitally without physical documentation hold-ups." },
                   { icon: Users, title: "PrescribeLink Integration", desc: "Allows non-prescribing medical injectors to coordinate clinical oversight with validated prescribers." },
-                  { icon: Zap, title: "Cold-Chain Control", desc: "A temperature-controlled logistics environment protecting protein structure integrity." },
+                  { icon: Thermometer, title: "Cold-Chain Control", desc: "A temperature-controlled logistics environment protecting protein structure integrity." },
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="group bg-white rounded-xl border border-slate-200 p-6 hover:border-slate-300 hover:shadow-md transition-all duration-300"
+                    className="group bg-slate-50 rounded-2xl border border-slate-200 p-6 hover:border-teal-200 hover:shadow-lg hover:shadow-slate-100/50 transition-all duration-300"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-5 group-hover:bg-cyan-600 group-hover:text-white transition-all duration-300">
+                    <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300">
                       <item.icon className="w-5 h-5" />
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">{item.title}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-1.5">{item.title}</h3>
                     <p className="text-slate-600 text-xs leading-relaxed">{item.desc}</p>
                   </div>
                 ))}
@@ -618,34 +765,30 @@ const Home = () => {
           </div>
         </section>
 
-        {/* ── HOW IT WORKS ── */}
-        <section className="py-24 bg-white px-8 lg:px-24 overflow-hidden border-t border-slate-200">
+        {/* ─── HOW IT WORKS ─── */}
+        <section className="py-16 bg-slate-50/80 px-8 lg:px-24 border-t border-slate-200">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <Eyebrow>Clinical Workflow</Eyebrow>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
-                Account Validation & Ordering
-              </h2>
-              <p className="text-slate-600 text-base mt-4 max-w-xl mx-auto">
-                A regulatory-compliant structure matching GPhC distribution standards
-              </p>
-            </div>
+            <SectionHeading
+              eyebrow="Clinical Workflow"
+              title="Account Validation & Ordering"
+              description="A regulatory-compliant structure matching GPhC distribution standards"
+            />
 
             <div className="relative">
-              <div className="hidden lg:block absolute top-12 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+              <div className="hidden lg:block absolute top-14 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
                 {[
-                  { num: "1", title: "Practitioner Onboarding", desc: "Complete account sign-up and register professional credentials (GMC, NMC, GPhC, HCPC) for quick validation." },
-                  { num: "2", title: "Select Inventory", desc: "Select and secure emergency consumables, skin boosters, dermal fillers, or add POM items to prescription pipelines." },
-                  { num: "3", title: "Prescription Sign-off", desc: "Complete clinical prescriptions digitally within the SwiftRx™ portal, or route them via your PrescribeLink partner." },
-                  { num: "4", title: "Dispensing & Dispatch", desc: "Our registered UK pharmacy dispatches verified stock in chilled packaging where temperature monitoring is required." },
+                  { num: "01", title: "Practitioner Onboarding", desc: "Complete account sign-up and register professional credentials (GMC, NMC, GPhC, HCPC) for quick validation." },
+                  { num: "02", title: "Select Inventory", desc: "Select and secure emergency consumables, skin boosters, dermal fillers, or add POM items to prescription pipelines." },
+                  { num: "03", title: "Prescription Sign-off", desc: "Complete clinical prescriptions digitally within the SwiftRx™ portal, or route them via your PrescribeLink partner." },
+                  { num: "04", title: "Dispensing & Dispatch", desc: "Our registered UK pharmacy dispatches verified stock in chilled packaging where temperature monitoring is required." },
                 ].map((step, idx) => (
                   <div key={idx} className="flex flex-col items-center text-center group">
-                    <div className="w-20 h-20 rounded-full border-2 border-slate-200 bg-white flex items-center justify-center mb-8 relative z-10 group-hover:border-cyan-500 transition-all duration-300 shadow-sm">
-                      <span className="font-serif text-2xl font-semibold text-cyan-600">{step.num}</span>
+                    <div className="w-16 h-16 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center mb-5 relative z-10 group-hover:border-teal-500 group-hover:shadow-lg group-hover:shadow-teal-500/20 transition-all duration-300">
+                      <span className="font-serif text-xl font-bold text-teal-600">{step.num}</span>
                     </div>
-                    <h3 className="text-base font-semibold text-slate-900 mb-3 tracking-tight">{step.title}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2 tracking-tight">{step.title}</h3>
                     <p className="text-slate-600 text-sm leading-relaxed px-2">{step.desc}</p>
                   </div>
                 ))}
@@ -654,27 +797,28 @@ const Home = () => {
           </div>
         </section>
 
-        {/* ── CUSTOMER REVIEWS ── */}
+        {/* ─── CUSTOMER REVIEWS ─── */}
         <Reviews />
 
+        {/* ─── FAQ ─── */}
         <FAQ />
 
-        {/* ── FOOTER ── */}
-        <footer className="bg-slate-900 text-white pt-20 pb-10 px-8 md:px-24">
+        {/* ─── FOOTER ─── */}
+        <footer className="bg-slate-900 text-white pt-16 pb-8 px-8 md:px-24">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-14 mb-14">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
 
-              <div className="flex flex-col gap-5">
-                <div className="text-xl font-bold tracking-tight flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-cyan-600 rounded-xl flex items-center justify-center">
-                    <Pill className="w-4 h-4 text-white" />
+              <div className="flex flex-col gap-4">
+                <div className="text-xl font-bold tracking-tight flex items-center gap-3">
+                  <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center">
+                    <Pill className="w-5 h-5 text-white" />
                   </div>
                   DrGPharma
                 </div>
                 <p className="text-slate-400 text-sm leading-relaxed">
                   Registered clinical supply routes delivering authentic pharmaceuticals, dermal fillers, and clinic-ready injectables across the United Kingdom.
                 </p>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2.5">
                   {[
                     { icon: ShieldCheck, text: 'GPhC Registration No. 0000000' },
                     { icon: MapPin, text: 'Registered in England & Wales · Co. No. 00000000' },
@@ -691,9 +835,9 @@ const Home = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4">
                 <h3 className="text-xs font-semibold text-white uppercase tracking-widest">Quick Links</h3>
-                <ul className="flex flex-col gap-3 text-slate-400 text-sm">
+                <ul className="flex flex-col gap-2.5 text-slate-400 text-sm">
                   {[
                     ['/', 'Home'],
                     ['/medicines', 'Medicines'],
@@ -709,9 +853,9 @@ const Home = () => {
                 </ul>
               </div>
 
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4">
                 <h3 className="text-xs font-semibold text-white uppercase tracking-widest">Pharmacy Services</h3>
-                <ul className="flex flex-col gap-3 text-slate-400 text-sm">
+                <ul className="flex flex-col gap-2.5 text-slate-400 text-sm">
                   {['Online Prescriptions', 'SwiftRx™ Tooling', 'PrescribeLink Accounts', 'Validated Cold Chain', 'Privacy Policy', 'Terms & Conditions'].map(s => (
                     <li key={s}>
                       <span className="hover:text-white transition-colors cursor-pointer">{s}</span>
@@ -720,12 +864,12 @@ const Home = () => {
                 </ul>
               </div>
 
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4">
                 <h3 className="text-xs font-semibold text-white uppercase tracking-widest">Stay Connected</h3>
                 <p className="text-slate-400 text-sm">Sign up for stock restock alerts, regulatory compliance news, and professional service notifications.</p>
                 <div className="flex gap-2.5">
                   {[FacebookIcon, TwitterIcon, InstagramIcon, LinkedinIcon].map((Icon, i) => (
-                    <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-cyan-600 hover:text-white transition-all">
+                    <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-slate-300 hover:bg-teal-600 hover:text-white transition-all">
                       <Icon />
                     </a>
                   ))}
@@ -736,9 +880,9 @@ const Home = () => {
                     <input
                       type="email"
                       placeholder="Your email address"
-                      className="flex-1 px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                      className="flex-1 px-4 py-2.5 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-teal-500"
                     />
-                    <button className="px-4 py-2.5 bg-cyan-600 text-white rounded-xl text-sm font-semibold hover:bg-cyan-700 transition-all">
+                    <button className="px-4 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition-all">
                       Submit
                     </button>
                   </div>
@@ -746,7 +890,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 pb-8 border-b border-white/10">
+            <div className="flex flex-wrap items-center justify-center gap-3 pb-6 border-b border-white/10">
               {[
                 { icon: ShieldCheck, label: 'GPhC Registered' },
                 { icon: ShieldCheck, label: 'Secure Checkout' },
@@ -760,7 +904,7 @@ const Home = () => {
               ))}
             </div>
 
-            <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-3 text-slate-500 text-xs">
+            <div className="pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-slate-500 text-xs">
               <p>© 2026 DrGPharma. All rights reserved.</p>
               <p>Registered GPhC Pharmacy Premises</p>
             </div>
