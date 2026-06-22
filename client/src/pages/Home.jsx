@@ -693,7 +693,7 @@ const Home = () => {
 
         {/* ─── FEATURE BAR ─── */}
         <div className="bg-slate-800 border-y border-white/10 px-8 lg:px-24 py-6">
-          <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-6 overflow-x-auto ">
+          <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-6 overflow-hidden">
             {[
               { icon: Truck, title: "Free Shipping", sub: "Orders over £199" },
               { icon: ShieldCheck, title: "SSL Encrypted", sub: "Secure Order System" },

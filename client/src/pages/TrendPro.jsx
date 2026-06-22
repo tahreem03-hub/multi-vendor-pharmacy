@@ -5,6 +5,46 @@ import API from "../api/axios";
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-hot-toast';
 
+// ─── Helper: Build image URL ───
+const buildImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  
+  try {
+    // Fix backslashes (Windows issue)
+    let cleanPath = imagePath.replace(/\\/g, '/');
+    
+    // Remove leading slash if present
+    cleanPath = cleanPath.replace(/^\//, '');
+    
+    // Clean base URL
+    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '');
+    
+    // If it's already a full URL
+    if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+      return cleanPath;
+    }
+    
+    // If it's from public folder (starts with /)
+    if (cleanPath.startsWith('/')) {
+      return cleanPath;
+    }
+    
+    // Check if the path already contains 'uploads/'
+    // This prevents double /uploads/ in the URL
+    if (cleanPath.startsWith('uploads/')) {
+      return `${baseUrl}/${cleanPath}`;
+    }
+    
+    // Build full URL with uploads folder
+    // IMPORTANT: The image path from DB is stored as just the filename
+    // So we need to add /uploads/ to the path
+    return `${baseUrl}/uploads/${cleanPath}`;
+  } catch (error) {
+    console.error('Error building image URL:', error);
+    return null;
+  }
+};
+
 const TrendPro = () => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -12,8 +52,7 @@ const TrendPro = () => {
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState({});
   const [visible, setVisible] = useState([]);
-  
-  // --- NEW STATE FOR CATEGORIES ---
+
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const categories = [
@@ -35,8 +74,13 @@ const TrendPro = () => {
         const data = Array.isArray(response.data)
           ? response.data
           : (response.data.medicines || []);
-        
-        // Note: Removed the .slice(0, 8) so you can see all products per category
+
+        console.log('📦 Products loaded:', data.length);
+        if (data.length > 0) {
+          console.log('📸 Sample image path:', data[0].image);
+          console.log('📸 Full URL:', buildImageUrl(data[0].image));
+        }
+
         setProducts(data);
         setLoading(false);
       } catch (error) {
@@ -47,14 +91,13 @@ const TrendPro = () => {
     fetchTrending();
   }, []);
 
-  // Filter products based on selected category
-  const filteredProducts = selectedCategory === "All" 
-    ? products 
+  const filteredProducts = selectedCategory === "All"
+    ? products
     : products.filter(p => p.category === selectedCategory);
 
   useEffect(() => {
     if (!loading && filteredProducts.length) {
-      setVisible([]); // Reset visibility for new animations
+      setVisible([]);
       filteredProducts.forEach((_, i) => {
         setTimeout(() => {
           setVisible(prev => [...prev, i]);
@@ -64,7 +107,7 @@ const TrendPro = () => {
   }, [loading, selectedCategory, filteredProducts.length]);
 
   const handleAddToCart = async (e, product) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (added[product._id]) return;
 
     try {
@@ -105,7 +148,7 @@ const TrendPro = () => {
       )}
 
       <div className="flex flex-col md:flex-row gap-8">
-        
+
         {/* --- LEFT SIDEBAR --- */}
         <aside className="w-full md:w-64 flex-shrink-0">
           <div className="sticky top-24">
@@ -118,11 +161,10 @@ const TrendPro = () => {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex justify-between items-center group ${
-                    selectedCategory === cat 
-                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100' 
-                    : 'text-gray-500 hover:bg-cyan-50 hover:text-cyan-600'
-                  }`}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex justify-between items-center group ${selectedCategory === cat
+                      ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100'
+                      : 'text-gray-500 hover:bg-cyan-50 hover:text-cyan-600'
+                    }`}
                 >
                   {cat}
                   <ChevronRight className={`w-4 h-4 transition-transform ${selectedCategory === cat ? 'translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />
@@ -152,94 +194,121 @@ const TrendPro = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
             {loading
               ? Array(6).fill(0).map((_, i) => (
-                  <SkeletonCard key={i} delay={i * 50} />
-                ))
+                <SkeletonCard key={i} delay={i * 50} />
+              ))
               : filteredProducts.map((item, i) => {
-                  const isVisible = visible.includes(i);
-                  const isAdded = added[item._id];
-                  const price = item.sellingPrice || item.price;
-                  const originalPrice = Math.round(price * 1.1);
+                const isVisible = visible.includes(i);
+                const isAdded = added[item._id];
+                const price = item.sellingPrice || item.price || 0;
+                const originalPrice = item.originalPrice || item.mrp || Math.round(price * 1.1);
 
-                  return (
-                    <div
-                      key={item._id}
-                      onClick={() => navigate(`/product/${item._id}`)}
-                      className="bg-white border border-gray-100 rounded-2xl p-4 group relative overflow-hidden cursor-pointer"
-                      style={{
-                        opacity: isVisible ? 1 : 0,
-                        transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-                        transition: 'opacity 0.45s cubic-bezier(0.22,1,0.36,1), transform 0.45s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s, border-color 0.3s',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.boxShadow = '0 8px 30px rgba(22,163,74,0.13)';
-                        e.currentTarget.style.borderColor = 'rgba(22,163,74,0.2)';
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.boxShadow = '';
-                        e.currentTarget.style.borderColor = '';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      <div className="aspect-square mb-4 flex items-center justify-center bg-gray-50 rounded-xl overflow-hidden p-4">
-                        {item.image ? (
-                          <img
-src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${item.image}`}
-                            alt={item.name}
-                            className="max-w-full max-h-full object-contain transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-1"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-100 rounded-lg" />
-                        )}
-                      </div>
+                // ─── FIXED: Build image URL properly ───
+                const imageUrl = buildImageUrl(item.image);
 
-                      <h3 className="text-lg font-bold text-gray-700 mb-4 line-clamp-2 min-h-[40px]">
-                        {item.name}
-                      </h3>
-
-                      <div className="flex gap-0.5 mb-2">
-                        {[...Array(5)].map((_, si) => (
-                          <Star
-                            key={si}
-                            className="w-3 h-3 fill-orange-400 text-orange-400"
-                            style={{
-                              opacity: isVisible ? 1 : 0,
-                              transform: isVisible ? 'scale(1)' : 'scale(0)',
-                              transition: `opacity 0.3s ${(i * 70) + (si * 60)}ms, transform 0.3s ${(i * 70) + (si * 60)}ms cubic-bezier(0.22,1,0.36,1)`,
-                            }}
-                          />
-                        ))}
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="text-xs text-gray-400 line-through">
-                            £{originalPrice}.00
-                          </p>
-                          <p className="text-lg font-bold text-gray-900">
-                            £{price}.00
-                          </p>
+                return (
+                  <div
+                    key={item._id}
+                    onClick={() => navigate(`/product/${item._id}`)}
+                    className="bg-white border border-gray-100 rounded-2xl p-4 group relative overflow-hidden cursor-pointer"
+                    style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+                      transition: 'opacity 0.45s cubic-bezier(0.22,1,0.36,1), transform 0.45s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s, border-color 0.3s',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.boxShadow = '0 8px 30px rgba(22,163,74,0.13)';
+                      e.currentTarget.style.borderColor = 'rgba(22,163,74,0.2)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.boxShadow = '';
+                      e.currentTarget.style.borderColor = '';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div className="aspect-square mb-4 flex items-center justify-center bg-gray-50 rounded-xl overflow-hidden p-4">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={item.name}
+                          className="max-w-full max-h-full object-contain transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-1"
+                          onError={(e) => {
+                            console.error('Image failed to load:', imageUrl);
+                            e.target.style.display = 'none';
+                            // Show fallback
+                            e.target.parentElement.innerHTML = `
+                              <div class="w-full h-full flex items-center justify-center bg-gray-50">
+                                <div class="text-center">
+                                  <svg class="w-12 h-12 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                  <p class="text-xs text-gray-400 mt-2">No Image</p>
+                                </div>
+                              </div>
+                            `;
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                          <div className="text-center">
+                            <svg className="w-12 h-12 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-xs text-gray-400 mt-2">No Image</p>
+                          </div>
                         </div>
-                        
-                        <button
-                          onClick={(e) => handleAddToCart(e, item)}
-                          disabled={added[item._id]}
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shadow-cyan-200 transition-all duration-200 active:scale-90 relative z-10"
-                          style={{ background: isAdded ? '#0e7490' : '#0891b2' }}
-                          onMouseEnter={e => { if (!isAdded) e.currentTarget.style.transform = 'scale(1.1)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
-                        >
-                          {isAdded
-                            ? <Check className="w-4 h-4" strokeWidth={2.5} />
-                            : <ShoppingCart className="w-4 h-4" />
-                          }
-                        </button>
-                      </div>
+                      )}
                     </div>
-                  );
-                })}
+
+                    <h3 className="text-lg font-bold text-gray-700 mb-4 line-clamp-2 min-h-[40px]">
+                      {item.name}
+                    </h3>
+
+                    <div className="flex gap-0.5 mb-2">
+                      {[...Array(5)].map((_, si) => (
+                        <Star
+                          key={si}
+                          className="w-3 h-3 fill-orange-400 text-orange-400"
+                          style={{
+                            opacity: isVisible ? 1 : 0,
+                            transform: isVisible ? 'scale(1)' : 'scale(0)',
+                            transition: `opacity 0.3s ${(i * 70) + (si * 60)}ms, transform 0.3s ${(i * 70) + (si * 60)}ms cubic-bezier(0.22,1,0.36,1)`,
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div>
+                        {originalPrice > price && (
+                          <p className="text-xs text-gray-400 line-through">
+                            £{Number(originalPrice).toFixed(2)}
+                          </p>
+                        )}
+                        <p className="text-lg font-bold text-gray-900">
+                          £{Number(price).toFixed(2)}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={(e) => handleAddToCart(e, item)}
+                        disabled={added[item._id]}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shadow-cyan-200 transition-all duration-200 active:scale-90 relative z-10"
+                        style={{ background: isAdded ? '#0e7490' : '#0891b2' }}
+                        onMouseEnter={e => { if (!isAdded) e.currentTarget.style.transform = 'scale(1.1)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
+                      >
+                        {isAdded
+                          ? <Check className="w-4 h-4" strokeWidth={2.5} />
+                          : <ShoppingCart className="w-4 h-4" />
+                        }
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
-          
+
           {!loading && filteredProducts.length === 0 && (
             <div className="text-center py-20 text-gray-400 italic">
               No products found in the "{selectedCategory}" category.
@@ -253,7 +322,7 @@ src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${item.
           from { width: 0%; }
           to { width: 100%; }
         }
-        /* Custom scrollbar for sticky sidebar if needed */
+          /* Custom scrollbar for sticky sidebar if needed */
         .sticky::-webkit-scrollbar {
           width: 4px;
         }
