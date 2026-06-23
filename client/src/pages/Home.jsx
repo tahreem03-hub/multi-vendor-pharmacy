@@ -105,7 +105,16 @@ const ProductCard = ({ product }) => {
   const lowStock = inStock && product.stock <= 5;
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-200 hover:border-teal-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-400 flex flex-col overflow-hidden relative">
+    <Link
+      to={`/product/${product._id}`}
+      className="group bg-white rounded-2xl border border-slate-200 hover:border-teal-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-400 flex flex-col overflow-hidden relative"
+      onClick={(e) => {
+        // Prevent navigation if clicking on Add to Cart button
+        if (e.target.closest('button')) {
+          e.preventDefault();
+        }
+      }}
+    >
 
       <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100" style={{ height: '220px' }}>
         {product.image ? (
@@ -220,7 +229,7 @@ const ProductCard = ({ product }) => {
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -356,6 +365,7 @@ const Home = () => {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [sliders, setSliders] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [activeStep, setActiveStep] = useState(null);
 
   const productCategories = [
     { name: 'Botulinum Toxins', count: '45 Products', image: '/1.jpg' },
@@ -393,6 +403,7 @@ const Home = () => {
       .catch(() => setProducts([]))
       .finally(() => setLoadingProducts(false));
   }, []);
+
 
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? sliders.length - 1 : prev - 1));
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % sliders.length);
@@ -564,8 +575,10 @@ const Home = () => {
         <section className="py-16 bg-white px-8 lg:px-24">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
-              <div>
-                <Eyebrow>Clinic Essentials</Eyebrow>
+              <div className="flex flex-col items-start flex-1">
+                <div className="flex justify-center w-full"> {/* ← centers only Eyebrow */}
+                  <Eyebrow>Clinic Essentials</Eyebrow>
+                </div>
                 <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-slate-900 tracking-tight">
                   Featured Supplies
                 </h2>
@@ -774,7 +787,7 @@ const Home = () => {
             />
 
             <div className="relative">
-              <div className="hidden lg:block absolute top-14 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+              <div className="hidden lg:block absolute top-8 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
                 {[
@@ -783,12 +796,35 @@ const Home = () => {
                   { num: "03", title: "Prescription Sign-off", desc: "Complete clinical prescriptions digitally within the SwiftRx™ portal, or route them via your PrescribeLink partner." },
                   { num: "04", title: "Dispensing & Dispatch", desc: "Our registered UK pharmacy dispatches verified stock in chilled packaging where temperature monitoring is required." },
                 ].map((step, idx) => (
-                  <div key={idx} className="flex flex-col items-center text-center group">
-                    <div className="w-16 h-16 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center mb-5 relative z-10 group-hover:border-teal-500 group-hover:shadow-lg group-hover:shadow-teal-500/20 transition-all duration-300">
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center text-center group cursor-pointer"
+                    onMouseEnter={() => setActiveStep(idx)}
+                    onMouseLeave={() => setActiveStep(null)}
+                  >
+                    <div className={`w-16 h-16 rounded-full bg-white border-2 flex items-center justify-center mb-5 relative z-10 transition-all duration-300 ${activeStep === idx
+                      ? "border-teal-500 shadow-lg shadow-teal-500/20"
+                      : "border-slate-200 group-hover:border-teal-500 group-hover:shadow-lg group-hover:shadow-teal-500/20"
+                      }`}
+                    >
                       <span className="font-serif text-xl font-bold text-teal-600">{step.num}</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2 tracking-tight">{step.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed px-2">{step.desc}</p>
+                    <h3 className={`mb-2 tracking-tight transition-all duration-200
+              ${activeStep === idx
+                        ? "text-base font-extrabold text-teal-700"
+                        : "text-sm font-semibold text-slate-900"
+                      }`}
+                    >
+                      {step.title}
+                    </h3>
+                    <p className={`leading-relaxed px-2 transition-all duration-200
+              ${activeStep === idx
+                        ? "text-sm font-semibold text-slate-700"
+                        : "text-sm font-normal text-slate-600"
+                      }`}
+                    >
+                      {step.desc}
+                    </p>
                   </div>
                 ))}
               </div>

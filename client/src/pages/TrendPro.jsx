@@ -141,7 +141,7 @@ const TrendPro = () => {
       {loading && (
         <div className="h-0.5 bg-gray-100 rounded mb-8 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded"
+            className="h-full bg-gradient-to-r from-slate-800 to-slate-900 rounded"
             style={{ animation: 'loadBar 1.2s ease forwards' }}
           />
         </div>
@@ -153,7 +153,7 @@ const TrendPro = () => {
         <aside className="w-full md:w-64 flex-shrink-0">
           <div className="sticky top-24">
             <div className="flex items-center gap-2 mb-6 px-2">
-              <LayoutGrid className="w-5 h-5 text-blue-600" />
+              <LayoutGrid className="w-5 h-5 text-slate-700" />
               <h3 className="text-lg font-bold text-gray-800 uppercase tracking-wider">Categories</h3>
             </div>
             <nav className="space-y-1">
@@ -162,7 +162,7 @@ const TrendPro = () => {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex justify-between items-center group ${selectedCategory === cat
-                      ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100'
+                      ? 'bg-slate-800 text-white shadow-lg shadow-cyan-100'
                       : 'text-gray-500 hover:bg-cyan-50 hover:text-cyan-600'
                     }`}
                 >
@@ -185,10 +185,7 @@ const TrendPro = () => {
                 {selectedCategory === "All" ? "Trending" : selectedCategory} <span className="text-cyan-600">Products</span>
               </h2>
             </div>
-            <button className="flex items-center gap-1 text-sm font-medium text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 px-3 py-2 rounded-lg transition-all group">
-              View All
-              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
+            
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
@@ -264,19 +261,6 @@ const TrendPro = () => {
                       {item.name}
                     </h3>
 
-                    <div className="flex gap-0.5 mb-2">
-                      {[...Array(5)].map((_, si) => (
-                        <Star
-                          key={si}
-                          className="w-3 h-3 fill-orange-400 text-orange-400"
-                          style={{
-                            opacity: isVisible ? 1 : 0,
-                            transform: isVisible ? 'scale(1)' : 'scale(0)',
-                            transition: `opacity 0.3s ${(i * 70) + (si * 60)}ms, transform 0.3s ${(i * 70) + (si * 60)}ms cubic-bezier(0.22,1,0.36,1)`,
-                          }}
-                        />
-                      ))}
-                    </div>
 
                     <div className="flex justify-between items-center">
                       <div>
@@ -294,7 +278,7 @@ const TrendPro = () => {
                         onClick={(e) => handleAddToCart(e, item)}
                         disabled={added[item._id]}
                         className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shadow-cyan-200 transition-all duration-200 active:scale-90 relative z-10"
-                        style={{ background: isAdded ? '#0e7490' : '#0891b2' }}
+                        style={{ background: isAdded ? '#0e7490' : '#1E293B' }}
                         onMouseEnter={e => { if (!isAdded) e.currentTarget.style.transform = 'scale(1.1)'; }}
                         onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
                       >
