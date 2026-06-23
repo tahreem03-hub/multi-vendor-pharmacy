@@ -909,6 +909,7 @@ const Home = () => {
                     </a>
                   ))}
                 </div>
+                
                 <div>
                   <h4 className="text-xs font-semibold text-white mb-3 uppercase tracking-widest">Newsletter</h4>
                   <div className="flex gap-2">
@@ -938,12 +939,14 @@ const Home = () => {
                 </span>
               ))}
             </div>
+            
 
             <div className="pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-slate-500 text-xs">
               <p>© 2026 DrGPharma. All rights reserved.</p>
               <p>Registered GPhC Pharmacy Premises</p>
             </div>
           </div>
+
         </footer>
 
       </main>
