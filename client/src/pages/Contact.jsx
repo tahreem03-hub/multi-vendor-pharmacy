@@ -135,10 +135,10 @@ export default function ContactUs() {
     <div className="bg-white text-slate-900 min-h-screen" style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
 
       {/* HERO SECTION with Background Image */}
-      <section className="relative min-h-[400px] sm:min-h-[450px] md:min-h-[500px] flex items-center overflow-hidden">
+      <section className="relative h-[478px] sm:h-[528px] md:h-[578px] flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=1600&q=80"
+            src="./contact.jpg"
             alt="Contact our pharmacy team"
             className="w-full h-full object-fill"
           />
@@ -146,7 +146,7 @@ export default function ContactUs() {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 relative z-10">
+        <div className="max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20 relative z-10 md:ml-[100px]">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 bg-teal-500/20 backdrop-blur-sm border border-teal-400/30 rounded-full px-4 py-1.5 mb-6">
               <MessageCircle className="w-4 h-4 text-teal-400" />
