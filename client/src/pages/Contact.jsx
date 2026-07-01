@@ -20,21 +20,42 @@ export default function ContactUs() {
   });
   const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
     
-    setTimeout(() => {
-      toast.success("Query submitted successfully. Our pharmacy team will respond within 24 hours.");
-      setFormData({
-        name: '',
-        email: '',
-        professionalReg: '',
-        subject: 'General Inquiry',
-        message: ''
+    try {
+      const response = await fetch('http://localhost:4000/api/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Query submitted successfully. Our pharmacy team will respond within 24 hours.");
+        setFormData({
+          name: '',
+          email: '',
+          professionalReg: '',
+          subject: 'General Inquiry',
+          message: ''
+        });
+      } else {
+        if (data.errors) {
+          data.errors.forEach(err => toast.error(err));
+        } else {
+          toast.error(data.message || 'Failed to submit query');
+        }
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again.');
+    } finally {
       setSending(false);
-    }, 1200);
+    }
   };
 
   const handleInputChange = (e) => {
