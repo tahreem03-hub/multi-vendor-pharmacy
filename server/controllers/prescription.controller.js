@@ -145,3 +145,18 @@ export const getMyPrescriptions = async (req, res) => {
     .sort({ createdAt: -1 });
   res.json({ prescriptions });
 };
+
+export const deletePrescription = async (req, res) => {
+  try {
+    const deleted = await Prescription.findByIdAndDelete(req.params.id);
+    
+    if (!deleted) {
+      return res.status(404).json({ message: 'Prescription not found' });
+    }
+
+    res.json({ success: true, message: 'Prescription deleted successfully' });
+  } catch (error) {
+    console.error('deletePrescription error:', error);
+    res.status(500).json({ message: 'Failed to delete prescription' });
+  }
+};

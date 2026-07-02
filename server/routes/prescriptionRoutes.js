@@ -5,7 +5,8 @@ import {
   verifyPrescription,
   checkUserPrescriptionStatus,
   submitPrescription,
-  getMyPrescriptions
+  getMyPrescriptions,
+  deletePrescription
 } from "../controllers/prescription.controller.js";
 import upload from "../middleware/multer.js";
 import { protect, staffOnly } from "../middleware/authMiddleware.js";
@@ -29,5 +30,7 @@ router.get('/my', protect, getMyPrescriptions);
 // Staff only (admin or prescriber)
 router.get("/pending",              ...staffOnly,      getPendingPrescriptions);
 router.patch("/verify/:id",         ...staffOnly,      verifyPrescription);
+
+router.delete('/:id', protect, deletePrescription);
 
 export default router;

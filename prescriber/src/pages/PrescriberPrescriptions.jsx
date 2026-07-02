@@ -24,8 +24,8 @@ const PrescriberPrescriptions = () => {
     const fetchPrescriptions = async () => {
       try {
         setLoading(true);
-        const response = await API.get('/prescriptions/pending');
-        setPrescriptions(response.data?.prescriptions || []);
+        const response = await API.get('/prescriptions/my');
+setPrescriptions(response.data?.prescriptions || response.data || []);
       } catch (error) {
         console.error('Error fetching prescriptions:', error);
       } finally {
@@ -96,7 +96,7 @@ const PrescriberPrescriptions = () => {
   const handleStatusUpdate = async (prescriptionId, status) => {
     try {
       const response = await API.patch(`/prescriptions/verify/${prescriptionId}`, { status });
-      setPrescriptions(prev => prev.map(p => p._id === prescriptionId ? response.data.prescription : p));
+      setPrescriptions(prev => prev.map(p => p._id === prescriptionId ? { ...p, status } : p));
     } catch (error) {
       console.error('Failed to update status:', error);
       alert(error.response?.data?.message || 'Unable to update prescription status');
