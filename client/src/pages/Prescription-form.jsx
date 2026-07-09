@@ -1,24 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import API from "../api/axios";
 import {
   User, Stethoscope, FileText, Search, Plus, Trash2,
-  CheckCircle, Loader2, AlertCircle, Pill, Truck
+  CheckCircle, Loader2, AlertCircle, Pill, Truck, ArrowLeft
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useNavigate } from 'react-router-dom';
 
 const InputField = ({ label, icon: Icon, ...props }) => (
   <div className="flex flex-col gap-1.5 group">
-    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-0.5">
+    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-0.5">
       {label}
     </label>
     <div className="relative">
       {Icon && (
-        <Icon size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+        <Icon size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
       )}
       <input
         {...props}
         autoComplete="off"
-        className={`w-full ${Icon ? "pl-9" : "pl-3.5"} pr-3.5 py-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 focus:bg-slate-800 focus:ring-2 focus:ring-cyan-500/10 transition-all text-sm text-white placeholder:text-slate-500 font-medium`}
+        className={`w-full ${Icon ? "pl-9" : "pl-3.5"} pr-3.5 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all text-sm text-gray-900 placeholder:text-gray-400 font-medium`}
       />
     </div>
   </div>
@@ -26,20 +27,20 @@ const InputField = ({ label, icon: Icon, ...props }) => (
 
 const SectionCard = ({ icon: Icon, title, color, children }) => {
   const colors = {
-    cyan:    { light: "bg-cyan-500/10",    text: "text-cyan-400",    border: "border-slate-700" },
-    emerald: { light: "bg-emerald-500/10", text: "text-emerald-400", border: "border-slate-700" },
-    violet:  { light: "bg-violet-500/10",  text: "text-violet-400",  border: "border-slate-700" },
-    amber:   { light: "bg-amber-500/10",   text: "text-amber-400",   border: "border-slate-700" },
-    orange:  { light: "bg-orange-500/10",  text: "text-orange-400",  border: "border-slate-700" },
+    cyan:    { light: "bg-blue-50",    text: "text-blue-600",    border: "border-gray-100" },
+    emerald: { light: "bg-emerald-50", text: "text-emerald-600", border: "border-gray-100" },
+    violet:  { light: "bg-violet-50",  text: "text-violet-600",  border: "border-gray-100" },
+    amber:   { light: "bg-amber-50",   text: "text-amber-600",   border: "border-gray-100" },
+    orange:  { light: "bg-orange-50",  text: "text-orange-600",  border: "border-gray-100" },
   };
   const c = colors[color] || colors.cyan;
   return (
-    <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
-      <div className={`px-5 py-4 border-b ${c.border} flex items-center gap-3 bg-slate-900/50`}>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className={`px-5 py-4 border-b ${c.border} flex items-center gap-3 bg-gray-50/50`}>
         <div className={`w-8 h-8 rounded-xl ${c.light} ${c.text} flex items-center justify-center`}>
           <Icon size={16} />
         </div>
-        <h2 className="text-sm font-black text-white tracking-tight">{title}</h2>
+        <h2 className="text-sm font-bold text-gray-900 tracking-tight">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -47,6 +48,7 @@ const SectionCard = ({ icon: Icon, title, color, children }) => {
 };
 
 const PrescriptionForm = () => {
+  const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery]   = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -64,7 +66,7 @@ const PrescriptionForm = () => {
       name: "", regNumber: "", type: "Doctor",
       clinicName: "", clinicalNotes: "",
     },
-    medications: [], // stores full medicine objects for display
+    medications: [],
     delivery: {
       fulfillmentMethod: "Ship direct to the address",
       deliveryAddress:   "",
@@ -78,12 +80,29 @@ const PrescriptionForm = () => {
   const handlePrescriberChange = (f, v) => setFormData(p => ({ ...p, prescriber: { ...p.prescriber, [f]: v } }));
   const handleDeliveryChange   = (f, v) => setFormData(p => ({ ...p, delivery:   { ...p.delivery,   [f]: v } }));
 
+  // State for prescribers
+  const [prescribers, setPrescribers] = useState([]);
+  const [showPrescribers, setShowPrescribers] = useState(false);
+
+  // Fetch prescribers
+  useEffect(() => {
+    const fetchPrescribers = async () => {
+      try {
+        const { data } = await API.get('/users/prescribers');
+        setPrescribers(data.prescribers || []);
+      } catch (err) {
+        console.error('Failed to fetch prescribers:', err);
+        toast.error('Failed to load prescribers');
+      }
+    };
+    fetchPrescribers();
+  }, []);
+
   // ── Fetch all medicines once, then filter client-side ─────────
   const handleSearch = async (query) => {
     setSearchQuery(query);
     if (query.length < 2) { setSearchResults([]); return; }
 
-    // Fetch all medicines once
     if (!medicinesFetched) {
       setSearching(true);
       try {
@@ -119,6 +138,17 @@ const PrescriptionForm = () => {
   const removeMedication = (id) =>
     setFormData(p => ({ ...p, medications: p.medications.filter(m => m._id !== id) }));
 
+  // Auto-fill prescriber details
+  const selectPrescriber = (prescriber) => {
+    handlePrescriberChange('name', prescriber.name);
+    handlePrescriberChange('regNumber', prescriber.registrationNumber);
+    handlePrescriberChange('type', prescriber.professionalRole || 'Doctor');
+    handlePrescriberChange('clinicName', prescriber.practiceName || prescriber.clinicName || '');
+    // clinicalNotes remains unchanged
+    setShowPrescribers(false);
+    toast.success('Prescriber selected');
+  };
+
   // ── Submit ────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -128,11 +158,10 @@ const PrescriptionForm = () => {
 
     setSubmitting(true);
     try {
-      // ── FIX: send medications as array of ObjectIds ───────────
       await API.post("/prescriptions/submit", {
         patient:     formData.patient,
         prescriber:  formData.prescriber,
-        medications: formData.medications.map(m => m._id), // ← ObjectIds only
+        medications: formData.medications.map(m => m._id),
         method:      "form",
       });
 
@@ -140,6 +169,7 @@ const PrescriptionForm = () => {
       setFormData(initialState);
       setSearchQuery("");
       setSearchResults([]);
+      navigate('/prescriptions');
     } catch (err) {
       toast.error(err.response?.data?.message || "Submission failed.");
     } finally {
@@ -147,21 +177,21 @@ const PrescriptionForm = () => {
     }
   };
 
-  const selectClass = "w-full p-3 bg-slate-800/50 border border-slate-700 rounded-xl text-sm text-white font-medium outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 transition-all appearance-none";
+  const selectClass = "w-full p-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all appearance-none";
 
   return (
-    <div className="bg-white min-h-screen font-sans pb-16 text-slate-200">
+    <div className="min-h-screen bg-gray-50 font-sans pb-16">
 
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800 px-8 py-5 mb-6">
+      <div className="bg-slate-800 border-b border-gray-100 px-8 py-5 mb-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-black text-white tracking-tight">New Prescription</h1>
-            <p className="text-xs text-slate-500 mt-0.5 font-medium">Fill in patient, prescriber, and medication details</p>
+            <h1 className="text-lg font-bold text-white tracking-tight">New Prescription</h1>
+            <p className="text-xs text-gray-200 mt-0.5 font-medium">Fill in patient, prescriber, and medication details</p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-            <AlertCircle size={13} className="text-amber-500" />
-            <span className="text-[11px] font-bold text-amber-500">Pending Approval</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl">
+            <AlertCircle size={13} className="text-amber-600" />
+            <span className="text-[11px] font-bold text-amber-600">Pending Approval</span>
           </div>
         </div>
       </div>
@@ -177,11 +207,11 @@ const PrescriptionForm = () => {
               <InputField label="Last Name"  value={formData.patient.lastName}  onChange={e => handlePatientChange("lastName",  e.target.value)} placeholder="Smith" required />
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Gender</label>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-0.5">Gender</label>
                 <select value={formData.patient.gender} onChange={e => handlePatientChange("gender", e.target.value)} className={selectClass}>
-                  <option className="bg-slate-900">Male</option>
-                  <option className="bg-slate-900">Female</option>
-                  <option className="bg-slate-900">Other</option>
+                  <option className="bg-white">Male</option>
+                  <option className="bg-white">Female</option>
+                  <option className="bg-white">Other</option>
                 </select>
               </div>
 
@@ -196,18 +226,17 @@ const PrescriptionForm = () => {
               <div className="col-span-2">
                 <InputField label="Address" value={formData.patient.address} onChange={e => handlePatientChange("address", e.target.value)} placeholder="123 Main Street, London" required />
               </div>
-              {/* ✅ country for signatire rx" */}
               <div className="col-span-2">
-                <InputField label="Country" value={formData.patient.country} onChange={e => handlePatientChange("country", e.target.value)} placeholder="US, USA, India" required />
+                <InputField label="Country" value={formData.patient.country} onChange={e => handlePatientChange("country", e.target.value)} placeholder="UK, USA, India" required />
               </div>
               <div className="col-span-2 flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-0.5">Allergies / Contraindications</label>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-0.5">Allergies / Contraindications</label>
                 <textarea
-                  value={formData.patient.contraindications}
-                  onChange={e => handlePatientChange("contraindications", e.target.value)}
+                  value={formData.patient.allergies}
+                  onChange={e => handlePatientChange("allergies", e.target.value)}
                   placeholder="e.g. Penicillin, NSAIDs, Latex..."
                   rows={2}
-                  className="w-full px-3.5 py-3 bg-red-500/5 border border-red-500/20 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 text-sm text-white font-medium placeholder:text-slate-600 transition-all resize-none"
+                  className="w-full px-3.5 py-3 bg-red-50 border border-red-200 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 text-sm text-gray-900 font-medium placeholder:text-gray-400 transition-all resize-none"
                 />
               </div>
             </div>
@@ -218,30 +247,78 @@ const PrescriptionForm = () => {
 
             {/* Prescriber Details */}
             <SectionCard icon={Stethoscope} title="Prescriber Details" color="emerald">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <InputField label="Full Name" value={formData.prescriber.name} onChange={e => handlePrescriberChange("name", e.target.value)} placeholder="Dr. Sarah Connor" required />
+              <div className="space-y-3">
+                {/* Available prescribers */}
+                <div className="mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrescribers(!showPrescribers)}
+                    className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
+                  >
+                    {showPrescribers ? 'Hide' : 'View Available Prescribers'}
+                  </button>
+
+                  {showPrescribers && (
+                    <div className="mt-2 border border-gray-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-xs">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Name</th>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reg No</th>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Professional Role</th>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Clinic</th>
+                            <th className="px-3 py-2"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {prescribers.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-3 py-4 text-center text-gray-400 text-xs">
+                                No prescribers available
+                              </td>
+                            </tr>
+                          ) : (
+                            prescribers.map(p => (
+                              <tr key={p._id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-3 py-2 font-semibold text-gray-900">{p.name}</td>
+                                <td className="px-3 py-2 text-gray-500 font-mono">{p.registrationNumber}</td>
+                                <td className="px-3 py-2 text-gray-500">{p.professionalRole || 'N/A'}</td>
+                                <td className="px-3 py-2 text-gray-500">{p.practiceName || p.clinicName || 'N/A'}</td>
+                                <td className="px-3 py-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => selectPrescriber(p)}
+                                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 px-2 py-1 bg-emerald-50 rounded-lg transition-colors"
+                                  >
+                                    Select
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
-                <InputField label="Reg. Number" value={formData.prescriber.regNumber} onChange={e => handlePrescriberChange("regNumber", e.target.value)} placeholder="GMC-12345" required />
+
+                <InputField label="Full Name" value={formData.prescriber.name} onChange={e => handlePrescriberChange("name", e.target.value)} placeholder="Dr. Sarah Connor" required />
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <InputField label="Reg. Number" value={formData.prescriber.regNumber} onChange={e => handlePrescriberChange("regNumber", e.target.value)} placeholder="GMC-12345" required />
+                  <InputField label="Professional Role" value={formData.prescriber.type} onChange={e => handlePrescriberChange("type", e.target.value)} placeholder="Doctor" required />
+                </div>
+
+                <InputField label="Clinic / Practice Name" value={formData.prescriber.clinicName} onChange={e => handlePrescriberChange("clinicName", e.target.value)} placeholder="City Health Clinic" required />
+                
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Type</label>
-                  <select value={formData.prescriber.type} onChange={e => handlePrescriberChange("type", e.target.value)} className={selectClass}>
-                    <option className="bg-slate-900">Doctor</option>
-                    <option className="bg-slate-900">Medical Dentist</option>
-                    <option className="bg-slate-900">Nurse Prescriber</option>
-                  </select>
-                </div>
-                <div className="col-span-2">
-                  <InputField label="Clinic / Practice Name" value={formData.prescriber.clinicName} onChange={e => handlePrescriberChange("clinicName", e.target.value)} placeholder="City Health Clinic" required />
-                </div>
-                <div className="col-span-2 flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-0.5">Clinical Notes <span className="normal-case font-medium text-slate-600">(optional)</span></label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-0.5">Clinical Notes <span className="normal-case font-medium text-gray-400">(optional)</span></label>
                   <textarea
                     value={formData.prescriber.clinicalNotes}
                     onChange={e => handlePrescriberChange("clinicalNotes", e.target.value)}
                     placeholder="Any additional clinical notes..."
                     rows={2}
-                    className="w-full px-3.5 py-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 text-sm text-white font-medium placeholder:text-slate-600 transition-all resize-none"
+                    className="w-full px-3.5 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 text-sm text-gray-900 font-medium placeholder:text-gray-400 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -250,26 +327,26 @@ const PrescriptionForm = () => {
             {/* Medications */}
             <SectionCard icon={Pill} title="Medications" color="violet">
               <div className="relative mb-3">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                {searching && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-violet-400 animate-spin" />}
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                {searching && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-violet-500 animate-spin" />}
                 <input
                   type="text"
                   value={searchQuery}
                   placeholder="Search by medicine name..."
-                  className="w-full pl-9 pr-9 py-2.5 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 text-sm font-medium text-white placeholder:text-slate-600 transition-all"
+                  className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 text-sm font-medium text-gray-900 placeholder:text-gray-400 transition-all"
                   onChange={e => handleSearch(e.target.value)}
                 />
                 {searchResults.length > 0 && (
-                  <div className="absolute w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 max-h-44 overflow-y-auto">
+                  <div className="absolute w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-44 overflow-y-auto">
                     {searchResults.map(med => (
                       <div key={med._id} onClick={() => addMedication(med)}
-                        className="px-4 py-2.5 hover:bg-violet-500/10 cursor-pointer flex justify-between items-center border-b border-slate-700 last:border-0 transition-colors">
+                        className="px-4 py-2.5 hover:bg-violet-50 cursor-pointer flex justify-between items-center border-b border-gray-100 last:border-0 transition-colors">
                         <div>
-                          <p className="text-xs font-bold text-white">{med.name}</p>
-                          {med.category && <p className="text-[10px] text-slate-500">{med.category}</p>}
+                          <p className="text-xs font-bold text-gray-900">{med.name}</p>
+                          {med.category && <p className="text-[10px] text-gray-500">{med.category}</p>}
                         </div>
-                        <div className="w-6 h-6 bg-violet-500/20 rounded-lg flex items-center justify-center">
-                          <Plus size={12} className="text-violet-400" />
+                        <div className="w-6 h-6 bg-violet-100 rounded-lg flex items-center justify-center">
+                          <Plus size={12} className="text-violet-600" />
                         </div>
                       </div>
                     ))}
@@ -278,20 +355,20 @@ const PrescriptionForm = () => {
               </div>
 
               {formData.medications.length === 0 ? (
-                <div className="py-6 text-center border-2 border-dashed border-slate-800 rounded-xl">
-                  <Pill size={20} className="mx-auto text-slate-700 mb-2" />
-                  <p className="text-xs text-slate-600 font-bold">No medications added yet</p>
+                <div className="py-6 text-center border-2 border-dashed border-gray-200 rounded-xl">
+                  <Pill size={20} className="mx-auto text-gray-300 mb-2" />
+                  <p className="text-xs text-gray-400 font-bold">No medications added yet</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-36 overflow-y-auto pr-0.5">
                   {formData.medications.map((med, i) => (
-                    <div key={med._id} className="flex items-center justify-between px-3 py-2.5 bg-violet-500/5 border border-violet-500/20 rounded-xl">
+                    <div key={med._id} className="flex items-center justify-between px-3 py-2.5 bg-violet-50 border border-violet-200 rounded-xl">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-5 h-5 rounded-lg bg-violet-500/20 text-violet-400 text-[10px] font-black flex items-center justify-center">{i + 1}</span>
-                        <span className="text-xs font-bold text-slate-200">{med.name}</span>
+                        <span className="w-5 h-5 rounded-lg bg-violet-200 text-violet-700 text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
+                        <span className="text-xs font-bold text-gray-900">{med.name}</span>
                       </div>
                       <button type="button" onClick={() => removeMedication(med._id)}
-                        className="w-6 h-6 rounded-lg text-slate-600 hover:bg-red-500/10 hover:text-red-400 flex items-center justify-center transition-all">
+                        className="w-6 h-6 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-all">
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -300,7 +377,7 @@ const PrescriptionForm = () => {
               )}
 
               {formData.medications.length > 0 && (
-                <p className="text-[10px] text-slate-500 font-bold mt-2 text-right">
+                <p className="text-[10px] text-gray-400 font-bold mt-2 text-right">
                   {formData.medications.length} medication{formData.medications.length !== 1 ? "s" : ""} selected
                 </p>
               )}
@@ -312,50 +389,50 @@ const PrescriptionForm = () => {
         <SectionCard icon={Truck} title="Dispensing & Delivery" color="orange">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-0.5">Fulfillment Method</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-0.5">Fulfillment Method</label>
               <select value={formData.delivery.fulfillmentMethod} onChange={e => handleDeliveryChange("fulfillmentMethod", e.target.value)} className={selectClass}>
-                <option className="bg-slate-900">Ship direct to the address</option>
-                <option className="bg-slate-900">Ship to the clinic</option>
-                <option className="bg-slate-900">Patient to collect from the pharmacy</option>
+                <option className="bg-white">Ship direct to the address</option>
+                <option className="bg-white">Ship to the clinic</option>
+                <option className="bg-white">Patient to collect from the pharmacy</option>
               </select>
             </div>
             <div className="md:col-span-1">
               <InputField label="Delivery Address" value={formData.delivery.deliveryAddress} onChange={e => handleDeliveryChange("deliveryAddress", e.target.value)} placeholder="Enter delivery address" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-0.5">Prescription Validity</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-0.5">Prescription Validity</label>
               <select value={formData.delivery.validity} onChange={e => handleDeliveryChange("validity", e.target.value)} className={selectClass}>
-                <option className="bg-slate-900">27 days</option>
-                <option className="bg-slate-900">14 days</option>
-                <option className="bg-slate-900">7 days</option>
-                <option className="bg-slate-900">Immediate same on day</option>
+                <option className="bg-white">27 days</option>
+                <option className="bg-white">14 days</option>
+                <option className="bg-white">7 days</option>
+                <option className="bg-white">Immediate same on day</option>
               </select>
             </div>
           </div>
         </SectionCard>
 
         {/* Allergies + Submit */}
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl p-5">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-5">
             <div className="flex-1 w-full">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <AlertCircle size={13} className="text-amber-500" />
+                <div className="w-6 h-6 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <AlertCircle size={13} className="text-amber-600" />
                 </div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Known Allergies</label>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]">Known Allergies</label>
               </div>
               <textarea
                 value={formData.patient.allergies}
                 placeholder="List any known allergies, e.g. Penicillin, Latex, Aspirin..."
                 rows={2}
                 onChange={e => handlePatientChange("allergies", e.target.value)}
-                className="w-full p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 text-sm text-white font-medium placeholder:text-slate-700 transition-all resize-none"
+                className="w-full p-3 bg-amber-50 border border-amber-200 rounded-xl outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 text-sm text-gray-900 font-medium placeholder:text-gray-400 transition-all resize-none"
               />
             </div>
             <button
               type="submit"
               disabled={submitting}
-              className="w-full md:w-auto shrink-0 px-8 py-3.5 bg-slate-700 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2.5 hover:bg-slate-600 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="w-full md:w-auto shrink-0 px-8 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2.5 hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
               {submitting
                 ? <><Loader2 size={15} className="animate-spin" /> Submitting...</>

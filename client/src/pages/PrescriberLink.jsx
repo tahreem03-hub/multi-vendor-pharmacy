@@ -8,8 +8,8 @@ import axios from "axios";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-const inputClass = "w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium outline-none focus:border-cyan-500 focus:ring-2 focus:ring-white-500/10 transition-all text-white placeholder:text-slate-500";
-const labelClass = "text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]";
+const inputClass = "w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all text-gray-900 placeholder:text-gray-400";
+const labelClass = "text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]";
 
 const Field = ({ label, children }) => (
   <div className="flex flex-col gap-1.5">
@@ -107,36 +107,35 @@ const PrescriberLink = () => {
     } finally { setLoading(false); }
   };
 
-  // frontend: PrescriberLink.jsx
-const handlePrescriptionSubmit = async () => {
-  if (!requestData.prescriberId)    return toast.error("Select a linked prescriber");
-  if (!requestData.patientFirstName || !requestData.patientLastName) return toast.error("Enter patient name");
+  const handlePrescriptionSubmit = async () => {
+    if (!requestData.prescriberId)    return toast.error("Select a linked prescriber");
+    if (!requestData.patientFirstName || !requestData.patientLastName) return toast.error("Enter patient name");
 
-  setLoading(true);
-  try {
-    await axios.post(`${BASE}/api/prescriber-link/request-prescription`, {
-      ...requestData,
-      productsRequired: selectedProducts.map(p => p._id),
-    }, { headers: headers() }); // no need to set Content-Type, axios defaults to application/json
+    setLoading(true);
+    try {
+      await axios.post(`${BASE}/api/prescriber-link/request-prescription`, {
+        ...requestData,
+        productsRequired: selectedProducts.map(p => p._id),
+      }, { headers: headers() });
 
-    toast.success("Submitted to prescriber!");
-    setSelectedProducts([]);
-    setRequestData(p => ({ ...p, patientFirstName: "", patientLastName: "", dob: "", clinicalNotes: "" }));
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Submission failed");
-  } finally { setLoading(false); }
-};
+      toast.success("Submitted to prescriber!");
+      setSelectedProducts([]);
+      setRequestData(p => ({ ...p, patientFirstName: "", patientLastName: "", dob: "", clinicalNotes: "" }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Submission failed");
+    } finally { setLoading(false); }
+  };
 
   const selectClass = `${inputClass} cursor-pointer`;
 
   return (
-    <div className="bg-white min-h-screen font-sans text-white">
+    <div className="min-h-screen bg-gray-50 font-sans">
 
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800 px-8 py-5 mb-6">
+      <div className="bg-slate-800 border-b border-gray-100 px-8 py-5 mb-6">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-lg font-black text-white tracking-tight">Prescriber Collaboration</h1>
-          <p className="text-xs text-slate-400 mt-0.5 font-medium">Connect with clinicians to authorize treatments</p>
+          <h1 className="text-lg font-bold text-white tracking-tight">Prescriber Collaboration</h1>
+          <p className="text-xs text-gray-200 mt-0.5 font-medium">Connect with clinicians to authorize treatments</p>
         </div>
       </div>
 
@@ -144,12 +143,12 @@ const handlePrescriptionSubmit = async () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           {/* ── Section 1: Link a Prescriber ─────────────────────── */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center border border-slate-700">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100">
                 <UserPlus size={16} />
               </div>
-              <h2 className="text-sm font-black text-white tracking-tight">Link a Prescriber</h2>
+              <h2 className="text-sm font-bold text-gray-900 tracking-tight">Link a Prescriber</h2>
             </div>
 
             <div className="p-5 space-y-4">
@@ -157,8 +156,8 @@ const handlePrescriptionSubmit = async () => {
               {/* Search */}
               <Field label="Search Prescribers">
                 <div className="relative">
-                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                  {searching && <Loader2 size={13} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-cyan-400 animate-spin" />}
+                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  {searching && <Loader2 size={13} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
                   <input
                     type="text"
                     value={selectedName}
@@ -167,7 +166,7 @@ const handlePrescriptionSubmit = async () => {
                     className={`${inputClass} pl-9`}
                   />
                   {searchResults.length > 0 && (
-                    <div className="absolute top-full left-0 w-full bg-slate-800 border border-slate-700 shadow-xl rounded-xl z-20 mt-1 max-h-44 overflow-y-auto">
+                    <div className="absolute top-full left-0 w-full bg-white border border-gray-200 shadow-lg rounded-xl z-20 mt-1 max-h-44 overflow-y-auto">
                       {searchResults.map(p => (
                         <div key={p._id}
                           onClick={() => {
@@ -176,17 +175,17 @@ const handlePrescriptionSubmit = async () => {
                             setSearchResults([]);
                             toast.success(`✅ Selected: ${p.name}`);
                           }}
-                          className="px-4 py-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700 last:border-0"
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
                         >
-                          <p className="text-xs font-bold text-white">{p.name}</p>
-                          <p className="text-[10px] text-slate-400">{p.email} · {p.role}</p>
+                          <p className="text-xs font-bold text-gray-900">{p.name}</p>
+                          <p className="text-[10px] text-gray-500">{p.email} · {p.role}</p>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
                 {linkData.prescriberId && (
-                  <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mt-1">
+                  <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
                     <CheckCircle size={11} /> Prescriber selected
                   </p>
                 )}
@@ -200,12 +199,12 @@ const handlePrescriptionSubmit = async () => {
 
               <Field label="Your Role">
                 <select value={linkData.role} onChange={e => setLinkData(p => ({ ...p, role: e.target.value }))} className={selectClass}>
-                  <option className="bg-slate-800">Aesthetic nurse non-prescriber</option>
-                  <option className="bg-slate-800">Aesthetic therapist</option>
-                  <option className="bg-slate-800">Doctor (non-prescriber)</option>
-                  <option className="bg-slate-800">Dentist (non-prescriber)</option>
-                  <option className="bg-slate-800">Paramedic</option>
-                  <option className="bg-slate-800">Other healthcare professions</option>
+                  <option className="bg-white">Aesthetic nurse non-prescriber</option>
+                  <option className="bg-white">Aesthetic therapist</option>
+                  <option className="bg-white">Doctor (non-prescriber)</option>
+                  <option className="bg-white">Dentist (non-prescriber)</option>
+                  <option className="bg-white">Paramedic</option>
+                  <option className="bg-white">Other healthcare professions</option>
                 </select>
               </Field>
 
@@ -217,7 +216,7 @@ const handlePrescriptionSubmit = async () => {
               </Field>
 
               <button onClick={handleLinkRequest} disabled={loading}
-                className="w-full py-3 bg-slate-600 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-500 active:scale-[0.98] transition-all disabled:opacity-50 shadow-sm shadow-cyan-900/20">
+                className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-50 shadow-sm">
                 {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                 Send Link Request
               </button>
@@ -225,12 +224,12 @@ const handlePrescriptionSubmit = async () => {
           </div>
 
           {/* ── Section 2: Request a Prescription ────────────────── */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center border border-slate-700">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100">
                 <ClipboardList size={16} />
               </div>
-              <h2 className="text-sm font-black text-white tracking-tight">Request a Prescription</h2>
+              <h2 className="text-sm font-bold text-gray-900 tracking-tight">Request a Prescription</h2>
             </div>
 
             <div className="p-5 space-y-4">
@@ -239,16 +238,16 @@ const handlePrescriptionSubmit = async () => {
                 <select value={requestData.prescriberId}
                   onChange={e => setRequestData(p => ({ ...p, prescriberId: e.target.value }))}
                   className={selectClass}>
-                  <option value="" className="bg-slate-800">— Select linked professional —</option>
+                  <option value="" className="bg-white">— Select linked professional —</option>
                   {activePrescribers.map(link => (
-                    <option key={link._id} value={link.prescriberId?._id} className="bg-slate-800">
+                    <option key={link._id} value={link.prescriberId?._id} className="bg-white">
                       {link.prescriberId?.name}
                       {link.status === "pending" ? " (Pending Approval)" : ""}
                     </option>
                   ))}
                 </select>
                 {activePrescribers.length === 0 && (
-                  <p className="text-[10px] text-amber-400 font-bold flex items-center gap-1 mt-1">
+                  <p className="text-[10px] text-amber-600 font-bold flex items-center gap-1 mt-1">
                     <AlertCircle size={11} /> No linked prescribers yet — send a link request first
                   </p>
                 )}
@@ -284,28 +283,28 @@ const handlePrescriptionSubmit = async () => {
                 <select value={requestData.treatment}
                   onChange={e => setRequestData(p => ({ ...p, treatment: e.target.value }))}
                   className={selectClass}>
-                  <option className="bg-slate-800">Dermal Fillers</option>
-                  <option className="bg-slate-800">Anti-Wrinkle Injection</option>
-                  <option className="bg-slate-800">Vitamin B12</option>
-                  <option className="bg-slate-800">Skin Booster</option>
+                  <option className="bg-white">Dermal Fillers</option>
+                  <option className="bg-white">Anti-Wrinkle Injection</option>
+                  <option className="bg-white">Vitamin B12</option>
+                  <option className="bg-white">Skin Booster</option>
                 </select>
               </Field>
 
               {/* Product Search */}
               <Field label="Products Required">
                 <div className="relative">
-                  <Package size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Package size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input type="text" value={productQuery}
                     onChange={e => handleProductSearch(e.target.value)}
                     placeholder="Search products..."
                     className={`${inputClass} pl-9`} />
                   {availableProducts.length > 0 && (
-                    <div className="absolute top-full left-0 w-full bg-slate-800 border border-slate-700 shadow-xl rounded-xl z-20 mt-1 max-h-40 overflow-y-auto">
+                    <div className="absolute top-full left-0 w-full bg-white border border-gray-200 shadow-lg rounded-xl z-20 mt-1 max-h-40 overflow-y-auto">
                       {availableProducts.map(prod => (
                         <div key={prod._id} onClick={() => addProduct(prod)}
-                          className="px-4 py-2.5 hover:bg-slate-700 cursor-pointer text-xs font-bold text-slate-300 border-b border-slate-700 last:border-0">
+                          className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-xs font-bold text-gray-700 border-b border-gray-100 last:border-0">
                           {prod.name}
-                          {prod.category && <span className="text-slate-500 font-medium ml-2">· {prod.category}</span>}
+                          {prod.category && <span className="text-gray-400 font-medium ml-2">· {prod.category}</span>}
                         </div>
                       ))}
                     </div>
@@ -314,7 +313,7 @@ const handlePrescriptionSubmit = async () => {
                 {selectedProducts.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {selectedProducts.map(p => (
-                      <span key={p._id} className="flex items-center gap-1.5 bg-slate-800 text-violet-300 border border-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase">
+                      <span key={p._id} className="flex items-center gap-1.5 bg-violet-50 text-violet-700 border border-violet-200 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase">
                         {p.name}
                         <button type="button" onClick={() => setSelectedProducts(prev => prev.filter(x => x._id !== p._id))}>
                           <X size={10} />
@@ -332,9 +331,8 @@ const handlePrescriptionSubmit = async () => {
                   className={`${inputClass} resize-none`} />
               </Field>
 
-
               <button onClick={handlePrescriptionSubmit} disabled={loading}
-                className="w-full py-3 bg-slate-600 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-500 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg">
+                className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-50 shadow-sm">
                 {loading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
                 Submit to Prescriber
               </button>

@@ -45,7 +45,7 @@ const PrescriptionForm = () => {
     patient: {
       firstName: '', lastName: '', gender: 'Male',
       dob: '', email: '', phone: '', address: '',
-      allergies: '', country: '',           // ✅ FIX: was "contraindications" — schema uses "allergies"
+      allergies: '', country: '',
     },
     prescriber: {
       name: '', regNumber: '', type: 'Doctor',
@@ -65,11 +65,11 @@ const PrescriptionForm = () => {
   const handlePrescriberChange = (f, v) => setFormData(p => ({ ...p, prescriber: { ...p.prescriber, [f]: v } }));
   const handleDeliveryChange = (f, v) => setFormData(p => ({ ...p, delivery: { ...p.delivery, [f]: v } }));
 
-  // State add karo
+  // State for prescribers
   const [prescribers, setPrescribers] = useState([]);
   const [showPrescribers, setShowPrescribers] = useState(false);
 
-  // Fetch karo
+  // Fetch prescribers
   useEffect(() => {
     const fetchPrescribers = async () => {
       try {
@@ -77,6 +77,7 @@ const PrescriptionForm = () => {
         setPrescribers(data.prescribers || []);
       } catch (err) {
         console.error('Failed to fetch prescribers:', err);
+        toast.error('Failed to load prescribers');
       }
     };
     fetchPrescribers();
@@ -118,7 +119,6 @@ const PrescriptionForm = () => {
     setSubmitting(true);
     try {
       await API.post('/prescriptions/submit', {
-        // ✅ FIX: send as "patient" which backend maps to patientDetails
         patient: formData.patient,
         prescriber: formData.prescriber,
         medications: formData.medications.map(m => m._id),
@@ -133,6 +133,17 @@ const PrescriptionForm = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Auto-fill prescriber details
+  const selectPrescriber = (prescriber) => {
+    handlePrescriberChange('name', prescriber.name);
+    handlePrescriberChange('regNumber', prescriber.registrationNumber);
+    handlePrescriberChange('type', prescriber.professionalRole || 'Doctor');
+    handlePrescriberChange('clinicName', prescriber.practiceName || prescriber.clinicName || '');
+    // clinicalNotes remains unchanged
+    setShowPrescribers(false);
+    toast.success('Prescriber selected');
   };
 
   return (
@@ -207,7 +218,6 @@ const PrescriptionForm = () => {
                   onChange={e => handlePatientChange('address', e.target.value)} />
               </Field>
 
-              {/* ✅ country for signatire rx" */}
               <Field label="Country">
                 <input className={inputCls} required
                   placeholder="e.g. UK, USA, India"
@@ -215,7 +225,6 @@ const PrescriptionForm = () => {
                   onChange={e => handlePatientChange('country', e.target.value)} />
               </Field>
 
-              {/* ✅ FIX: was using "contraindications" — now correctly uses "allergies" */}
               <Field label="Allergies / Contraindications">
                 <textarea rows={2} className={`${inputCls} resize-none`}
                   placeholder="e.g. Penicillin, NSAIDs..."
@@ -231,66 +240,59 @@ const PrescriptionForm = () => {
             <Card icon={Stethoscope} title="Prescriber Details">
               <div className="space-y-3">
 
-                {/* available prescribers */}
+                {/* Available prescribers */}
                 <div className="mb-3">
-                <button
-                  type="button"
-                  onClick={() => setShowPrescribers(!showPrescribers)}
-                  className="text-[10px] font-bold uppercase tracking-widest text-blue-500 hover:text-blue-700 transition-colors"
-                >
-                  {showPrescribers ? 'Hide' : 'View Available Prescribers'}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPrescribers(!showPrescribers)}
+                    className="text-[10px] font-bold uppercase tracking-widest text-blue-500 hover:text-blue-700 transition-colors"
+                  >
+                    {showPrescribers ? 'Hide' : 'View Available Prescribers'}
+                  </button>
 
-                {showPrescribers && (
-                  <div className="mt-2 border border-gray-100 rounded-xl overflow-hidden">
-                    <table className="w-full text-xs">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Name</th>
-                          <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reg No</th>
-                          <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role</th>
-                          <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Speciality</th>
-                          <th className="px-3 py-2"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {prescribers.length === 0 ? (
+                  {showPrescribers && (
+                    <div className="mt-2 border border-gray-100 rounded-xl overflow-hidden">
+                      <table className="w-full text-xs">
+                        <thead className="bg-gray-50">
                           <tr>
-                            <td colSpan={5} className="px-3 py-4 text-center text-gray-300 text-xs">
-                              No prescribers available
-                            </td>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Name</th>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reg No</th>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role</th>
+                            <th className="text-left px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Clinic</th>
+                            <th className="px-3 py-2"></th>
                           </tr>
-                        ) : (
-                          prescribers.map(p => (
-                            <tr key={p._id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-3 py-2 font-semibold text-black">{p.name}</td>
-                              <td className="px-3 py-2 text-gray-500 font-mono">{p.registrationNumber}</td>
-                              <td className="px-3 py-2 text-gray-500">{p.professionalRole}</td>
-                              <td className="px-3 py-2 text-gray-500">{p.primarySpeciality}</td>
-                              <td className="px-3 py-2">
-                                {/* ✅ Click karo toh auto-fill ho */}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handlePrescriberChange('name', p.name);
-                                    handlePrescriberChange('regNumber', p.registrationNumber);
-                                    handlePrescriberChange('type', p.professionalRole || 'Doctor');
-                                    handlePrescriberChange('clinicName', p.practiceName || '');
-                                    setShowPrescribers(false);
-                                  }}
-                                  className="text-[10px] font-bold text-blue-500 hover:text-blue-700 px-2 py-1 bg-blue-50 rounded-lg transition-colors"
-                                >
-                                  Select
-                                </button>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {prescribers.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-3 py-4 text-center text-gray-300 text-xs">
+                                No prescribers available
                               </td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+                          ) : (
+                            prescribers.map(p => (
+                              <tr key={p._id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-3 py-2 font-semibold text-black">{p.name}</td>
+                                <td className="px-3 py-2 text-gray-500 font-mono">{p.registrationNumber}</td>
+                                <td className="px-3 py-2 text-gray-500">{p.professionalRole}</td>
+                                <td className="px-3 py-2 text-gray-500">{p.practiceName || p.clinicName || 'N/A'}</td>
+                                <td className="px-3 py-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => selectPrescriber(p)}
+                                    className="text-[10px] font-bold text-blue-500 hover:text-blue-700 px-2 py-1 bg-blue-50 rounded-lg transition-colors"
+                                  >
+                                    Select
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
 
                 <Field label="Full Name">
                   <input className={inputCls} placeholder="Dr. Sarah Connor" required
@@ -305,13 +307,9 @@ const PrescriptionForm = () => {
                       onChange={e => handlePrescriberChange('regNumber', e.target.value)} />
                   </Field>
                   <Field label="Type">
-                    <select className={selectCls}
+                    <input className={inputCls} placeholder="Doctor" required
                       value={formData.prescriber.type}
-                      onChange={e => handlePrescriberChange('type', e.target.value)}>
-                      <option>Doctor</option>
-                      <option>Medical Dentist</option>
-                      <option>Nurse Prescriber</option>
-                    </select>
+                      onChange={e => handlePrescriberChange('type', e.target.value)} />
                   </Field>
                 </div>
 
@@ -419,7 +417,7 @@ const PrescriptionForm = () => {
           </div>
         </Card>
 
-        {/* ✅ FIX: Known Allergies bottom field also uses "allergies" not "contraindications" */}
+        {/* Allergies + Submit */}
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-5">
             <div className="flex-1 w-full">
