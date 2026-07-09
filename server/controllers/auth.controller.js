@@ -25,9 +25,17 @@ export const register = async (req, res, next) => {
       agreedToTerms,
       isAuthorisedProfessional,
 
-      // SignatureRx required fields only
+      // Professional details
       professionalRole,      // Maps to professional_registration_body
-      registrationNumber,   // Maps to registration_number
+      registrationNumber,    // Maps to registration_number
+      primarySpeciality,
+      trainingQualification,
+
+      // Practice / business details
+      practiceName,
+      businessAddress,
+      vatNumber,
+      referralSource,
     } = req.body;
 
     // Check for existing user
@@ -76,9 +84,17 @@ export const register = async (req, res, next) => {
       agreedToTerms: agreedToTerms === true || agreedToTerms === 'true',
       isAuthorisedProfessional: isAuthorisedProfessional === true || isAuthorisedProfessional === 'true',
 
-      // SignatureRx fields only
+      // Professional details
       professionalRole: professionalRole || null,
       registrationNumber: registrationNumber || null,
+      primarySpeciality: primarySpeciality || null,
+      trainingQualification: trainingQualification || null,
+
+      // Practice / business details
+      practiceName: practiceName || null,
+      businessAddress: businessAddress || null,
+      vatNumber: vatNumber || null,
+      referralSource: referralSource || null,
     };
 
     const user = await User.create(userData);
