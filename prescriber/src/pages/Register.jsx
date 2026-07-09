@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from 'react-hot-toast';
-import { Lock, User, FileText, AlertCircle } from 'lucide-react';
+import { Lock, User, FileText, AlertCircle, Stethoscope, Building2 } from 'lucide-react';
 import API from "../api/axios";
 
 const inputStyle = {
@@ -18,13 +18,34 @@ const inputStyle = {
   transition: 'border-color 0.2s'
 };
 
-// ✅ Dark label style
 const labelStyle = {
   fontSize: '12px',
   fontWeight: '600',
   color: '#0f172a',
   display: 'block',
   marginBottom: '6px'
+};
+
+const cardStyle = {
+  background: '#fff',
+  border: '1px solid #e2e8f0',
+  borderRadius: '12px',
+  padding: '24px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px'
+};
+
+const sectionHeadingStyle = {
+  fontSize: '12px',
+  fontWeight: '700',
+  color: '#0f172a',
+  margin: 0,
+  paddingBottom: '12px',
+  borderBottom: '1px solid #f1f5f9',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px'
 };
 
 const InputGroup = ({ label, type = "text", placeholder, options = null, value, onChange, required = true }) => (
@@ -37,7 +58,7 @@ const InputGroup = ({ label, type = "text", placeholder, options = null, value, 
         style={{ ...inputStyle, cursor: 'pointer' }}
         onFocus={e => e.target.style.borderColor = '#0f172a'}
         onBlur={e => e.target.style.borderColor = '#e2e8f0'}>
-        <option value="">Select...</option>
+        <option value="">{placeholder || "Select..."}</option>
         {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
     ) : (
@@ -59,10 +80,23 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    // Personal
     salutation: 'Mr', firstName: '', lastName: '',
     email: '', password: '', confirmPassword: '',
     phoneNumber: '', address: '', dob: '',
-    accountType: 'Prescriber', isAuthorisedProfessional: true, agreedToTerms: false
+    agreedToTerms: false,
+
+    // Professional details
+    professionalRole: '',        // maps to professional_registration_body
+    registrationNumber: '',      // maps to registration_number
+    primarySpeciality: '',
+    trainingQualification: '',
+
+    // Practice / business details
+    practiceName: '',
+    businessAddress: '',
+    vatNumber: '',
+    referralSource: '',
   });
 
   const handleChange = (name) => (e) => {
@@ -84,16 +118,41 @@ const Register = () => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) return toast.error("Passwords do not match.");
     if (!formData.agreedToTerms) return toast.error("You must agree to the terms and conditions.");
+
+    // Validate required professional fields for prescribers
+    if (isLedByMedicalProf) {
+      if (!formData.professionalRole) return toast.error("Professional registration body is required");
+      if (!formData.registrationNumber) return toast.error("Registration number is required");
+    }
+
     setLoading(true);
     try {
-      await API.post("/auth/register", {
-        firstName: formData.firstName, lastName: formData.lastName,
-        email: formData.email, password: formData.password,
-        phoneNumber: formData.phoneNumber, address: formData.address,
-        dob: formData.dob, agreedToTerms: formData.agreedToTerms,
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+        dob: formData.dob,
+        agreedToTerms: formData.agreedToTerms,
         isAuthorisedProfessional: isLedByMedicalProf === true,
-        accountType: isLedByMedicalProf ? accountType : undefined
-      });
+        accountType: isLedByMedicalProf ? accountType : undefined,
+
+        // Professional details
+        professionalRole: formData.professionalRole,
+        registrationNumber: formData.registrationNumber,
+        primarySpeciality: formData.primarySpeciality,
+        trainingQualification: formData.trainingQualification,
+
+        // Practice / business details
+        practiceName: formData.practiceName,
+        businessAddress: formData.businessAddress,
+        vatNumber: formData.vatNumber,
+        referralSource: formData.referralSource,
+      };
+
+      await API.post("/auth/register", payload);
       toast.success("Verification code sent to your email");
       setStep(2);
     } catch (err) {
@@ -116,6 +175,24 @@ const Register = () => {
       setLoading(false);
     }
   };
+
+  // Professional role options (maps to professional_registration_body)
+  const professionalRoleOptions = [
+    "GMC (General Medical Council)",
+    "NMC (Nursing & Midwifery Council)",
+    "GDC (General Dental Council)",
+    "HCPC (Health & Care Professions Council)",
+    "Other"
+  ];
+
+  const referralSourceOptions = [
+    "Search Engine (Google, Bing)",
+    "Social Media",
+    "Colleague / Referral",
+    "Advertisement",
+    "Event / Conference",
+    "Other"
+  ];
 
   return (
     <div style={{
@@ -211,7 +288,7 @@ const Register = () => {
                           No — not led by a UK Medical Professional
                         </h4>
                         <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: '1.6' }}>
-                          No registered UK medical professionals in the company. A therapist account will be created.
+                          A standard account will be created.
                         </p>
                       </div>
                     </div>
@@ -271,22 +348,21 @@ const Register = () => {
                 </button>
 
                 <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', marginBottom: '6px', letterSpacing: '-0.01em' }}>
-                  Create your account
+                  {isLedByMedicalProf ? 'Create your Prescriber Account' : 'Create your Account'}
                 </h2>
                 <p style={{ color: '#64748b', fontSize: '13px', lineHeight: '1.6', marginBottom: '28px' }}>
-                  Fill in your details below. Your email and password will let you return at any time.
+                  {isLedByMedicalProf
+                    ? 'Fill in your professional details below.'
+                    : 'Fill in your personal details below.'}
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                {/* ── TOP ROW: Personal (left) + Password (right) ── */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
 
-                  {/* LEFT — Your Details */}
-                  <div style={{
-                    background: '#fff', border: '1px solid #e2e8f0',
-                    borderRadius: '12px', padding: '24px',
-                    display: 'flex', flexDirection: 'column', gap: '16px'
-                  }}>
-                    <p style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a', margin: 0, paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
-                      Your Details
+                  {/* LEFT — Personal Details */}
+                  <div style={cardStyle}>
+                    <p style={sectionHeadingStyle}>
+                      <User size={16} /> Personal Details
                     </p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
                       <InputGroup label="Salutation" options={["Mr", "Mrs", "Ms", "Dr", "Prof"]} value={formData.salutation} onChange={handleChange("salutation")} required={false} />
@@ -299,70 +375,152 @@ const Register = () => {
                     <InputGroup label="Date of Birth" type="date" value={formData.dob} onChange={handleChange("dob")} />
                   </div>
 
-                  {/* RIGHT — Password & Terms */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* RIGHT — Create a Password */}
+                  <div style={cardStyle}>
+                    <p style={sectionHeadingStyle}>
+                      <Lock size={16} /> Create a Password
+                    </p>
+                    <InputGroup label="Password" type="password" value={formData.password} onChange={handleChange("password")} />
+                    <InputGroup label="Repeat Password" type="password" value={formData.confirmPassword} onChange={handleChange("confirmPassword")} />
+
+                    {/* Requirements */}
                     <div style={{
-                      background: '#fff', border: '1px solid #e2e8f0',
-                      borderRadius: '12px', padding: '24px',
-                      display: 'flex', flexDirection: 'column', gap: '16px'
+                      background: '#f8fafc', border: '1px solid #e2e8f0',
+                      borderRadius: '8px', padding: '14px 16px',
+                      display: 'flex', flexDirection: 'column', gap: '7px'
                     }}>
-                      <p style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a', margin: 0, paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
-                        Create a Password
-                      </p>
-                      <InputGroup label="Password" type="password" value={formData.password} onChange={handleChange("password")} />
-                      <InputGroup label="Repeat Password" type="password" value={formData.confirmPassword} onChange={handleChange("confirmPassword")} />
-
-                      {/* Requirements */}
-                      <div style={{
-                        background: '#f8fafc', border: '1px solid #e2e8f0',
-                        borderRadius: '8px', padding: '14px 16px',
-                        display: 'flex', flexDirection: 'column', gap: '7px'
-                      }}>
-                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                          Requirements
-                        </span>
-                        {[
-                          'Minimum 8 characters',
-                          'At least one uppercase letter',
-                          'At least one number',
-                          'At least one special character (! % & ?)'
-                        ].map(r => (
-                          <div key={r} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1', flexShrink: 0 }} />
-                            <span style={{ fontSize: '12px', color: '#475569' }}>{r}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Terms */}
-                    <label style={{
-                      display: 'flex', alignItems: 'flex-start', gap: '10px',
-                      cursor: 'pointer', fontSize: '12px', color: '#475569', lineHeight: '1.5',
-                      background: '#fff', border: '1px solid #e2e8f0',
-                      borderRadius: '10px', padding: '14px 16px'
-                    }}>
-                      <input type="checkbox" checked={formData.agreedToTerms}
-                        onChange={handleChange("agreedToTerms")} required
-                        style={{ marginTop: '3px', accentColor: '#0f172a' }} />
-                      <span>I accept and agree to the website{' '}
-                        <span style={{ color: '#0f172a', fontWeight: '700' }}>Terms of Use</span> and{' '}
-                        <span style={{ color: '#0f172a', fontWeight: '700' }}>Privacy Policy</span>.
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        Requirements
                       </span>
-                    </label>
-
-                    <button type="submit" disabled={loading} style={{
-                      width: '100%', padding: '15px',
-                      background: '#0f172a', color: '#fff',
-                      border: 'none', borderRadius: '10px',
-                      fontSize: '13px', fontWeight: '700',
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      opacity: loading ? 0.7 : 1
-                    }}>
-                      {loading ? 'Creating Account...' : 'CREATE ACCOUNT →'}
-                    </button>
+                      {[
+                        'Minimum 8 characters',
+                        'At least one uppercase letter',
+                        'At least one number',
+                        'At least one special character (! % & ?)'
+                      ].map(r => (
+                        <div key={r} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1', flexShrink: 0 }} />
+                          <span style={{ fontSize: '12px', color: '#475569' }}>{r}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+
+                {/* ── FULL-WIDTH: Professional & Practice Details (prescriber only) ── */}
+                {isLedByMedicalProf && (
+                  <div style={{ ...cardStyle, marginTop: '20px' }}>
+                    <p style={sectionHeadingStyle}>
+                      <Stethoscope size={16} /> Professional Details
+                    </p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <InputGroup
+                        label="Professional Registration Body"
+                        options={professionalRoleOptions}
+                        value={formData.professionalRole}
+                        onChange={handleChange("professionalRole")}
+                        placeholder="Select your registration body"
+                      />
+                      <InputGroup
+                        label="Registration Number"
+                        placeholder="e.g. GMC-1234567"
+                        value={formData.registrationNumber}
+                        onChange={handleChange("registrationNumber")}
+                      />
+                      <InputGroup
+                        label="Primary Speciality"
+                        placeholder="e.g. General Practice, Dermatology"
+                        value={formData.primarySpeciality}
+                        onChange={handleChange("primarySpeciality")}
+                        required={false}
+                      />
+                      <InputGroup
+                        label="Training / Qualification"
+                        placeholder="e.g. MBBS, MRCGP"
+                        value={formData.trainingQualification}
+                        onChange={handleChange("trainingQualification")}
+                        required={false}
+                      />
+                    </div>
+
+                    <p style={{ fontSize: '11px', color: '#94a3b8', margin: '-4px 0 0' }}>
+                      Your registration details will be used to verify your professional status.
+                    </p>
+
+                    {/* Practice / Business sub-section */}
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px', marginTop: '4px' }}>
+                      <p style={{ ...sectionHeadingStyle, borderBottom: 'none', paddingBottom: '12px' }}>
+                        <Building2 size={16} /> Practice / Business Details
+                      </p>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <InputGroup
+                          label="Practice Name"
+                          placeholder="Your clinic or practice name"
+                          value={formData.practiceName}
+                          onChange={handleChange("practiceName")}
+                          required={false}
+                        />
+                        <InputGroup
+                          label="VAT Number"
+                          placeholder="e.g. GB123456789"
+                          value={formData.vatNumber}
+                          onChange={handleChange("vatNumber")}
+                          required={false}
+                        />
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <InputGroup
+                            label="Business Address"
+                            placeholder="Full business address"
+                            value={formData.businessAddress}
+                            onChange={handleChange("businessAddress")}
+                            required={false}
+                          />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <InputGroup
+                            label="How did you hear about us?"
+                            options={referralSourceOptions}
+                            value={formData.referralSource}
+                            onChange={handleChange("referralSource")}
+                            placeholder="Select a source"
+                            required={false}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── TERMS ── */}
+                <label style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '10px',
+                  cursor: 'pointer', fontSize: '12px', color: '#475569', lineHeight: '1.5',
+                  background: '#fff', border: '1px solid #e2e8f0',
+                  borderRadius: '10px', padding: '14px 16px', marginTop: '20px'
+                }}>
+                  <input type="checkbox" checked={formData.agreedToTerms}
+                    onChange={handleChange("agreedToTerms")} required
+                    style={{ marginTop: '3px', accentColor: '#0f172a' }} />
+                  <span>I accept and agree to the website{' '}
+                    <span style={{ color: '#0f172a', fontWeight: '700' }}>Terms of Use</span> and{' '}
+                    <span style={{ color: '#0f172a', fontWeight: '700' }}>Privacy Policy</span>.
+                  </span>
+                </label>
+
+                {/* ── SUBMIT ── */}
+                <button type="submit" disabled={loading} style={{
+                  width: '100%', padding: '15px',
+                  background: '#0f172a', color: '#fff',
+                  border: 'none', borderRadius: '10px',
+                  fontSize: '13px', fontWeight: '700',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1,
+                  marginTop: '16px'
+                }}>
+                  {loading ? 'Creating Account...' : 'CREATE ACCOUNT →'}
+                </button>
               </div>
             )}
           </form>

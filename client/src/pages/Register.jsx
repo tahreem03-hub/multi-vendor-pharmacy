@@ -1,91 +1,113 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from 'react-hot-toast';
-import { Pill, Lock, User, Briefcase, MapPin, CheckCircle, Shield, Star, Info, FileText, AlertCircle } from 'lucide-react';
+import { Lock, User, FileText, AlertCircle, Stethoscope, Building2 } from 'lucide-react';
 import API from "../api/axios";
 
-// ✅ Outside component — no re-mount on typing
-const InputGroup = ({ label, name, type = "text", placeholder, options = null, value, onChange, required = true }) => (
-  <div className="flex flex-col gap-2">
-    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em]">
-      {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+const inputStyle = {
+  width: '100%',
+  padding: '11px 14px',
+  border: '1.5px solid #e2e8f0',
+  borderRadius: '8px',
+  fontSize: '13px',
+  color: '#0f172a',
+  background: '#fff',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+  transition: 'border-color 0.2s'
+};
+
+const labelStyle = {
+  fontSize: '12px',
+  fontWeight: '600',
+  color: '#0f172a',
+  display: 'block',
+  marginBottom: '6px'
+};
+
+const cardStyle = {
+  background: '#fff',
+  border: '1px solid #e2e8f0',
+  borderRadius: '12px',
+  padding: '24px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px'
+};
+
+const sectionHeadingStyle = {
+  fontSize: '12px',
+  fontWeight: '700',
+  color: '#0f172a',
+  margin: 0,
+  paddingBottom: '12px',
+  borderBottom: '1px solid #f1f5f9',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px'
+};
+
+const InputGroup = ({ label, type = "text", placeholder, options = null, value, onChange, required = true }) => (
+  <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <label style={labelStyle}>
+      {label}{required && <span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>}
     </label>
     {options ? (
-      <select
-        value={value || ""}
-        onChange={onChange}
-        className="w-full px-[18px] py-[14px] border-[1.5px] border-slate-200 rounded-[10px] text-[13px] text-slate-900 bg-white outline-none cursor-pointer font-inherit transition-colors focus:border-slate-900"
-      >
-        <option value="">Select...</option>
+      <select value={value || ""} onChange={onChange}
+        style={{ ...inputStyle, cursor: 'pointer' }}
+        onFocus={e => e.target.style.borderColor = '#0f172a'}
+        onBlur={e => e.target.style.borderColor = '#e2e8f0'}>
+        <option value="">{placeholder || "Select..."}</option>
         {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
     ) : (
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value || ""}
-        onChange={onChange}
-        required={required}
-        className="w-full px-[18px] py-[14px] border-[1.5px] border-slate-200 rounded-[10px] text-[13px] text-slate-900 bg-white outline-none box-border font-inherit transition-colors focus:border-slate-900"
-      />
+      <input type={type} placeholder={placeholder} value={value || ""} onChange={onChange} required={required}
+        style={inputStyle}
+        onFocus={e => e.target.style.borderColor = '#0f172a'}
+        onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
     )}
-  </div>
-);
-
-const SectionHeader = ({ icon: Icon, title, step, total }) => (
-  <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
-    <div className="flex items-center gap-2.5">
-      <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center">
-        <Icon size={16} color="white" />
-      </div>
-      <span className="text-sm font-bold text-slate-900">{title}</span>
-    </div>
-    <span className="text-[11px] text-slate-400 font-semibold">
-      Step {step} of {total}
-    </span>
   </div>
 );
 
 const Register = () => {
   const [step, setStep] = useState(1);
   const [subStep, setSubStep] = useState(1);
-  
-  const [isLedByMedicalProf, setIsLedByMedicalProf] = useState(null); 
+  const [isLedByMedicalProf, setIsLedByMedicalProf] = useState(null);
   const [accountType, setAccountType] = useState("Prescriber");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    salutation: 'Mr',
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-     phoneNumber: '',               // Ensure this matches the key expected by backend
-    address: '',                   // Ensure this matches the key expected by backend
-    dob: '',
-    accountType: 'Prescriber',     // Dynamic base setting matching selection
-    isAuthorisedProfessional: true, 
-    agreedToTerms: false           // Connected directly to validation checkbox
+    // Personal
+    salutation: 'Mr', firstName: '', lastName: '',
+    email: '', password: '', confirmPassword: '',
+    phoneNumber: '', address: '', dob: '',
+    agreedToTerms: false,
+
+    // Professional details
+    professionalRole: '',        // maps to professional_registration_body
+    registrationNumber: '',      // maps to registration_number
+    primarySpeciality: '',
+    trainingQualification: '',
+
+    // Practice / business details
+    practiceName: '',
+    businessAddress: '',
+    vatNumber: '',
+    referralSource: '',
   });
 
-  // Generic change handler for text/select fields and checkbox validation
   const handleChange = (name) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleNextAction = (e) => {
     e.preventDefault();
     if (subStep === 1) {
-      if (isLedByMedicalProf === null) {
-        return toast.error("Please make a selection before moving forward.");
-      }
+      if (isLedByMedicalProf === null) return toast.error("Please make a selection before moving forward.");
       setSubStep(2);
     } else {
       handleRegister(e);
@@ -94,17 +116,18 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      return toast.error("Passwords do not match.");
+    if (formData.password !== formData.confirmPassword) return toast.error("Passwords do not match.");
+    if (!formData.agreedToTerms) return toast.error("You must agree to the terms and conditions.");
+
+    // Validate required professional fields for prescribers
+    if (isLedByMedicalProf) {
+      if (!formData.professionalRole) return toast.error("Professional registration body is required");
+      if (!formData.registrationNumber) return toast.error("Registration number is required");
     }
-    if (!formData.agreedToTerms) {
-      return toast.error("You must agree to the terms and conditions.");
-    }
-    
+
     setLoading(true);
     try {
-      // Explicitly bundle config fields to match backend controller requirements exactly
-      const finalPayload = {
+      const payload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -113,11 +136,23 @@ const Register = () => {
         address: formData.address,
         dob: formData.dob,
         agreedToTerms: formData.agreedToTerms,
-        isAuthorisedProfessional: isLedByMedicalProf === true, 
-        accountType: isLedByMedicalProf ? accountType : undefined
+        isAuthorisedProfessional: isLedByMedicalProf === true,
+        accountType: isLedByMedicalProf ? accountType : undefined,
+
+        // Professional details
+        professionalRole: formData.professionalRole,
+        registrationNumber: formData.registrationNumber,
+        primarySpeciality: formData.primarySpeciality,
+        trainingQualification: formData.trainingQualification,
+
+        // Practice / business details
+        practiceName: formData.practiceName,
+        businessAddress: formData.businessAddress,
+        vatNumber: formData.vatNumber,
+        referralSource: formData.referralSource,
       };
 
-      await API.post("/auth/register", finalPayload);
+      await API.post("/auth/register", payload);
       toast.success("Verification code sent to your email");
       setStep(2);
     } catch (err) {
@@ -141,290 +176,399 @@ const Register = () => {
     }
   };
 
+  // Professional role options (maps to professional_registration_body)
+  const professionalRoleOptions = [
+    "GMC (General Medical Council)",
+    "NMC (Nursing & Midwifery Council)",
+    "GDC (General Dental Council)",
+    "HCPC (Health & Care Professions Council)",
+    "Other"
+  ];
+
+  const referralSourceOptions = [
+    "Search Engine (Google, Bing)",
+    "Social Media",
+    "Colleague / Referral",
+    "Advertisement",
+    "Event / Conference",
+    "Other"
+  ];
+
   return (
-    <div className="min-h-screen bg-white font-['DM_Sans','Segoe_UI',sans-serif] flex items-center justify-center p-6 sm:p-10 box-border">
-      <div className="w-full max-w-[1100px] bg-white rounded-2xl overflow-hidden flex border border-slate-200 shadow-sm">
-        <div className="flex-1 p-8 sm:p-12 md:p-14 lg:p-16 box-border">
+    <div style={{
+      minHeight: '100vh',
+      background: '#f8fafc',
+      fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+      display: 'flex', alignItems: 'flex-start',
+      justifyContent: 'center',
+      padding: '48px 24px',
+      boxSizing: 'border-box'
+    }}>
+      <div style={{ width: '100%', maxWidth: '900px' }}>
 
-          {step === 1 ? (
-            <form onSubmit={handleNextAction}>
-              
-              {/* ── SUB-STEP 1: CHOICE & SCREENING INFOGRAPHICS ── */}
-              {subStep === 1 && (
-                <div>
-                  <div className="mb-8">
-                    <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mb-2.5">
-                      Are you or do you work with a Registered UK Medical Professional?
-                    </h2>
-                    <p className="text-slate-500 text-[13px] leading-relaxed">
-                      Please select if your company is healthcare professional led. This will help us determine what kind of Healthxchange account you require.
-                    </p>
-                  </div>
+        {step === 1 ? (
+          <form onSubmit={handleNextAction}>
 
-                  {/* Options Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-7 mb-10">
-                    
-                    {/* Option Box: YES */}
-                    <div 
-                      onClick={() => { setIsLedByMedicalProf(true); setAccountType("Prescriber"); }}
-                      className={`border rounded-xl p-6 md:p-7 cursor-pointer transition-all ${
-                        isLedByMedicalProf === true ? 'border-2 border-slate-900' : 'border-[1.5px] border-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3.5">
-                        <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0 ${
-                          isLedByMedicalProf === true ? 'border-slate-900' : 'border-slate-300'
-                        }`}>
-                          {isLedByMedicalProf === true && <div className="w-2.5 h-2.5 rounded-full bg-slate-900" />}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-900 leading-tight mb-2">
-                            Yes we are led by a Registered UK Medical Professional.
-                          </h4>
-                          <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mb-4">
-                            I am a medical professional and/or the company has at least one registered UK medical professional that is one of the below.
-                          </p>
-                          <ul className="text-[11.5px] text-slate-600 leading-relaxed pl-4 space-y-0.5">
-                            <li>Doctor registered with the GMC</li>
-                            <li>Dentist registered with the GDC</li>
-                            <li>Nurse or Midwife registered with the NMC</li>
-                            <li>Pharmacist Independent Prescriber registered with the GPHC or PSNI</li>
-                            <li>Independent Prescriber registered with the HCPC</li>
-                            <li>Dental Therapist registered with the GDC</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Option Box: NO */}
-                    <div 
-                      onClick={() => { setIsLedByMedicalProf(false); setAccountType("user"); }}
-                      className={`border rounded-xl p-6 md:p-7 cursor-pointer transition-all ${
-                        isLedByMedicalProf === false ? 'border-2 border-slate-900' : 'border-[1.5px] border-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3.5">
-                        <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0 ${
-                          isLedByMedicalProf === false ? 'border-slate-900' : 'border-slate-300'
-                        }`}>
-                          {isLedByMedicalProf === false && <div className="w-2.5 h-2.5 rounded-full bg-slate-900" />}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-900 leading-tight mb-2">
-                            No we are not led by a Registered UK Medical Professional.
-                          </h4>
-                          <p className="text-xs text-slate-600 leading-relaxed">
-                            We currently have no registered UK medical professionals working within our company and wish to create a therapist account.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* ── BEFORE YOU PROCEED CONDITIONAL INFOGRAPHICS ── */}
-                  {isLedByMedicalProf === true && (
-                    <div className="transition-all duration-300">
-                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-[0.05em] mb-[18px]">
-                        BEFORE YOU PROCEED...
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
-                        
-                        {/* Card 1 */}
-                        <div className="border border-slate-200 rounded-xl p-5">
-                          <div className="flex gap-2.5 mb-3">
-                            <AlertCircle size={18} color="#0f172a" className="shrink-0" />
-                            <h5 className="text-[13px] font-extrabold text-slate-900 leading-tight">You must be one of the following:</h5>
-                          </div>
-                          <ul className="text-[13px] text-slate-600 leading-relaxed pl-3.5 space-y-0.5">
-                            <li>A UK qualified prescriber.</li>
-                            <li>You employ / work with a UK qualified prescriber.</li>
-                            <li>You are a qualified HCP ordering Non Prescription items.</li>
-                          </ul>
-                        </div>
-
-                        {/* Card 2 */}
-                        <div className="border border-slate-200 rounded-xl p-5">
-                          <div className="flex gap-2.5 mb-3">
-                            <FileText size={18} color="#0f172a" className="shrink-0" />
-                            <h5 className="text-[13px] font-extrabold text-slate-900 leading-tight">Prescribers will need:</h5>
-                          </div>
-                          <ul className="text-[13px] text-slate-600 leading-relaxed pl-3.5 space-y-0.5 mb-3">
-                            <li>A copy of their Passport or Drivers License*.</li>
-                            <li>A mobile phone number.</li>
-                            <li>An email address (must not be generic).</li>
-                          </ul>
-                          <p className="text-[13px] text-slate-500 italic leading-relaxed">
-                            *This information including Photo ID is essential for opening your account
-                          </p>
-                        </div>
-
-                        {/* Card 3 */}
-                        <div className="border border-slate-200 rounded-xl p-5">
-                          <div className="flex gap-2.5 mb-3">
-                            <User size={18} color="#0f172a" className="shrink-0" />
-                            <h5 className="text-[13px] font-extrabold text-slate-900 leading-tight">Photo ID must be:</h5>
-                          </div>
-                          <ul className="text-[13px] text-slate-600 leading-relaxed pl-3.5 space-y-0.5">
-                            <li>A valid Passport or Drivers License.</li>
-                            <li>In colour.</li>
-                            <li>Clear and in sharp focus.</li>
-                            <li>Readable and not have any reflections obscuring the details.</li>
-                            <li>Clearly showing name, signature and expiry date.</li>
-                            <li>An image format (e.g. JPG, PNG), <strong className="text-slate-900">not PDF</strong>.</li>
-                          </ul>
-                        </div>
-
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Navigation Control Toolbar */}
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
-                    <p className="text-xs text-slate-500 m-0">
-                      Already have an account?{' '}
-                      <Link to="/login" className="text-slate-900 underline font-semibold">
-                        Sign In
-                      </Link>
-                    </p>
-                    <button
-                      type="submit"
-                      className="w-full sm:w-auto px-9 py-3.5 bg-slate-900 text-white border-none rounded-lg text-[13px] font-bold cursor-pointer"
-                    >
-                      Confirm & Continue
-                    </button>
-                  </div>
+            {/* Progress */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '36px' }}>
+              {[1, 2].map(n => (
+                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '26px', height: '26px', borderRadius: '50%',
+                    background: subStep >= n ? '#0f172a' : '#e2e8f0',
+                    color: subStep >= n ? '#fff' : '#94a3b8',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '11px', fontWeight: '700'
+                  }}>{n}</div>
+                  {n < 2 && <div style={{ width: '48px', height: '2px', background: subStep > n ? '#0f172a' : '#e2e8f0' }} />}
                 </div>
-              )}
-
-              {/* ── SUB-STEP 2: SPLIT LAYOUT TWO-COLUMN ACCOUNT REGISTRATION ── */}
-              {subStep === 2 && (
-                <div>
-                  <div className="mb-8">
-                    <button 
-                      type="button" 
-                      onClick={() => setSubStep(1)}
-                      className="bg-none border-none text-slate-900 text-xs font-bold cursor-pointer p-0 flex items-center gap-1 mb-3.5 underline"
-                    >
-                      &larr; Back to initial screening
-                    </button>
-                    <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2.5">
-                      Create your Healthxchange account
-                    </h2>
-                    <p className="text-[12.5px] text-slate-500 leading-relaxed">
-                      We need to know a bit about you first so we can create your account. The email you enter below and the password you set on this screen will let you come back to finish your registration at any time. Once you complete and submit your registration for approval you will then receive a new Username and Password that you will use to access the e-pharmacy.
-                    </p>
-                  </div>
-
-                  {/* Two Column Layout Grid */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-                    
-                    {/* Left Column: YOUR DETAILS */}
-                    <div className="flex flex-col gap-5">
-                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-[0.05em] border-b border-slate-100 pb-2.5 m-0 mb-1">
-                        YOUR DETAILS
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="sm:col-span-1">
-                          <InputGroup label="Salutation" name="salutation" options={["Mr", "Mrs", "Ms", "Dr", "Prof"]} value={formData.salutation} onChange={handleChange("salutation")} required={false} />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <InputGroup label="First name" name="firstName" value={formData.firstName} onChange={handleChange("firstName")} />
-                        </div>
-                      </div>
-
-                      <InputGroup label="Last name" name="lastName" value={formData.lastName} onChange={handleChange("lastName")} />
-                      <InputGroup label="Email address" name="email" type="email" value={formData.email} onChange={handleChange("email")} />
-                      <InputGroup label="Phone number" name="phoneNumber" placeholder="+44" value={formData.phoneNumber} onChange={handleChange("phoneNumber")} />
-                      <InputGroup label="Home Address" name="address" value={formData.address} onChange={handleChange("address")} />
-                      <InputGroup label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange("dob")} />
-                    </div>
-
-                    {/* Right Column: CREATE A PASSWORD & AGREEMENTS */}
-                    <div className="flex flex-col gap-5">
-                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-[0.05em] border-b border-slate-100 pb-2.5 m-0 mb-1">
-                        CREATE A PASSWORD
-                      </h3>
-
-                      <InputGroup label="Password" name="password" type="password" value={formData.password} onChange={handleChange("password")} />
-                      <InputGroup label="Repeat Password" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange("confirmPassword")} />
-
-                      <div className="border border-slate-200 p-4 rounded-[10px] text-[11.5px] text-slate-600 flex flex-col gap-2">
-                        <span className="font-bold text-slate-900">Password requirements:</span>
-                        <div className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-slate-900" /> Minimum of 8 characters</div>
-                        <div className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-slate-900" /> At least one uppercase letter</div>
-                        <div className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-slate-900" /> At least one number</div>
-                        <div className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-slate-900" /> At least one special character (e.g. ! % & ?)</div>
-                      </div>
-
-                      {/* System Agreements & Term Checklist Hooks */}
-                      <div className="mt-3 flex flex-col gap-3">
-                        <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-700 leading-relaxed">
-                          <input type="checkbox" checked={formData.agreedToTerms} onChange={handleChange("agreedToTerms")} required className="mt-0.5 accent-slate-900" />
-                          <span>I accept and agree to the website Terms of Use and Privacy Policy.</span>
-                        </label>
-                      </div>
-
-                      {/* Action Submission Trigger */}
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full mt-4 py-4 bg-slate-900 text-white border-none rounded-[10px] text-[13px] font-bold cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                      >
-                        {loading ? 'Creating Account...' : 'CREATE ACCOUNT'}
-                      </button>
-
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            </form>
-          ) : (
-            /* ── SECOND BLOCK CANVAS VIEW: TWO FACTOR OTP CODE ENTRY SCREEN ── */
-            <div className="max-w-[440px] mx-auto my-12 text-center px-4 sm:px-0">
-              <div className="w-16 h-16 rounded-2xl border border-slate-200 flex items-center justify-center mx-auto mb-6">
-                <Lock size={26} color="#0f172a" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-slate-900 mb-2.5">
-                Enter Security Code
-              </h2>
-              <p className="text-[13.5px] text-slate-500 leading-relaxed mb-8">
-                We have sent a 6-digit confirmation code to <strong className="text-slate-900">{formData.email}</strong>. Please enter the code below to complete confirmation.
-              </p>
-
-              <form onSubmit={handleVerify} className="flex flex-col gap-5">
-                <input
-                  type="text"
-                  placeholder="000000"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  required
-                  className="w-full px-4 py-4 border-2 border-slate-200 rounded-xl text-[22px] font-bold text-center tracking-[0.3em] outline-none bg-white transition-colors focus:border-slate-900"
-                />
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-slate-900 text-white border-none rounded-xl text-sm font-bold cursor-pointer disabled:opacity-70"
-                >
-                  {loading ? 'Verifying Code...' : 'Verify & Activate Account'}
-                </button>
-              </form>
-
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="bg-none border-none text-slate-500 text-xs font-semibold mt-6 cursor-pointer underline"
-              >
-                Change email address or settings
-              </button>
+              ))}
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', marginLeft: '8px' }}>
+                {subStep === 1 ? 'Account screening' : 'Account details'}
+              </span>
             </div>
-          )}
-        </div>
+
+            {/* ── SUB-STEP 1 ── */}
+            {subStep === 1 && (
+              <div>
+                <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                  Are you or do you work with a Registered UK Medical Professional?
+                </h2>
+                <p style={{ color: '#64748b', fontSize: '13px', lineHeight: '1.6', marginBottom: '28px' }}>
+                  Please select if your company is healthcare professional led. This helps us determine what kind of account you require.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+                  {/* YES */}
+                  <div onClick={() => { setIsLedByMedicalProf(true); setAccountType("Prescriber"); }}
+                    style={{
+                      border: isLedByMedicalProf === true ? '2px solid #0f172a' : '1.5px solid #e2e8f0',
+                      borderRadius: '12px', padding: '20px', cursor: 'pointer',
+                      background: '#fff', transition: 'all 0.2s'
+                    }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{
+                        width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
+                        border: `2px solid ${isLedByMedicalProf === true ? '#0f172a' : '#cbd5e1'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        {isLedByMedicalProf === true && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#0f172a' }} />}
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>
+                          Yes — led by a UK Medical Professional
+                        </h4>
+                        <ul style={{ margin: 0, paddingLeft: '14px', fontSize: '12px', color: '#64748b', lineHeight: '1.8' }}>
+                          <li>Doctor registered with the GMC</li>
+                          <li>Dentist registered with the GDC</li>
+                          <li>Nurse/Midwife registered with the NMC</li>
+                          <li>Pharmacist Independent Prescriber</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* NO */}
+                  <div onClick={() => { setIsLedByMedicalProf(false); setAccountType("user"); }}
+                    style={{
+                      border: isLedByMedicalProf === false ? '2px solid #0f172a' : '1.5px solid #e2e8f0',
+                      borderRadius: '12px', padding: '20px', cursor: 'pointer',
+                      background: '#fff', transition: 'all 0.2s'
+                    }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{
+                        width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
+                        border: `2px solid ${isLedByMedicalProf === false ? '#0f172a' : '#cbd5e1'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        {isLedByMedicalProf === false && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#0f172a' }} />}
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>
+                          No — not led by a UK Medical Professional
+                        </h4>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: '1.6' }}>
+                          A standard account will be created.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info cards */}
+                {isLedByMedicalProf === true && (
+                  <div style={{ marginBottom: '32px' }}>
+                    <p style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
+                      Before you proceed
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                      {[
+                        { icon: AlertCircle, title: 'You must be:', items: ['A UK qualified prescriber', 'Work with a UK prescriber', 'Qualified HCP for non-prescription items'] },
+                        { icon: FileText, title: 'You will need:', items: ['Passport or Drivers License copy', 'A mobile phone number', 'A non-generic email address'] },
+                        { icon: User, title: 'Photo ID must be:', items: ['Valid passport or driving licence', 'In colour & clear focus', 'Showing name, signature & expiry', 'JPG or PNG (not PDF)'] },
+                      ].map(({ icon: Icon, title, items }) => (
+                        <div key={title} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                            <Icon size={14} color="#475569" style={{ flexShrink: 0, marginTop: '1px' }} />
+                            <span style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a' }}>{title}</span>
+                          </div>
+                          <ul style={{ margin: 0, paddingLeft: '14px', fontSize: '11.5px', color: '#64748b', lineHeight: '1.7' }}>
+                            {items.map(i => <li key={i}>{i}</li>)}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                    Already have an account?{' '}
+                    <Link to="/login" style={{ color: '#0f172a', fontWeight: '700', textDecoration: 'underline' }}>Sign in</Link>
+                  </p>
+                  <button type="submit" style={{
+                    padding: '13px 32px', background: '#0f172a', color: '#fff',
+                    border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer'
+                  }}>
+                    Confirm & Continue →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── SUB-STEP 2 ── */}
+            {subStep === 2 && (
+              <div>
+                <button type="button" onClick={() => setSubStep(1)} style={{
+                  background: 'none', border: 'none', color: '#64748b', fontSize: '13px',
+                  fontWeight: '600', cursor: 'pointer', padding: 0, marginBottom: '20px',
+                  display: 'flex', alignItems: 'center', gap: '4px'
+                }}>
+                  ← Back to screening
+                </button>
+
+                <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', marginBottom: '6px', letterSpacing: '-0.01em' }}>
+                  {isLedByMedicalProf ? 'Create your Prescriber Account' : 'Create your Account'}
+                </h2>
+                <p style={{ color: '#64748b', fontSize: '13px', lineHeight: '1.6', marginBottom: '28px' }}>
+                  {isLedByMedicalProf
+                    ? 'Fill in your professional details below.'
+                    : 'Fill in your personal details below.'}
+                </p>
+
+                {/* ── TOP ROW: Personal (left) + Password (right) ── */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
+
+                  {/* LEFT — Personal Details */}
+                  <div style={cardStyle}>
+                    <p style={sectionHeadingStyle}>
+                      <User size={16} /> Personal Details
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+                      <InputGroup label="Salutation" options={["Mr", "Mrs", "Ms", "Dr", "Prof"]} value={formData.salutation} onChange={handleChange("salutation")} required={false} />
+                      <InputGroup label="First Name" value={formData.firstName} onChange={handleChange("firstName")} />
+                    </div>
+                    <InputGroup label="Last Name" value={formData.lastName} onChange={handleChange("lastName")} />
+                    <InputGroup label="Email Address" type="email" value={formData.email} onChange={handleChange("email")} />
+                    <InputGroup label="Phone Number" placeholder="+44" value={formData.phoneNumber} onChange={handleChange("phoneNumber")} />
+                    <InputGroup label="Home Address" value={formData.address} onChange={handleChange("address")} />
+                    <InputGroup label="Date of Birth" type="date" value={formData.dob} onChange={handleChange("dob")} />
+                  </div>
+
+                  {/* RIGHT — Create a Password */}
+                  <div style={cardStyle}>
+                    <p style={sectionHeadingStyle}>
+                      <Lock size={16} /> Create a Password
+                    </p>
+                    <InputGroup label="Password" type="password" value={formData.password} onChange={handleChange("password")} />
+                    <InputGroup label="Repeat Password" type="password" value={formData.confirmPassword} onChange={handleChange("confirmPassword")} />
+
+                    {/* Requirements */}
+                    <div style={{
+                      background: '#f8fafc', border: '1px solid #e2e8f0',
+                      borderRadius: '8px', padding: '14px 16px',
+                      display: 'flex', flexDirection: 'column', gap: '7px'
+                    }}>
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        Requirements
+                      </span>
+                      {[
+                        'Minimum 8 characters',
+                        'At least one uppercase letter',
+                        'At least one number',
+                        'At least one special character (! % & ?)'
+                      ].map(r => (
+                        <div key={r} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1', flexShrink: 0 }} />
+                          <span style={{ fontSize: '12px', color: '#475569' }}>{r}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── FULL-WIDTH: Professional & Practice Details (prescriber only) ── */}
+                {isLedByMedicalProf && (
+                  <div style={{ ...cardStyle, marginTop: '20px' }}>
+                    <p style={sectionHeadingStyle}>
+                      <Stethoscope size={16} /> Professional Details
+                    </p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <InputGroup
+                        label="Professional Registration Body"
+                        options={professionalRoleOptions}
+                        value={formData.professionalRole}
+                        onChange={handleChange("professionalRole")}
+                        placeholder="Select your registration body"
+                      />
+                      <InputGroup
+                        label="Registration Number"
+                        placeholder="e.g. GMC-1234567"
+                        value={formData.registrationNumber}
+                        onChange={handleChange("registrationNumber")}
+                      />
+                      <InputGroup
+                        label="Primary Speciality"
+                        placeholder="e.g. General Practice, Dermatology"
+                        value={formData.primarySpeciality}
+                        onChange={handleChange("primarySpeciality")}
+                        required={false}
+                      />
+                      <InputGroup
+                        label="Training / Qualification"
+                        placeholder="e.g. MBBS, MRCGP"
+                        value={formData.trainingQualification}
+                        onChange={handleChange("trainingQualification")}
+                        required={false}
+                      />
+                    </div>
+
+                    <p style={{ fontSize: '11px', color: '#94a3b8', margin: '-4px 0 0' }}>
+                      Your registration details will be used to verify your professional status.
+                    </p>
+
+                    {/* Practice / Business sub-section */}
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px', marginTop: '4px' }}>
+                      <p style={{ ...sectionHeadingStyle, borderBottom: 'none', paddingBottom: '12px' }}>
+                        <Building2 size={16} /> Practice / Business Details
+                      </p>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <InputGroup
+                          label="Practice Name"
+                          placeholder="Your clinic or practice name"
+                          value={formData.practiceName}
+                          onChange={handleChange("practiceName")}
+                          required={false}
+                        />
+                        <InputGroup
+                          label="VAT Number"
+                          placeholder="e.g. GB123456789"
+                          value={formData.vatNumber}
+                          onChange={handleChange("vatNumber")}
+                          required={false}
+                        />
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <InputGroup
+                            label="Business Address"
+                            placeholder="Full business address"
+                            value={formData.businessAddress}
+                            onChange={handleChange("businessAddress")}
+                            required={false}
+                          />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <InputGroup
+                            label="How did you hear about us?"
+                            options={referralSourceOptions}
+                            value={formData.referralSource}
+                            onChange={handleChange("referralSource")}
+                            placeholder="Select a source"
+                            required={false}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── TERMS ── */}
+                <label style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '10px',
+                  cursor: 'pointer', fontSize: '12px', color: '#475569', lineHeight: '1.5',
+                  background: '#fff', border: '1px solid #e2e8f0',
+                  borderRadius: '10px', padding: '14px 16px', marginTop: '20px'
+                }}>
+                  <input type="checkbox" checked={formData.agreedToTerms}
+                    onChange={handleChange("agreedToTerms")} required
+                    style={{ marginTop: '3px', accentColor: '#0f172a' }} />
+                  <span>I accept and agree to the website{' '}
+                    <span style={{ color: '#0f172a', fontWeight: '700' }}>Terms of Use</span> and{' '}
+                    <span style={{ color: '#0f172a', fontWeight: '700' }}>Privacy Policy</span>.
+                  </span>
+                </label>
+
+                {/* ── SUBMIT ── */}
+                <button type="submit" disabled={loading} style={{
+                  width: '100%', padding: '15px',
+                  background: '#0f172a', color: '#fff',
+                  border: 'none', borderRadius: '10px',
+                  fontSize: '13px', fontWeight: '700',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1,
+                  marginTop: '16px'
+                }}>
+                  {loading ? 'Creating Account...' : 'CREATE ACCOUNT →'}
+                </button>
+              </div>
+            )}
+          </form>
+        ) : (
+          /* OTP */
+          <div style={{ maxWidth: '380px', margin: '60px auto', textAlign: 'center' }}>
+            <div style={{
+              width: '56px', height: '56px', borderRadius: '14px',
+              background: '#fff', border: '1px solid #e2e8f0',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px'
+            }}>
+              <Lock size={24} color="#0f172a" />
+            </div>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', marginBottom: '10px' }}>
+              Enter Security Code
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '13px', lineHeight: '1.6', marginBottom: '32px' }}>
+              We sent a 6-digit code to <strong style={{ color: '#0f172a' }}>{formData.email}</strong>
+            </p>
+            <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <input type="text" placeholder="000000" maxLength={6}
+                value={otp} onChange={(e) => setOtp(e.target.value)} required
+                style={{
+                  width: '100%', padding: '18px',
+                  border: '1.5px solid #e2e8f0', borderRadius: '12px',
+                  fontSize: '28px', fontWeight: '700', textAlign: 'center',
+                  letterSpacing: '0.4em', outline: 'none', background: '#fff', boxSizing: 'border-box'
+                }}
+                onFocus={e => e.target.style.borderColor = '#0f172a'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+              <button type="submit" disabled={loading} style={{
+                width: '100%', padding: '15px', background: '#0f172a',
+                color: '#fff', border: 'none', borderRadius: '10px',
+                fontSize: '13px', fontWeight: '700',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}>
+                {loading ? 'Verifying...' : 'Verify & Activate Account'}
+              </button>
+            </form>
+            <button type="button" onClick={() => setStep(1)} style={{
+              background: 'none', border: 'none', color: '#94a3b8',
+              fontSize: '12px', fontWeight: '600', marginTop: '20px',
+              cursor: 'pointer', textDecoration: 'underline'
+            }}>
+              Change email address
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

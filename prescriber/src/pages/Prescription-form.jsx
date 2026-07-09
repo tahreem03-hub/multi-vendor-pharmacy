@@ -45,7 +45,7 @@ const PrescriptionForm = () => {
     patient: {
       firstName: '', lastName: '', gender: 'Male',
       dob: '', email: '', phone: '', address: '',
-      allergies: '',           // ✅ FIX: was "contraindications" — schema uses "allergies"
+      allergies: '', country: '',           // ✅ FIX: was "contraindications" — schema uses "allergies"
     },
     prescriber: {
       name: '', regNumber: '', type: 'Doctor',
@@ -205,6 +205,14 @@ const PrescriptionForm = () => {
                 <input className={inputCls} placeholder="123 Main St, London" required
                   value={formData.patient.address}
                   onChange={e => handlePatientChange('address', e.target.value)} />
+              </Field>
+
+              {/* ✅ country for signatire rx" */}
+              <Field label="Country">
+                <input className={inputCls} required
+                  placeholder="e.g. UK, USA, India"
+                  value={formData.patient.country}
+                  onChange={e => handlePatientChange('country', e.target.value)} />
               </Field>
 
               {/* ✅ FIX: was using "contraindications" — now correctly uses "allergies" */}

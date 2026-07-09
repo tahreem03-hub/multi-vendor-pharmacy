@@ -11,13 +11,15 @@ const prescriptionSchema = new mongoose.Schema(
 
     patientDetails: {
       firstName: { type: String },
-      lastName:  { type: String },
-      gender:    { type: String },
-      dob:       { type: Date },
-      email:     { type: String },
-      phone:     { type: String },
-      address:   { type: String },
+      lastName: { type: String },
+      gender: { type: String },
+      dob: { type: Date },
+      email: { type: String },
+      phone: { type: String },
+      address: { type: String },
       allergies: { type: String },
+      country: {type: String},           // required for signature rx
+      
     },
 
     // ── PRESCRIBER LINK ───────────────────────────────────────
@@ -30,11 +32,12 @@ const prescriptionSchema = new mongoose.Schema(
     },
 
     prescriberDetails: {
-      name:          { type: String },
-      regNumber:     { type: String },
-      type:          { type: String },
-      clinicName:    { type: String },
+      name: { type: String },
+      regNumber: { type: String },
+      type: { type: String },
+      clinicName: { type: String },
       clinicalNotes: { type: String }, // ✅ Added — was missing, now saves from form
+
     },
 
     // ── MEDICATIONS ───────────────────────────────────────────
@@ -86,6 +89,11 @@ const prescriptionSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000),
+    },
+    // ── SIGNATURERX INTEGRATION ──────────────────────────────
+    signatureRxId: {
+      type: String,
+      sparse: true,
     },
   },
   { timestamps: true }

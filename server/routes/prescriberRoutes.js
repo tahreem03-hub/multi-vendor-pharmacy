@@ -24,8 +24,10 @@ import { protect, adminOnly,prescriberOnly } from "../middleware/authMiddleware.
 // Change these 4 user routes
 router.get("/search",              protect, searchPrescribers);
 router.post("/link",               protect, sendLinkRequest);
+
 router.get("/patients",            ...prescriberOnly, getMyPatients);
 router.delete("/patients/:patientId", ...prescriberOnly, deleteMyPatient);
+
 router.get("/active-links",        protect, getActiveLinks);
 router.post("/request-prescription", protect, submitPrescriptionRequest);
 

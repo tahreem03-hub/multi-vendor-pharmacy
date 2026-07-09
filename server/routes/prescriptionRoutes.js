@@ -7,7 +7,7 @@ import {
   submitPrescription,
   getMyPrescriptions,
   deletePrescription,
-  getPrescriptionById  // 👈 ADD THIS
+  getPrescriptionById  // ADD THIS
 } from "../controllers/prescription.controller.js";
 import upload from "../middleware/multer.js";
 import { protect, staffOnly } from "../middleware/authMiddleware.js";
@@ -17,9 +17,9 @@ const router = express.Router();
 // Any logged-in user
 
 router.post("/submit",              protect,           submitPrescription);
-router.post("/upload",              protect,           upload.single("image"), uploadPrescription);
-router.get("/status/:medicineId",   protect,           checkUserPrescriptionStatus);
-router.get('/my', protect, getMyPrescriptions);
+router.post("/upload",              protect,           upload.single("image"), uploadPrescription);    //  not found in frontend
+router.get("/status/:medicineId",   protect,           checkUserPrescriptionStatus);                   //  not found in frontend
+router.get('/my', protect, getMyPrescriptions);                                                // this is getting from prescription request model
 
 // Staff only (admin or prescriber)
 router.get("/pending",              ...staffOnly,      getPendingPrescriptions);

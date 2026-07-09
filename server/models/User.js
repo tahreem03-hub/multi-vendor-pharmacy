@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
     // ── ACCOUNT STATUS ────────────────────────────────────────
     isVerified: { type: Boolean, default: false },
     isApproved: { type: Boolean, default: false },
-    isActive:   { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true },
 
     // ── ROLE ──────────────────────────────────────────────────
     role: {
@@ -16,7 +16,6 @@ const userSchema = new mongoose.Schema(
       default: 'user'
     },
 
-    // accountType kept for registration form compatibility
     accountType: {
       type: String,
       enum: ["Prescriber", "Practitioner"],
@@ -26,7 +25,7 @@ const userSchema = new mongoose.Schema(
     prescriberId: {
       type: String,
       unique: true,
-      sparse: true, // allows null/absent on non-prescriber accounts
+      sparse: true,
     },
 
     // ── PERSONAL DETAILS ──────────────────────────────────────
@@ -39,8 +38,8 @@ const userSchema = new mongoose.Schema(
     address:     { type: String, required: true },
 
     // ── PRESCRIBER / PRACTITIONER CREDENTIALS ─────────────────
-    professionalRole:      { type: String }, 
-    registrationNumber:    { type: String }, 
+    professionalRole:      { type: String }, // Maps to professional_registration_body
+    registrationNumber:    { type: String }, // Maps to registration_number
     primarySpeciality:     { type: String }, 
     trainingQualification: { type: String }, 
 
@@ -64,28 +63,41 @@ const userSchema = new mongoose.Schema(
     },
 
     // ── AUTH TOKENS ───────────────────────────────────────────
-    otp:                 { type: String },
-    otpExpire:           { type: Date },
-    resetPasswordToken:  { type: String },
+    otp: { type: String },
+    otpExpire: { type: Date },
+    resetPasswordToken: { type: String },
     resetPasswordExpire: { type: Date },
+
+    // ── SIGNATURERX INTEGRATION ──────────────────────────────
+    signatureRxId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    signatureRxStatus: {
+      type: String,
+      enum: ['synced', 'pending_sync', 'sync_failed', 'local_only'],
+      default: 'local_only'
+    },
+    signatureRxLastSync: {
+      type: Date
+    }
   },
   { timestamps: true }
 );
 
 // ── Auto-generate prescriberId + sync role with accountType ──
 userSchema.pre("save", function (next) {
-  // If user registers with an accountType, promote role to prescriber
   if (this.accountType && this.role === "user") {
     this.role = "prescriber";
   }
 
-  // Generate a unique prescriberId for all prescribers
   if (this.role === "prescriber" && !this.prescriberId) {
     this.prescriberId =
       "PRE-" + Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
-  // next(); // 💡 FIX: Restored this so Mongoose doesn't freeze!
+  next();
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

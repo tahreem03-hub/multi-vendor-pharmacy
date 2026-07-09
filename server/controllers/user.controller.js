@@ -48,3 +48,26 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+// controller to get all approved prescribers to show in prescription form
+export const getApprovdPrescribers = async (req, res) => {
+  try {
+    const prescribers = await User.find({ 
+      role: 'prescriber',
+      isActive: true 
+    }).select('firstName lastName registrationNumber professionalRole prescriberId');
+    
+    const formatted = prescribers.map(p => ({
+      _id:                p._id,
+      name:               `${p.firstName} ${p.lastName}`.trim(),
+      registrationNumber: p.registrationNumber || 'N/A',
+      professionalRole:   p.professionalRole   || 'Prescriber',
+      prescriberId:       p.prescriberId       || '',
+    }));
+
+    res.json({ prescribers: formatted });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}

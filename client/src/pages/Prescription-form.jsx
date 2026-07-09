@@ -58,7 +58,7 @@ const PrescriptionForm = () => {
     patient: {
       firstName: "", lastName: "", gender: "Male",
       dob: "", email: "", phone: "", address: "",
-      allergies: "", contraindications: "",
+      allergies: "", country: "",
     },
     prescriber: {
       name: "", regNumber: "", type: "Doctor",
@@ -195,6 +195,10 @@ const PrescriptionForm = () => {
               </div>
               <div className="col-span-2">
                 <InputField label="Address" value={formData.patient.address} onChange={e => handlePatientChange("address", e.target.value)} placeholder="123 Main Street, London" required />
+              </div>
+              {/* ✅ country for signatire rx" */}
+              <div className="col-span-2">
+                <InputField label="Country" value={formData.patient.country} onChange={e => handlePatientChange("country", e.target.value)} placeholder="US, USA, India" required />
               </div>
               <div className="col-span-2 flex flex-col gap-1.5">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-0.5">Allergies / Contraindications</label>

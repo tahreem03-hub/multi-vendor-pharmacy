@@ -1,43 +1,54 @@
 import mongoose from "mongoose";
 
 const PrescriberLinkSchema = new mongoose.Schema({
-  requesterId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+  requesterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  prescriberId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+  prescriberId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  requesterRole: { 
-    type: String, 
+  requesterRole: {
+    type: String,
     required: true,
     enum: [
-      "Aesthetic nurse non-prescriber", 
-      "Aesthetic therapist", 
-      "Doctor (non-prescriber)", 
-      "Dentist (non-prescriber)", 
-      "Paramedic", 
+      "Aesthetic nurse non-prescriber",
+      "Aesthetic therapist",
+      "Doctor (non-prescriber)",
+      "Dentist (non-prescriber)",
+      "Paramedic",
       "Other healthcare professions"
     ]
   },
-  registrationNumber: { 
-    type: String, 
-    required: true 
+  registrationNumber: {
+    type: String,
+    required: true
   },
-  status: { 
-    type: String, 
-    enum: ['pending', 'active', 'rejected'], 
-    default: 'pending' 
+  status: {
+    type: String,
+    enum: ['pending', 'active', 'rejected'],
+    default: 'pending'
   },
-  message: { 
-    type: String 
+  message: {
+    type: String
   },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+
+  // Add to your PrescriberLinkSchema
+  signatureRxId: {
+    type: String,
+    sparse: true
+  },
+  signatureRxStatus: {
+    type: String,
+    enum: ['synced', 'pending_sync', 'sync_failed', 'local_only'],
+    default: 'local_only'
   }
 });
 
