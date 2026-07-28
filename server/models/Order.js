@@ -1,27 +1,30 @@
 import mongoose from "mongoose";
 
 // ── Order Item (sub-document) ─────────────────────────────────
-// Snapshots pricing at time of order so historical records
-// never change if medicine prices are updated later
 const OrderItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Medicine",            // matches your Medicine model
+    ref: "Medicine",
     required: true,
   },
-  productName:      { type: String, required: true }, // snapshot
+  productName:      { type: String, required: true },
   quantity:         { type: Number, required: true, min: 1 },
-  isPOM:            { type: Boolean, default: false }, // Prescription-Only Medicine
-
-  // Pricing snapshot (ex VAT) at time of order
-  unitCostExVat:    { type: Number, required: true }, // medicine.buyingPrice
-  unitRevenueExVat: { type: Number, required: true }, // medicine.sellingPrice
-  vatRate:          { type: Number, default: 0 },     // 0 for POM, 0.20 for non-POM
+  isPOM:            { type: Boolean, default: false },
+  unitCostExVat:    { type: Number, required: true },
+  unitRevenueExVat: { type: Number, required: true },
+  vatRate:          { type: Number, default: 0 },
 });
 
 // ── Order ─────────────────────────────────────────────────────
 const OrderSchema = new mongoose.Schema(
   {
+    // ── HUMAN-READABLE REFERENCE (Doc Section 5) ──────────────
+    orderReference: {
+      type: String,
+      unique: true,
+      sparse: true, // e.g. "ORD-XXXXXXX"
+    },
+
     // ── WHO PLACED THE ORDER ──────────────────────────────────
     customer: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,7 +33,6 @@ const OrderSchema = new mongoose.Schema(
     },
 
     // ── WHICH PRESCRIBER THIS ORDER BELONGS TO ────────────────
-    // Both fields stored: ObjectId for .populate(), string for fast filtering
     prescriber: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -38,7 +40,7 @@ const OrderSchema = new mongoose.Schema(
     },
     prescriberId: {
       type: String,
-      required: false, // e.g. "PRE-AB12CD"
+      required: false,
     },
 
     // ── PRESCRIPTION REFERENCE ────────────────────────────────
@@ -50,25 +52,34 @@ const OrderSchema = new mongoose.Schema(
     // ── ORDER ITEMS ───────────────────────────────────────────
     items: [OrderItemSchema],
 
+    // ── DELIVERY & PAYMENT (Doc Section 5) ────────────────────
+    deliveryMethod: {
+      type: String,
+      enum: ["Standard", "Next Day", "Cold-Chain Express", "Click & Collect"],
+      default: "Standard",
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["Card", "Bank Transfer", "Credit Account"],
+      default: "Card",
+    },
+
     // ── FINANCIAL BREAKDOWN (all ex VAT) ─────────────────────
-    // Populated by order.controller.js commission calculator
     financials: {
-      revenueExVat:        { type: Number, default: 0 }, // total selling price ex VAT
-      cogsExVat:           { type: Number, default: 0 }, // total buying price ex VAT
-      packagingCostExVat:  { type: Number, default: 0 }, // flat packaging cost
-      deliveryCostExVat:   { type: Number, default: 0 }, // flat delivery cost
-      paymentFee:          { type: Number, default: 0 }, // card/payment processing fee
-      commissionExVat:     { type: Number, default: 0 }, // Dr G's earned margin
-      outputVat:           { type: Number, default: 0 }, // VAT charged to patient (owed to HMRC)
-      inputVat:            { type: Number, default: 0 }, // VAT paid on purchases (reclaimable)
-      vatPositionImpact:   { type: Number, default: 0 }, // inputVat - outputVat (+ve = HMRC owes pot)
-      immediateCashImpact: { type: Number, default: 0 }, // cash pot sees before any VAT refund
-      trueProfitImpact:    { type: Number, default: 0 }, // immediateCashImpact + vatPositionImpact
+      revenueExVat:        { type: Number, default: 0 },
+      cogsExVat:           { type: Number, default: 0 },
+      packagingCostExVat:  { type: Number, default: 0 },
+      deliveryCostExVat:   { type: Number, default: 0 },
+      paymentFee:          { type: Number, default: 0 },
+      commissionExVat:     { type: Number, default: 0 },
+      outputVat:           { type: Number, default: 0 },
+      inputVat:            { type: Number, default: 0 },
+      vatPositionImpact:   { type: Number, default: 0 },
+      immediateCashImpact: { type: Number, default: 0 },
+      trueProfitImpact:    { type: Number, default: 0 },
     },
 
     // ── POT SNAPSHOT ──────────────────────────────────────────
-    // Records pot values at the moment this order was placed
-    // Used for monthly reconciliation reports
     potSnapshot: {
       pot1StockBefore: { type: Number },
       pot1StockAfter:  { type: Number },
@@ -80,11 +91,11 @@ const OrderSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "pending",     // placed, awaiting prescription verification
-        "verified",    // prescription verified by pharmacist
-        "dispensing",  // pharmacy is packing
-        "dispatched",  // shipped to client
-        "delivered",   // confirmed delivered
+        "pending",
+        "verified",
+        "dispensing",
+        "dispatched",
+        "delivered",
         "cancelled",
       ],
       default: "pending",
@@ -108,6 +119,14 @@ const OrderSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// ── Auto-generate human-readable order reference ───────────────
+OrderSchema.pre("save", function (next) {
+  if (!this.orderReference) {
+    this.orderReference = "ORD-" + Math.random().toString(36).substring(2, 9).toUpperCase();
+  }
+ // next();
+});
 
 // ── Indexes for fast dashboard queries ────────────────────────
 OrderSchema.index({ prescriberId: 1, createdAt: -1 });

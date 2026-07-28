@@ -271,6 +271,27 @@ export const getPendingPrescriptions = async (req, res) => {
   }
 };
 
+export const getAllPrescriptions = async (req, res) => {
+  try {
+    const { status } = req.query; // optional filter
+    
+    const filter = {};
+    if (status) filter.status = status;
+    
+    const prescriptions = await Prescription.find(filter)
+      .populate("user",        "firstName lastName email")
+      .populate("medicine",    "name brand dosage price")
+      .populate("medications", "name brand dosage price")
+      .populate("prescriber",  "firstName lastName prescriberId")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ count: prescriptions.length, prescriptions });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching prescriptions." });
+  }
+};
+
+
 export const verifyPrescription = async (req, res) => {
   try {
     const { id } = req.params;
@@ -320,14 +341,43 @@ export const getMyPrescriptions = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    // PrescriptionRequest — jo customers ne request ki
     const PrescriptionRequest = (await import('../models/PrescriptionRequest.js')).default;
     const requests = await PrescriptionRequest.find({
-      prescriberId: userId
-    })
-      .populate('requesterId', 'firstName lastName email')
-      .sort({ createdAt: -1 });
+      prescriberId: userId,
+    }).sort({ createdAt: -1 });
 
-    res.json({ prescriptions: requests });
+    // Prescription — jo prescriber ne khud issue ki (direct)
+    const directPrescriptions = await Prescription.find({
+      prescriber: userId,
+      method: 'direct',
+    })
+    .populate('medications', 'name')
+    .sort({ createdAt: -1 });
+
+    // Combine karo
+    const combined = [
+      ...requests.map(r => ({
+        _id:         r._id,
+        patientName: r.patientName,
+        treatment:   r.treatment,
+        status:      r.status,
+        createdAt:   r.createdAt,
+        method:      'request',
+        type:        'request',
+      })),
+      ...directPrescriptions.map(p => ({
+        _id:            p._id,
+        patientDetails: p.patientDetails,
+        treatment:      p.fulfillmentMethod || 'Direct',
+        status:         p.status,
+        createdAt:      p.createdAt,
+        method:         'direct',
+        type:           'direct',
+      })),
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ prescriptions: combined });
   } catch (error) {
     console.error('getMyPrescriptions error:', error);
     res.status(500).json({ message: 'Failed to fetch prescriptions' });
@@ -389,3 +439,5 @@ export const getPrescriptionById = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch prescription' });
   }
 };
+
+

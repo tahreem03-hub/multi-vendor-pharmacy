@@ -65,21 +65,18 @@ const CartPage = () => {
       return;
     }
 
-    // NOW this will work because prescriptionRequired is in cart items
-    const hasPrescriptionRequiredItem = items.some(item => item.prescriptionRequired === true);
-
-    if (hasPrescriptionRequiredItem) {
-      if (prescribers.length === 0) {
-        toast.error('Prescription required — please link a prescriber first');
-        navigate('/prescriptions');
-        return;
-      }
-
-      if (!prescriberId) {
-        toast.error('Please select a prescriber');
-        return;
-      }
+    
+    if (prescribers.length === 0) {
+      toast.error('No linked prescriber found — please link a prescriber first');
+      navigate('/prescriberLink');
+      return;
     }
+    if (!prescriberId) {
+      toast.error('Please select a prescriber');
+      return;
+    }
+
+
 
     // Proceed with order...
     setCheckingOut(true);

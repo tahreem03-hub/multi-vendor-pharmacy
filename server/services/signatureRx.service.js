@@ -1,12 +1,14 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.SIGNATURE_RX_BASE_URL || 'https://app.signaturerx.co.uk/api/v1';
+const BASE_URL = process.env.SIGNATURE_RX_BASE_URL || 'https://stage-srx.signaturerx.co.uk/api/v1';
 
 let cachedToken = null;
 let tokenExpiry = null;
 
 // ── Get JWT Token ─────────────────────────────────────────────
 export const getSignatureRxToken = async () => {
+
+  console.log("👉 SignatureRx URL being used:", BASE_URL);
   // Valid token hai toh wahi use karo
   if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
     return cachedToken;
@@ -24,8 +26,14 @@ export const getSignatureRxToken = async () => {
   // getting token first time or refresh failed then also get new token
   try {
     const { data } = await axios.post(`${BASE_URL}/login`, {
-      email:    process.env.SIGNATURE_RX_EMAIL,
+      email: process.env.SIGNATURE_RX_EMAIL,
       password: process.env.SIGNATURE_RX_PASSWORD,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'DrGPharma-Server/1.0',
+        'Accept': 'application/json',
+      },
     });
 
     cachedToken = data.access_token;
@@ -87,7 +95,7 @@ export const makeAuthRequest = async (method, url, data = null, params = null) =
       // Token invalid — clear karo aur fresh login karo
       cachedToken = null;
       tokenExpiry = null;
-      console.log('🔄 Token invalid, getting fresh token...');
+      console.log('Token invalid, getting fresh token...');
 
       const newToken = await getSignatureRxToken();
       config.headers.Authorization = `Bearer ${newToken}`;
@@ -139,10 +147,10 @@ export const createSignatureRxPatient = async (patientData) => {
 export const createSignatureRxPrescription = async (payload) => {
   try {
     console.log('✅ Creating prescription with patient in SignatureRx');
-    
+
     // ✅ Ek hi call — patient + prescription dono
     const result = await makeAuthRequest('POST', '/prescriptions/patients', payload);
-    
+
     console.log('✅ Prescription created in SignatureRx');
     return result;
 

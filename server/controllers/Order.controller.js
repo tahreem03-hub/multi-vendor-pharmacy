@@ -37,7 +37,7 @@ export const createOrder = async (req, res) => {
 
     let prescriber = null;
     if (prescriberId) {
-      prescriber = await User.findOne({ prescriberId: prescriberId, role: "prescriber" }); // ✅
+      prescriber = await User.findOne({ prescriberId: prescriberId, role: "prescriber" }); 
       if (!prescriber) {
         return res.status(404).json({ message: "Prescriber not found" });
       }

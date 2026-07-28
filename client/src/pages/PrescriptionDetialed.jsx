@@ -1,18 +1,24 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { 
-  PencilLine, 
-  Link, 
-  Inbox, 
-  History, 
-  Settings 
-} from 'lucide-react';
+import { Link } from 'lucide-react';
 
+// The "Issue Prescription" tab/route (/prescription-form) has been removed
+// from this customer-facing nav. That form sent free-text prescriber
+// details with no real prescriberId, so it couldn't route to an actual
+// prescriber account — requests fell back to Admin instead of the
+// linked prescriber.
+//
+// "PrescribeLink™" (Link a Prescriber + Request a Prescription) already
+// uses a real prescriberId sourced from the customer's active linked
+// prescribers, matching the doc's Section 3 flow — left unchanged here.
+//
+// A separate "Issue Prescription" flow, restricted to verified
+// prescribers only and auto-populated from their own account (per
+// doc Section 4), will be added to the prescriber's own dashboard as
+// a next step — not on this customer-facing nav.
 const PrescriptionDetailed = () => {
   const tabs = [
-    { name: 'Issue Prescription', path: '/prescription-form', icon: PencilLine },
-    { name: 'PrescribeLink™',     path: '/prescriberLink',    icon: Link },
-   
+    { name: 'PrescribeLink™', path: '/prescriberLink', icon: Link },
   ];
 
   return (
@@ -30,16 +36,12 @@ const PrescriptionDetailed = () => {
             >
               {({ isActive }) => (
                 <>
-                  {/* Real Lucide Icon */}
-                  <tab.icon 
+                  <tab.icon
                     className={`w-4 h-4 mr-2 transition-colors ${
                       isActive ? 'text-slate-600' : 'text-slate-500 group-hover:text-slate-500'
-                    }`} 
+                    }`}
                   />
-                  
                   <span>{tab.name}</span>
-
-                  {/* Active Underline Indicator */}
                   {isActive && (
                     <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-slate-600 rounded-t-full" />
                   )}

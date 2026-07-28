@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  BiPackage, 
-  BiRefresh, 
-  BiSearch, 
+import {
+  BiPackage,
+  BiRefresh,
+  BiSearch,
   BiShow,
   BiChevronDown,
   BiChevronUp
@@ -25,19 +25,19 @@ const STATUS_NEXT = {
 };
 
 const STATUS_ACTION = {
-  pending:    { label: 'verify rx',    cls: 'bg-black text-white hover:bg-gray-800' },
-  verified:   { label: 'dispense',     cls: 'bg-black text-white hover:bg-gray-800' },
-  dispensing: { label: 'dispatch',     cls: 'bg-black text-white hover:bg-gray-800' },
-  dispatched: { label: 'delivered',    cls: 'bg-emerald-600 text-white hover:bg-emerald-700' },
+  pending: { label: 'verify rx', cls: 'bg-black text-white hover:bg-gray-800' },
+  verified: { label: 'dispense', cls: 'bg-black text-white hover:bg-gray-800' },
+  dispensing: { label: 'dispatch', cls: 'bg-black text-white hover:bg-gray-800' },
+  dispatched: { label: 'delivered', cls: 'bg-emerald-600 text-white hover:bg-emerald-700' },
 };
 
 const STATUS_THEME = {
-  pending:    'bg-gray-100 text-gray-700 border-gray-200',
-  verified:   'bg-gray-100 text-gray-700 border-gray-200',
+  pending: 'bg-gray-100 text-gray-700 border-gray-200',
+  verified: 'bg-gray-100 text-gray-700 border-gray-200',
   dispensing: 'bg-gray-100 text-gray-700 border-gray-200',
   dispatched: 'bg-gray-100 text-gray-700 border-gray-200',
-  delivered:  'bg-emerald-50 text-emerald-700 border-emerald-100',
-  cancelled:  'bg-red-50 text-red-700 border-red-100',
+  delivered: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  cancelled: 'bg-red-50 text-red-700 border-red-100',
 };
 
 const Orders = () => {
@@ -90,9 +90,25 @@ const Orders = () => {
             <span className="font-mono text-[11px] font-bold text-gray-500">
               #{order._id?.slice(-8).toUpperCase()}
             </span>
+            
             <div className="flex flex-col mt-1">
               <span className="font-bold text-black text-sm">
                 {order.customer?.firstName} {order.customer?.lastName}
+              </span>
+            </div>
+
+// source tag
+            <div className="flex flex-col mt-1">
+              <span className="font-bold text-black text-sm">
+                {order.customer?.firstName} {order.customer?.lastName}
+              </span>
+              <span className={`text-[9px] font-black mt-1 w-fit px-2 py-0.5 rounded border ${order.prescriberId
+                  ? 'bg-purple-50 text-purple-600 border-purple-200'
+                  : 'bg-gray-50 text-gray-600 border-gray-200'
+                }`}>
+                {order.prescriberId
+                  ? `Via ${order.prescriber?.firstName || 'Prescriber'}`
+                  : 'Direct'}
               </span>
             </div>
           </div>
@@ -125,7 +141,7 @@ const Orders = () => {
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="space-y-3">
               <h3 className="text-[12px] font-black text-black flex items-center gap-2">
-                <BiPackage size={14} className="text-black"/> Package manifest
+                <BiPackage size={14} className="text-black" /> Package manifest
               </h3>
               {order.items?.map((item, i) => (
                 <div key={i} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
@@ -166,9 +182,9 @@ const Orders = () => {
   return (
     <div className="bg-white min-h-screen font-sans antialiased text-black">
       <Header title="order side" />
-      
+
       <div className="max-w-[1600px] mx-auto p-4 lg:p-8">
-        
+
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4 md:gap-6">
           <div className="w-full md:w-auto">
             <div className="flex items-center gap-3 mb-1">
@@ -200,7 +216,7 @@ const Orders = () => {
               className="w-full bg-gray-50 border-none rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-200 transition-all outline-none text-black"
             />
           </div>
-          
+
           <select
             value={statusFilter}
             onChange={e => { setStatus(e.target.value); setPage(1); }}
@@ -220,6 +236,7 @@ const Orders = () => {
               <tr className="bg-gray-50 border-b border-gray-100 text-[12px] font-black text-gray-600">
                 <th className="py-4 px-6 text-left">ref id</th>
                 <th className="py-4 px-6 text-left">customer</th>
+                <th className="py-4 px-6 text-left">source</th> {/* ✅ add karo */}
                 <th className="py-4 px-6 text-left">revenue</th>
                 <th className="py-4 px-6 text-center">pipeline</th>
                 <th className="py-4 px-6 text-right">actions</th>
@@ -227,7 +244,7 @@ const Orders = () => {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={5} className="py-24 text-center text-[10px] font-bold text-gray-400">syncing records...</td></tr>
+                <tr><td colSpan={6} className="py-24 text-center text-[10px] font-bold text-gray-400">syncing records...</td></tr>
               ) : orders.map((order) => {
                 const nextStatus = STATUS_NEXT[order.status];
                 const action = STATUS_ACTION[order.status];
@@ -239,14 +256,34 @@ const Orders = () => {
                       <td className="py-5 px-6 font-mono text-[11px] font-bold text-gray-500">{order._id?.slice(-8).toUpperCase()}</td>
                       <td className="py-5 px-6">
                         <div className="flex flex-col">
-                          <span className="font-bold text-black text-sm">{order.customer?.firstName} {order.customer?.lastName}</span>
+                          <span className="font-bold text-black text-sm">
+                            {order.customer?.firstName} {order.customer?.lastName}
+                          </span>
                           <span className="text-[11px] font-bold text-gray-400">verified account</span>
                         </div>
+                      </td>
+
+                      {/* ✅ Source column — add karo customer ke baad */}
+                      <td className="py-5 px-6">
+                        {order.prescriberId ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded border text-[9px] font-black bg-purple-50 text-purple-600 border-purple-200 w-fit">
+                              Via Prescriber
+                            </span>
+                            <span className="text-[11px] font-bold text-gray-500">
+                              {order.prescriber?.firstName} {order.prescriber?.lastName}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded border text-[9px] font-black bg-gray-50 text-gray-600 border-gray-200">
+                            Direct
+                          </span>
+                        )}
                       </td>
                       <td className="py-5 px-6"><span className="text-sm font-black text-black">{fmt(order.financials?.revenueExVat)}</span></td>
                       <td className="py-5 px-6 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded border text-[9px] font-black ${STATUS_THEME[order.status]}`}>
-                           {order.status}
+                          {order.status}
                         </span>
                       </td>
                       <td className="py-5 px-6 text-right">
@@ -271,39 +308,92 @@ const Orders = () => {
 
                     {isExp && (
                       <tr className="bg-gray-50/50">
-                        <td colSpan={5} className="p-8">
+                        <td colSpan={6} className="p-8"> {/* ✅ colSpan 5 → 6 */}
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2 space-y-3">
                               <h3 className="text-[12px] font-black text-black flex items-center gap-2 mb-4">
-                                <BiPackage size={14} className="text-black"/> package manifest
+                                <BiPackage size={14} className="text-black" /> package manifest
                               </h3>
+
+                              {/* ✅ Audit trail — prescriber info */}
+                              {order.prescriberId && (
+                                <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 mb-4">
+                                  <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2">
+                                    Prescriber Audit Trail
+                                  </p>
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-bold text-purple-800">
+                                        {order.prescriber?.firstName} {order.prescriber?.lastName}
+                                      </span>
+                                      <span className="text-[10px] text-purple-500">
+                                        ID: {order.prescriberId}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
                               {order.items?.map((item, i) => (
                                 <div key={i} className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                                   <div className="flex items-center gap-4">
-                                      <div className="w-8 h-8 bg-gray-100 rounded text-black flex items-center justify-center font-black text-[10px]">{item.quantity}x</div>
+                                    <div className="w-8 h-8 bg-gray-100 rounded text-black flex items-center justify-center font-black text-[10px]">
+                                      {item.quantity}x
+                                    </div>
+                                    <div className="flex flex-col">
                                       <span className="text-xs font-bold text-gray-800">{item.productName}</span>
+                                      {item.isPOM && (
+                                        <span className="text-[9px] font-bold text-amber-600">POM — Prescription Required</span>
+                                      )}
+                                    </div>
                                   </div>
-                                  <span className="font-mono text-xs font-bold text-black">{fmt(item.unitRevenueExVat * item.quantity)}</span>
+                                  <span className="font-mono text-xs font-bold text-black">
+                                    {fmt(item.unitRevenueExVat * item.quantity)}
+                                  </span>
                                 </div>
                               ))}
                             </div>
 
                             <div className="bg-white border border-gray-200 rounded-xl p-6">
-                               <h3 className="text-[10px] font-black text-gray-500 mb-6">financial balance</h3>
-                               <div className="space-y-3 mb-6">
-                                  <div className="flex justify-between text-xs font-bold">
-                                    <span className="text-gray-500">tax (vat)</span>
-                                    <span className="text-black font-bold">{fmt(order.financials?.outputVat)}</span>
-                                  </div>
-                                  <div className="flex justify-between text-xs font-bold">
-                                    <span className="text-gray-500">shipping</span>
-                                    <span className="text-black">£0.00</span>
-                                  </div>
-                               </div>
-                               <div className="pt-4 border-t border-dashed border-gray-200">
+                              <h3 className="text-[10px] font-black text-gray-500 mb-6">financial balance</h3>
+                              <div className="space-y-3 mb-6">
+                                <div className="flex justify-between text-xs font-bold">
+                                  <span className="text-gray-500">revenue ex vat</span>
+                                  <span className="text-black">{fmt(order.financials?.revenueExVat)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-bold">
+                                  <span className="text-gray-500">tax (vat)</span>
+                                  <span className="text-black">{fmt(order.financials?.outputVat)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-bold">
+                                  <span className="text-gray-500">input vat</span>
+                                  <span className="text-green-600">+{fmt(order.financials?.inputVat)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-bold">
+                                  <span className="text-gray-500">vat position</span>
+                                  <span className={order.financials?.vatPositionImpact >= 0 ? 'text-green-600' : 'text-red-500'}>
+                                    {fmt(order.financials?.vatPositionImpact)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-xs font-bold">
+                                  <span className="text-gray-500">immediate cash</span>
+                                  <span className="text-black">{fmt(order.financials?.immediateCashImpact)}</span>
+                                </div>
+                              </div>
+                              <div className="pt-4 border-t border-dashed border-gray-200 space-y-3">
+                                <div>
+                                  <p className="text-[9px] text-gray-500 font-black mb-1">true profit</p>
+                                  <p className="text-lg font-black text-black leading-none">
+                                    {fmt(order.financials?.trueProfitImpact)}
+                                  </p>
+                                </div>
+                                <div className="pt-3 border-t border-gray-100">
                                   <p className="text-[9px] text-gray-500 font-black mb-1">net commission</p>
-                                  <p className="text-2xl font-black text-black leading-none">{fmt(order.financials?.commissionExVat)}</p>
-                               </div>
+                                  <p className="text-2xl font-black text-black leading-none">
+                                    {fmt(order.financials?.commissionExVat)}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -332,14 +422,14 @@ const Orders = () => {
           <div className="mt-6 flex justify-between items-center text-xs font-bold text-gray-500">
             <span>Showing {orders.length} of {total} orders</span>
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="px-4 py-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 Previous
               </button>
-              <button 
+              <button
                 onClick={() => setPage(p => p + 1)}
                 disabled={orders.length < LIMIT}
                 className="px-4 py-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"

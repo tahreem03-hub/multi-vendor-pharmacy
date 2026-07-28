@@ -97,7 +97,7 @@ userSchema.pre("save", function (next) {
       "PRE-" + Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
-  next();
+  
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

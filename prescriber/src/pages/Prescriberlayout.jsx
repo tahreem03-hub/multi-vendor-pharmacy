@@ -17,7 +17,8 @@ import PrescriberOnePort from './PrescriberOnePort';
 import PrescriberPosts from '../components/PrescriberPosts';
 import ContactSetting from './ContactSetting';
 import PrescriberData from './PrescriberData';
-import PrescriptionDetail from '../components/prescriber/PrescriptionDetail'; // 👈 ADD THIS
+import PrescriptionDetail from '../components/prescriber/PrescriptionDetail'; 
+import PrescriberIssuePrescription from './PrescriberIssuePrescription';
 
 // ── Updated placeholder to fit the strict white & slate-600 setup ───────────────────────
 const ComingSoon = ({ title }) => (
@@ -50,6 +51,7 @@ const renderPage = (activePage, prescriptionId) => {
     case 'posts':           return <PrescriberPosts />;
     case 'contact-setting': return <ContactSetting />;
     case 'data':            return <PrescriberData />;
+    case 'issue-prescription':            return <PrescriberIssuePrescription />;
     default:                return <PrescriberDashboard />;
   }
 };

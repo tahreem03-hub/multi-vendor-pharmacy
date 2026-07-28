@@ -19,7 +19,9 @@ const navItems = [
   { key: 'commission',      label: 'Commission',     icon: MdBarChart },
   { key: 'alerts',          label: 'Alerts',         icon: MdNotifications },
   { key: 'contact-setting', label: 'Contact setting', icon: MdPermMedia },
-  { key: 'settings',        label: 'Settings',       icon: MdSettings }
+  { key: 'settings',        label: 'Settings',       icon: MdSettings },
+  { key: 'issue-prescription',        label: 'Prescription Issue',       icon: MdSettings }
+
 ];
 
 const PrescriberSidebar = ({ activePage, setActivePage }) => {

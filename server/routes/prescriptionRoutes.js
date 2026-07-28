@@ -2,6 +2,7 @@ import express from "express";
 import {
   uploadPrescription,
   getPendingPrescriptions,
+  getAllPrescriptions,
   verifyPrescription,
   checkUserPrescriptionStatus,
   submitPrescription,
@@ -9,8 +10,11 @@ import {
   deletePrescription,
   getPrescriptionById  // ADD THIS
 } from "../controllers/prescription.controller.js";
+
+import { issuePrescription } from "../controllers/issuePrescriptionController.js";
+
 import upload from "../middleware/multer.js";
-import { protect, staffOnly } from "../middleware/authMiddleware.js";
+import { protect, staffOnly, prescriberOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -23,10 +27,14 @@ router.get('/my', protect, getMyPrescriptions);                                 
 
 // Staff only (admin or prescriber)
 router.get("/pending",              ...staffOnly,      getPendingPrescriptions);
+router.get("/all",              ...staffOnly,      getAllPrescriptions);
 router.patch("/verify/:id",         ...staffOnly,      verifyPrescription);
 
 
+router.post("/issue", ...prescriberOnly, issuePrescription);
+
+
 router.delete('/:id', protect, deletePrescription);
-router.get('/:id', protect, getPrescriptionById); // 👈 ADD THIS - must be after '/my' to avoid conflict
+router.get('/:id', protect, getPrescriptionById); 
 
 export default router;

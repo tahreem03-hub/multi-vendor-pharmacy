@@ -18,8 +18,7 @@ const prescriptionSchema = new mongoose.Schema(
       phone: { type: String },
       address: { type: String },
       allergies: { type: String },
-      country: {type: String},           // required for signature rx
-      
+      country: { type: String },
     },
 
     // ── PRESCRIBER LINK ───────────────────────────────────────
@@ -31,13 +30,17 @@ const prescriptionSchema = new mongoose.Schema(
       type: String,
     },
 
+    // ⚠️ LEGACY — used only by the old free-text "Issue Prescription"
+    // form that has been removed. Kept for backward compatibility
+    // with existing records. New "direct" issued prescriptions pull
+    // prescriber info live from the `prescriber` ref (req.user) —
+    // they should NOT populate this field.
     prescriberDetails: {
       name: { type: String },
       regNumber: { type: String },
       type: { type: String },
       clinicName: { type: String },
-      clinicalNotes: { type: String }, // ✅ Added — was missing, now saves from form
-
+      clinicalNotes: { type: String },
     },
 
     // ── MEDICATIONS ───────────────────────────────────────────
@@ -61,13 +64,18 @@ const prescriptionSchema = new mongoose.Schema(
     // ── STATUS ────────────────────────────────────────────────
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected", "dispensed"],
+      // "issued": self-issued by prescriber via the direct flow —
+      // set immediately on creation, never passes through "pending"
+      enum: ["pending", "approved", "rejected", "dispensed", "issued"],
       default: "pending",
     },
 
     method: {
       type: String,
-      enum: ["upload", "form"],
+      // "upload"/"form": non-prescriber submitted a request, needs
+      //                  prescriber approval (existing flow, unchanged)
+      // "direct":        prescriber self-issued, no approval step
+      enum: ["upload", "form", "direct"],
       default: "form",
     },
 
@@ -85,11 +93,23 @@ const prescriptionSchema = new mongoose.Schema(
       ref: "Order",
     },
 
+    // ── DISPENSING & DELIVERY (Doc Section 4/5 — set at issue time) ──
+    fulfillmentMethod: {
+      type: String,
+      enum: ["Ship to patient", "Ship to clinic", "Patient collects from Time Pharmacy"],
+    },
+    prescriptionValidity: {
+      type: String,
+      enum: ["28 days", "14 days", "7 days", "Immediate (same-day dispatch)"],
+      default: "28 days",
+    },
+
     // ── EXPIRY ────────────────────────────────────────────────
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000),
     },
+
     // ── SIGNATURERX INTEGRATION ──────────────────────────────
     signatureRxId: {
       type: String,
@@ -104,4 +124,4 @@ prescriptionSchema.index({ prescriberId: 1, createdAt: -1 });
 prescriptionSchema.index({ status: 1 });
 prescriptionSchema.index({ user: 1 });
 
-export default mongoose.model("Prescription", prescriptionSchema);
+export default mongoose.models.Prescription || mongoose.model("Prescription", prescriptionSchema);

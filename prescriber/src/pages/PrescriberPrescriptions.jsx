@@ -5,11 +5,16 @@ import PrescriberHeader from '../components/prescriber/PrescriberHeader';
 import API from '../api/axios';
 import toast from "react-hot-toast";
 
+// ✅ issued status add karo
+const statuses = ['all', 'pending', 'approved', 'rejected', 'dispensed', 'issued'];
+
+// ✅ statusConfig mein issued add karo
 const statusConfig = {
   pending: 'bg-amber-50 text-amber-600 border-amber-200',
   approved: 'bg-blue-50 text-blue-600 border-blue-200',
   rejected: 'bg-red-50 text-red-500 border-red-200',
   dispensed: 'bg-green-50 text-green-600 border-green-200',
+  issued: 'bg-purple-50 text-purple-600 border-purple-200', // ✅ add karo
 };
 
 const PrescriberPrescriptions = () => {
@@ -37,7 +42,6 @@ const PrescriberPrescriptions = () => {
     fetchPrescriptions();
   }, []);
 
-  const statuses = ['all', 'pending', 'approved', 'rejected', 'dispensed'];
 
   const filtered = prescriptions.filter(p => {
     const matchesSearch = search === '' || (
@@ -98,7 +102,7 @@ const PrescriberPrescriptions = () => {
   const handleStatusUpdate = async (prescriptionId, status) => {
     try {
       await API.patch(`/prescriber-link/verify-request/${prescriptionId}`, { status });
-      setPrescriptions(prev => prev.map(p => 
+      setPrescriptions(prev => prev.map(p =>
         p._id === prescriptionId ? { ...p, status } : p
       ));
       toast.success(`Prescription ${status}`);
@@ -206,26 +210,14 @@ const PrescriberPrescriptions = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
-                        {p.status === 'pending' ? (
+                        
+                        {p.status === 'pending' && p.type === 'request' ? (
                           <>
-                            <button
-                              onClick={() => handleStatusUpdate(p._id, 'approved')}
-                              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-black hover:bg-blue-700 transition-all"
-                            >
-                              approve
-                            </button>
-                            <button
-                              onClick={() => handleStatusUpdate(p._id, 'rejected')}
-                              className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-lg text-[10px] font-black hover:bg-slate-100 transition-all"
-                            >
-                              reject
-                            </button>
+                            <button onClick={() => handleStatusUpdate(p._id, 'approved')}>approve</button>
+                            <button onClick={() => handleStatusUpdate(p._id, 'rejected')}>reject</button>
                           </>
                         ) : (
-                          <button
-                            onClick={() => handleViewPrescription(p._id)}
-                            className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-all"
-                          >
+                          <button onClick={() => handleViewPrescription(p._id)}>
                             <Eye size={14} />
                           </button>
                         )}
@@ -279,7 +271,7 @@ const PrescriberPrescriptions = () => {
                         {p.treatment || p.method || '—'}
                       </p>
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2">
                       {p.status === 'pending' ? (

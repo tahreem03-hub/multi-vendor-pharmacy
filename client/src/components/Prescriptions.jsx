@@ -50,7 +50,7 @@ const Prescriptions = () => {
       const [linksRes, reqsRes, pendingRes] = await Promise.all([
         API.get("/prescriber-link/admin/pending"),
         API.get("/prescriber-link/admin/requests"),
-        API.get("/prescriptions/pending"),
+        API.get("/prescriptions/all"),
       ]);
       setLinks(Array.isArray(linksRes.data)                     ? linksRes.data                     : []);
       setRequests(Array.isArray(reqsRes.data)                   ? reqsRes.data                      : []);

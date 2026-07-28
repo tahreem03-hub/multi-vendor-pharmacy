@@ -141,7 +141,7 @@ const HomeHeader = () => {
   const navLinks = [
     { key: 'home', to: '/home', icon: <Home size={13} />, label: 'Home' },
     { key: 'products', to: '/trendpro', icon: <Package size={13} />, label: 'Products', hasDropdown: true },
-    { key: 'prescription', to: '/prescription-form', icon: <FileText size={13} />, label: 'Prescription' },
+    { key: 'prescription', to: '/prescriberLink', icon: <FileText size={13} />, label: 'Prescription' },
     { key: 'howItWorks', to: '/how-it-works', icon: <Sparkles size={13} />, label: 'How It Works' },
     { key: 'about', to: '/about', icon: <Info size={13} />, label: 'About Us' },
     { key: 'contact', to: '/contact', icon: <Mail size={13} />, label: 'Contact' },
