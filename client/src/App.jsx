@@ -32,7 +32,6 @@ import Home from './pages/Home';
 import TrendPro from './pages/TrendPro';
 import CartPage from './pages/CartPage';
 import ProductDetails from './pages/ProductDetails';
-import PrescriptionForm from './pages/Prescription-form';
 import PrescriberLink from './pages/PrescriberLink';
 import PrescriptionDetailed from './pages/PrescriptionDetialed';
 import HowItWorks from './pages/HowItWorks';
@@ -139,7 +138,6 @@ const App = () => {
                 path="prescriptionDetialed"
                 element={<Navigate to="/prescription-form" replace />}
               />
-              <Route path="prescription-form"     element={<PrescriptionForm />} />
               <Route path="prescriberLink"        element={<PrescriberLink />} />
               
             </Route>

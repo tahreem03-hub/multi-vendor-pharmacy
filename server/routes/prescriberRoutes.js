@@ -1,5 +1,5 @@
 import express from "express";
-const router = express.Router(); // <--- This line was missing or broken
+const router = express.Router();
 
 import {
   searchPrescribers,
@@ -8,6 +8,8 @@ import {
   getMyPatients,
   deleteMyPatient,
   submitPrescriptionRequest,
+  getIncomingLinkRequests,   // ✅ ADD
+  verifyMyLink,              // ✅ ADD
   // Admin Controllers
   getAdminPendingLinks,
   getPrescriberDashboard,
@@ -16,29 +18,26 @@ import {
   verifyPrescriptionRequest
 } from "../controllers/prescriberController.js";
 
-import { protect, adminOnly,prescriberOnly } from "../middleware/authMiddleware.js";
-
+import { protect, adminOnly, prescriberOnly } from "../middleware/authMiddleware.js";
 
 // --- USER ROUTES ---
-// Regular users can search, link, and submit
-// Change these 4 user routes
-router.get("/search",              protect, searchPrescribers);
-router.post("/link",               protect, sendLinkRequest);
+router.get("/search",                 protect, searchPrescribers);
+router.post("/link",                  protect, sendLinkRequest);
 
-router.get("/patients",            ...prescriberOnly, getMyPatients);
+router.get("/patients",               ...prescriberOnly, getMyPatients);
 router.delete("/patients/:patientId", ...prescriberOnly, deleteMyPatient);
 
-router.get("/active-links",        protect, getActiveLinks);
-router.post("/request-prescription", protect, submitPrescriptionRequest);
+router.get("/active-links",           protect, getActiveLinks);
+router.post("/request-prescription",  protect, submitPrescriptionRequest);
 
-router.patch("/verify-request/:id",  ...prescriberOnly, verifyPrescriptionRequest); // ✅ add karo
+// --- PRESCRIBER ROUTES ---
+router.patch("/verify-request/:id",   ...prescriberOnly, verifyPrescriptionRequest);
+router.get("/my-link-requests",       ...prescriberOnly, getIncomingLinkRequests);  // ✅ ADD — own links only
+router.patch("/verify-link/:id",      ...prescriberOnly, verifyMyLink);             // ✅ ADD — ownership-checked
 
-
-// Change these 4 admin routes — remove the separate protect, spread adminOnly
+// --- ADMIN ROUTES (read-only) ---
 router.get("/admin/pending",              ...adminOnly, getAdminPendingLinks);
 router.get("/admin/requests",             ...adminOnly, getAdminPrescriptionRequests);
-router.patch("/admin/verify-link/:id",    ...adminOnly, verifyLink);
-router.patch("/admin/verify-request/:id", ...adminOnly, verifyPrescriptionRequest);
-router.get("/dashboard", ...prescriberOnly, getPrescriberDashboard);
+router.get("/dashboard",                  ...prescriberOnly, getPrescriberDashboard);
 
 export default router;

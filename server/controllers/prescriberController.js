@@ -212,7 +212,7 @@ export const submitPrescriptionRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
-    // ✅ FIXED: Removed the req.file check as consent documentation is no longer required
+    // FIXED: Removed the req.file check as consent documentation is no longer required
 
     let parsedProducts = [];
     try {
@@ -233,7 +233,6 @@ export const submitPrescriptionRequest = async (req, res) => {
       treatment,
       productsRequired: parsedProducts,
       clinicalNotes,
-      // ✅ FIXED: Removed consentDocumentation reference
       status: "pending",
     });
 
@@ -307,64 +306,11 @@ export const getAdminPrescriptionRequests = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// VERIFY LINK REQUEST
-// ─────────────────────────────────────────────────────────────
-export const verifyLink = async (req, res) => {
-  try {
-    const { status } = req.body;
 
-    if (!["active", "rejected"].includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status" });
-    }
-
-    const updatedLink = await PrescriberLink.findByIdAndUpdate(req.params.id, { status }, { new: true });
-    if (!updatedLink) {
-      return res.status(404).json({ success: false, message: "Link request not found" });
-    }
-
-    return res.status(200).json({ success: true, message: `Link ${status} successfully`, link: updatedLink });
-  } catch (error) {
-    console.error("verifyLink error:", error);
-    return res.status(500).json({ success: false, message: "Failed to verify link" });
-  }
-};
-
-// ─────────────────────────────────────────────────────────────
-// VERIFY PRESCRIPTION REQUEST
-// ─────────────────────────────────────────────────────────────
-export const verifyPrescriptionRequest = async (req, res) => {
-  try {
-    const { status } = req.body;
-
-    if (!["approved", "rejected", "deleted"].includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status" });
-    }
-
-    if (status === "deleted") {
-      const deletedRequest = await PrescriptionRequest.findByIdAndDelete(req.params.id);
-      if (!deletedRequest) {
-        return res.status(404).json({ success: false, message: "Prescription request not found" });
-      }
-      return res.status(200).json({ success: true, message: "Prescription request deleted successfully" });
-    }
-
-    const updatedRequest = await PrescriptionRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
-    if (!updatedRequest) {
-      return res.status(404).json({ success: false, message: "Prescription request not found" });
-    }
-
-    return res.status(200).json({ success: true, message: `Prescription request ${status} successfully`, request: updatedRequest });
-  } catch (error) {
-    console.error("verifyPrescriptionRequest error:", error);
-    return res.status(500).json({ success: false, message: "Failed to update prescription request" });
-  }
-};
 
 // ─────────────────────────────────────────────────────────────
 // PRESCRIBER DASHBOARD
 // ─────────────────────────────────────────────────────────────
-
 
 export const getPrescriberDashboard = async (req, res) => {
   try {
@@ -531,5 +477,74 @@ export const getPrescriberDashboard = async (req, res) => {
   } catch (error) {
     console.error("getPrescriberDashboard error:", error);
     return res.status(500).json({ success: false, message: "Failed to load dashboard data", error: error.message });
+  }
+};
+
+
+
+
+
+
+
+export const getIncomingLinkRequests = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+
+    const links = await PrescriberLink.find({ prescriberId: userId })
+      .populate(
+        "requesterId",
+        "firstName lastName email registrationNumber role professionalRole"
+      )
+      .sort({ createdAt: -1 });
+
+    const formatted = links.map((link) => ({
+      ...link.toObject(),
+      requesterId: link.requesterId
+        ? {
+            ...link.requesterId.toObject(),
+            name: `${link.requesterId.firstName || ""} ${link.requesterId.lastName || ""}`.trim(),
+          }
+        : null,
+    }));
+
+    return res.status(200).json(formatted);
+  } catch (error) {
+    console.error("getIncomingLinkRequests error:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch link requests" });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// VERIFY OWN LINK REQUEST  (Prescriber)
+// Ownership-checked: a prescriber may ONLY approve/decline a link
+// that is addressed to them. Prevents prescriber A from acting on
+// prescriber B's link requests even with a valid token.
+// ─────────────────────────────────────────────────────────────
+export const verifyMyLink = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const userId = req.user._id || req.user.id;
+
+    if (!["active", "rejected"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    const link = await PrescriberLink.findById(req.params.id);
+    if (!link) {
+      return res.status(404).json({ success: false, message: "Link request not found" });
+    }
+
+    // 🔒 only the target prescriber may act on this link
+    if (String(link.prescriberId) !== String(userId)) {
+      return res.status(403).json({ success: false, message: "Not authorized to verify this link request" });
+    }
+
+    link.status = status;
+    await link.save();
+
+    return res.status(200).json({ success: true, message: `Link ${status} successfully`, link });
+  } catch (error) {
+    console.error("verifyMyLink error:", error);
+    return res.status(500).json({ success: false, message: "Failed to verify link request" });
   }
 };

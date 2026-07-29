@@ -12,7 +12,6 @@ import PrescriberLayout from './pages/Prescriberlayout';
 import TrendPro from './pages/TrendPro';
 import ProductDetails from './pages/ProductDetails';
 import PrescriberLink from './pages/PrescriberLink';
-import PrescriptionForm from './pages/Prescription-form';
 import PrescriptionsPage from './pages/PrescriptionsPage';
 import Injectable from './pages/Injectable';
 import About from './components/About';
@@ -72,10 +71,9 @@ const AppRoutes = () => {
 
       {/* Protected Routes */}
       <Route path="/cart" element={<ProtectedRoute><MainLayout><CartPage /></MainLayout></ProtectedRoute>} />
-      <Route path="/prescription-form" element={<ProtectedRoute><MainLayout><PrescriptionForm /></MainLayout></ProtectedRoute>} />
       <Route path="/prescriptions" element={<ProtectedRoute><MainLayout><PrescriptionsPage /></MainLayout></ProtectedRoute>} />
 
-      {/* Prescriber Only Routes */}
+      {/* Prescriber Only Routes  => not being used in frontend*/}
       <Route path="/trendpro" element={<PrescriberRoute><MainLayout><TrendPro isHomePage={false} /></MainLayout></PrescriberRoute>} />
       <Route path="/prescriber-link" element={<PrescriberRoute><MainLayout><PrescriberLink /></MainLayout></PrescriberRoute>} />
       <Route path="/media-manager" element={<PrescriberRoute><MainLayout><MediaManager /></MainLayout></PrescriberRoute>} />

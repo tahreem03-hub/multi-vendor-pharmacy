@@ -3,7 +3,7 @@ import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import {
   User, Stethoscope, Pill, Truck, CreditCard,
-  Search, Plus, Trash2, CheckCircle, Loader2
+  Search, Plus, Minus, Trash2, CheckCircle, Loader2, Save
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,11 @@ import { useNavigate } from 'react-router-dom';
 const inputCls = 'w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-black placeholder:text-gray-300 outline-none focus:border-black transition-all font-medium';
 const selectCls = `${inputCls} cursor-pointer`;
 const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block';
+
+// ── Cold-chain signal — MUST match issuePrescriptionController.needsColdChain ──
+const COLD_CHAIN_CATEGORIES = ['Botulinum Toxins', 'GLP-1', 'GLP-1 Injectables', 'Injectables'];
+const needsColdChain = (m) =>
+  m?.requiresColdChain === true || COLD_CHAIN_CATEGORIES.includes(m?.category);
 
 const Field = ({ label, children }) => (
   <div className="flex flex-col">
@@ -36,12 +41,13 @@ const PrescriberIssuePrescription = () => {
   const { user } = useAuth(); // logged-in prescriber — source of truth, never editable here
 
   const [submitting, setSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [allMedicines, setAllMedicines] = useState([]);
   const [medicinesFetched, setMedicinesFetched] = useState(false);
-  const [selectedMeds, setSelectedMeds] = useState([]);
+  const [selectedMeds, setSelectedMeds] = useState([]); // each med carries a `quantity`
 
   const [patient, setPatient] = useState({
     firstName: '', lastName: '', gender: 'Male', dob: '',
@@ -59,7 +65,8 @@ const PrescriberIssuePrescription = () => {
   const handlePatient = (f, v) => setPatient(p => ({ ...p, [f]: v }));
   const handleDelivery = (f, v) => setDelivery(p => ({ ...p, [f]: v }));
 
-  const requiresColdChain = selectedMeds.some(m => m.requiresColdChain);
+  const requiresColdChain = selectedMeds.some(needsColdChain);
+  const busy = submitting || savingDraft;
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
@@ -84,37 +91,56 @@ const PrescriberIssuePrescription = () => {
 
   const addMed = (med) => {
     if (selectedMeds.find(m => m._id === med._id)) return toast.error('Already added');
-    setSelectedMeds(p => [...p, med]);
+    setSelectedMeds(p => [...p, { ...med, quantity: 1 }]);
     setSearchQuery(''); setSearchResults([]);
   };
   const removeMed = (id) => setSelectedMeds(p => p.filter(m => m._id !== id));
+  const setQty = (id, delta) =>
+    setSelectedMeds(p => p.map(m =>
+      m._id === id ? { ...m, quantity: Math.max(1, (m.quantity || 1) + delta) } : m
+    ));
+  const setQtyDirect = (id, val) => {
+    const n = Math.max(1, parseInt(val, 10) || 1);
+    setSelectedMeds(p => p.map(m => (m._id === id ? { ...m, quantity: n } : m)));
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedMeds.length) return toast.error('Add at least one medication');
+  // Shared submit for both "Issue" and "Save as Draft"
+  const submit = async (saveAsDraft) => {
     if (!patient.firstName || !patient.lastName) return toast.error('Enter patient name');
-    if (requiresColdChain && delivery.deliveryMethod !== 'Cold-Chain Express') {
-      return toast.error('Botulinum toxins & GLP-1 items require Cold-Chain Express delivery');
+
+    if (!saveAsDraft) {
+      if (!patient.dob || !patient.email) return toast.error('Date of birth and email are required to issue');
+      if (!selectedMeds.length) return toast.error('Add at least one medication');
+      if (requiresColdChain && delivery.deliveryMethod !== 'Cold-Chain Express') {
+        return toast.error('Botulinum toxins & GLP-1 items require Cold-Chain Express delivery');
+      }
     }
 
-    setSubmitting(true);
+    saveAsDraft ? setSavingDraft(true) : setSubmitting(true);
     try {
       const { data } = await API.post('/prescriptions/issue', {
         patientDetails: patient,
         medications: selectedMeds.map(m => m._id),
+        items: selectedMeds.map(m => ({ medicineId: m._id, quantity: m.quantity || 1 })),
         clinicalNotes,
         fulfillmentMethod: delivery.fulfillmentMethod,
         prescriptionValidity: delivery.prescriptionValidity,
         deliveryMethod: delivery.deliveryMethod,
         deliveryAddress: { line1: delivery.line1, city: delivery.city, postcode: delivery.postcode },
         paymentMethod,
+        saveAsDraft,
       });
-      toast.success(`Issued — ${data.orderReference}`);
+
+      if (saveAsDraft) {
+        toast.success('Draft saved');
+      } else {
+        toast.success(`Issued — ${data.rxReference || data.orderReference}`);
+      }
       navigate(`/dashboard?page=prescriptions&prescriptionId=${data.prescriptionId}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to issue prescription');
+      toast.error(err.response?.data?.message || 'Failed to save prescription');
     } finally {
-      setSubmitting(false);
+      saveAsDraft ? setSavingDraft(false) : setSubmitting(false);
     }
   };
 
@@ -125,7 +151,7 @@ const PrescriberIssuePrescription = () => {
         <p className="text-xs text-gray-400 mt-1">Issues immediately under your account — no approval step</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-5">
+      <form onSubmit={(e) => { e.preventDefault(); submit(false); }} className="max-w-5xl mx-auto space-y-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           {/* Patient Details */}
@@ -219,7 +245,12 @@ const PrescriberIssuePrescription = () => {
                     {searchResults.map(med => (
                       <div key={med._id} onClick={() => addMed(med)}
                         className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0">
-                        <p className="text-xs font-semibold text-black">{med.name}</p>
+                        <div>
+                          <p className="text-xs font-semibold text-black">{med.name}</p>
+                          {needsColdChain(med) && (
+                            <p className="text-[9px] text-sky-600 font-bold uppercase tracking-wide">❄ cold-chain</p>
+                          )}
+                        </div>
                         <Plus size={12} className="text-gray-500" />
                       </div>
                     ))}
@@ -235,10 +266,30 @@ const PrescriberIssuePrescription = () => {
                 <div className="space-y-2">
                   {selectedMeds.map((med, i) => (
                     <div key={med._id} className="flex items-center justify-between px-3.5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl">
-                      <span className="text-xs font-semibold text-black">{i + 1}. {med.name}</span>
-                      <button type="button" onClick={() => removeMed(med._id)} className="p-1 text-gray-300 hover:text-red-500">
-                        <Trash2 size={13} />
-                      </button>
+                      <span className="text-xs font-semibold text-black truncate">{i + 1}. {med.name}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* qty stepper */}
+                        <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <button type="button" onClick={() => setQty(med._id, -1)}
+                            className="px-2 py-1 text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                            disabled={(med.quantity || 1) <= 1}>
+                            <Minus size={12} />
+                          </button>
+                          <input
+                            value={med.quantity || 1}
+                            onChange={e => setQtyDirect(med._id, e.target.value)}
+                            className="w-9 text-center text-xs font-bold text-black outline-none"
+                            inputMode="numeric"
+                          />
+                          <button type="button" onClick={() => setQty(med._id, 1)}
+                            className="px-2 py-1 text-gray-500 hover:bg-gray-100">
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                        <button type="button" onClick={() => removeMed(med._id)} className="p-1 text-gray-300 hover:text-red-500">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -313,9 +364,15 @@ const PrescriberIssuePrescription = () => {
         </Card>
 
         {/* Submit */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 flex justify-end">
-          <button type="submit" disabled={submitting}
-            className="px-8 py-3 bg-black text-white rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-gray-900 transition-all disabled:opacity-50">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row justify-end gap-3">
+          <button type="button" onClick={() => submit(true)} disabled={busy}
+            className="px-6 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-all disabled:opacity-50">
+            {savingDraft
+              ? <><Loader2 size={15} className="animate-spin" /> Saving...</>
+              : <><Save size={15} /> Save as Draft</>}
+          </button>
+          <button type="submit" disabled={busy}
+            className="px-8 py-3 bg-black text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-900 transition-all disabled:opacity-50">
             {submitting
               ? <><Loader2 size={15} className="animate-spin" /> Issuing...</>
               : <><CheckCircle size={15} /> Issue Prescription & Order Dispensing</>}

@@ -3,8 +3,8 @@ import API from "../api/axios";
 import Header from "./Header";
 import {
   UserPlus, CheckCircle, Loader2, Clock, AlertTriangle,
-  ClipboardList, ShieldCheck, Trash2, Pill, Eye,
-  ChevronDown, ChevronUp, FileText,
+  ClipboardList, ShieldCheck, Pill, Eye,
+  ChevronDown, ChevronUp, FileText, Lock,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -16,6 +16,7 @@ const StatusBadge = ({ status }) => {
     active:    { cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: <CheckCircle size={10} />, label: "verified"  },
     rejected:  { cls: "bg-red-50 text-red-600 border-red-200",         icon: <AlertTriangle size={10} />, label: "rejected"  },
     dispensed: { cls: "bg-green-50 text-green-700 border-green-200",   icon: <CheckCircle size={10} />,   label: "dispensed" },
+    issued:    { cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: <CheckCircle size={10} />, label: "issued"   },
   };
   const s = map[status] || map.pending;
   return (
@@ -31,6 +32,13 @@ const InfoCell = ({ label, value }) => !value ? null : (
     <p className="text-[9px] font-bold text-slate-400 tracking-widest mb-0.5 uppercase">{label}</p>
     <p className="text-xs font-semibold text-slate-700 break-words">{value}</p>
   </div>
+);
+
+// ── small read-only pill (shown where write actions used to be) ──
+const ReadOnlyPill = () => (
+  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-slate-50 text-slate-400 border-slate-200">
+    <Lock size={10} /> read only
+  </span>
 );
 
 const Prescriptions = () => {
@@ -63,6 +71,8 @@ const Prescriptions = () => {
     }
   };
 
+  // Dispensing verification only — legitimate Admin/pharmacist role
+  // per Doc Section 5 ("Awaiting Pharmacist Review" queue).
   const handleVerify = async (id, status) => {
     try {
       await API.patch(`/prescriptions/verify/${id}`, {
@@ -76,21 +86,10 @@ const Prescriptions = () => {
     }
   };
 
-  const handleLinkAction = async (id, status) => {
-    try {
-      await API.patch(`/prescriber-link/admin/verify-link/${id}`, { status });
-      toast.success(status === "active" ? "professional verified ✓" : "request rejected");
-      fetchAll();
-    } catch { toast.error("action failed"); }
-  };
-
-  const handleRequestAction = async (id, status) => {
-    try {
-      await API.patch(`/prescriber-link/admin/verify-request/${id}`, { status });
-      toast.success(status === "deleted" ? "request deleted" : `prescription ${status} ✓`);
-      fetchAll();
-    } catch { toast.error("action failed"); }
-  };
+  // ✅ MOVED TO PRESCRIBER DASHBOARD.
+  // Per the doc, only the target prescriber approves/declines link requests
+  // and prescription requests. Admin now has read-only visibility here for
+  // audit/monitoring. handleLinkAction / handleRequestAction removed.
 
   const toggle = (id) => setExpandedId(prev => prev === id ? null : id);
 
@@ -116,9 +115,9 @@ const Prescriptions = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: "Pending Prescriptions", value: counts.pendingPrescriptions, cls: counts.pendingPrescriptions > 0 ? 'text-amber-600' : 'text-slate-800' },
-            { label: "Pending Verifications", value: counts.pendingLinks,         cls: counts.pendingLinks > 0 ? 'text-amber-600' : 'text-slate-800'         },
-            { label: "Total Requests",        value: requests.length,             cls: 'text-slate-800'                                                       },
-            { label: "Pending Requests",      value: counts.pendingRequests,      cls: counts.pendingRequests > 0 ? 'text-amber-600' : 'text-slate-800'       },
+            { label: "Pending Link Requests",  value: counts.pendingLinks,         cls: counts.pendingLinks > 0 ? 'text-amber-600' : 'text-slate-800'         },
+            { label: "Total Requests",         value: requests.length,             cls: 'text-slate-800'                                                       },
+            { label: "Pending Requests",       value: counts.pendingRequests,      cls: counts.pendingRequests > 0 ? 'text-amber-600' : 'text-slate-800'       },
           ].map(s => (
             <div key={s.label} className="bg-white border border-slate-200 rounded-2xl px-3 sm:px-4 py-3 shadow-sm">
               <p className={`text-xl sm:text-2xl font-black ${s.cls}`}>{s.value}</p>
@@ -130,9 +129,9 @@ const Prescriptions = () => {
         {/* tabs - scrollable on mobile */}
         <div className="flex gap-2 flex-wrap bg-white border border-slate-200 rounded-2xl p-1.5 shadow-sm overflow-x-auto">
           {[
-            { key: "pending",       label: "Prescriptions",          icon: <FileText size={13} />,    count: counts.pendingPrescriptions },
+            { key: "pending",       label: "Prescriptions",          icon: <FileText size={13} />,      count: counts.pendingPrescriptions },
             { key: "prescriptions", label: "Prescription Requests",  icon: <ClipboardList size={13} />, count: counts.pendingRequests    },
-            { key: "links",         label: "Professional Verification", icon: <ShieldCheck size={13} />, count: counts.pendingLinks       },
+            { key: "links",         label: "Prescriber Link Requests", icon: <ShieldCheck size={13} />, count: counts.pendingLinks },
           ].map(t => (
             <button
               key={t.key}
@@ -155,7 +154,7 @@ const Prescriptions = () => {
           ))}
         </div>
 
-        {/* ── real prescriptions tab ──────────────────────────── */}
+        {/* ── legacy prescriptions tab — pharmacist dispensing queue (Doc §5) ── */}
         {activeTab === "pending" && (
           <div className="space-y-3">
             {pending.length === 0 ? (
@@ -205,6 +204,7 @@ const Prescriptions = () => {
                       )}
 
                       <div className="flex gap-2">
+                        {/* Legacy records only — new "issued" (direct) prescriptions never hit "pending" */}
                         {rx.status === "pending" && (
                           <>
                             <button
@@ -221,7 +221,9 @@ const Prescriptions = () => {
                             </button>
                           </>
                         )}
-                        {rx.status === "approved" && (
+                        {/* Dispensing verification — legitimate Admin/pharmacist role (Doc §5).
+                            Also accepts "issued" status from the new direct-issue flow. */}
+                        {(rx.status === "approved" || rx.status === "issued") && (
                           <button
                             onClick={() => handleVerify(rx._id, "dispensed")}
                             className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-700 transition-colors"
@@ -293,7 +295,7 @@ const Prescriptions = () => {
           </div>
         )}
 
-        {/* ── prescription requests tab ───────────────────────── */}
+        {/* ── prescription requests tab — READ ONLY (approval lives on prescriber dashboard) ── */}
         {activeTab === "prescriptions" && (
           <div className="space-y-3">
             {requests.length === 0 ? (
@@ -326,27 +328,10 @@ const Prescriptions = () => {
                           </span>
                         </div>
                       )}
-                      
-                      <div className="flex gap-2">
-                        {rx.status === "pending" && (
-                          <>
-                            <button onClick={() => handleRequestAction(rx._id, "approved")}
-                              className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-colors">
-                              Approve
-                            </button>
-                            <button onClick={() => handleRequestAction(rx._id, "rejected")}
-                              className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-[10px] font-bold hover:bg-red-50 transition-colors">
-                              Reject
-                            </button>
-                          </>
-                        )}
-                        {rx.status !== "pending" && (
-                          <button onClick={() => handleRequestAction(rx._id, "deleted")}
-                            className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
+
+                      {/* read-only: approval is the linked prescriber's responsibility */}
+                      {rx.status === "pending" && <ReadOnlyPill />}
+
                       <button onClick={() => toggle(rx._id)} className="text-slate-400 hover:text-slate-600 transition-colors">
                         {expandedId === rx._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </button>
@@ -374,19 +359,20 @@ const Prescriptions = () => {
           </div>
         )}
 
-        {/* ── professional verification tab ───────────────────── */}
+        {/* ── prescriber link requests tab — READ ONLY (approval lives on prescriber dashboard) ── */}
         {activeTab === "links" && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
               <div className="w-7 h-7 rounded-xl bg-slate-900 flex items-center justify-center shrink-0">
                 <UserPlus size={14} className="text-white" />
               </div>
-              <h2 className="text-sm font-bold text-slate-700">Professional Verification Queue</h2>
+              <h2 className="text-sm font-bold text-slate-700">Prescriber Link Requests</h2>
+              <span className="ml-auto"><ReadOnlyPill /></span>
             </div>
             {links.length === 0 ? (
               <div className="py-16 text-center">
                 <UserPlus size={32} className="mx-auto text-slate-300 mb-3" />
-                <p className="text-sm font-medium text-slate-400">No professional requests</p>
+                <p className="text-sm font-medium text-slate-400">No link requests</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
@@ -404,21 +390,15 @@ const Prescriptions = () => {
                           {link.requesterRole}
                           <span className="mx-1">·</span>
                           Reg: <span className="font-semibold text-slate-700">{link.registrationNumber}</span>
+                          {link.prescriberId?.name && (
+                            <>
+                              <span className="mx-1">→</span>
+                              To: <span className="font-semibold text-slate-700">{link.prescriberId.name}</span>
+                            </>
+                          )}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 w-full sm:w-auto">
-                        {link.status === "pending" && (
-                          <div className="flex gap-2">
-                            <button onClick={() => handleLinkAction(link._id, "active")}
-                              className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-colors">
-                              Verify
-                            </button>
-                            <button onClick={() => handleLinkAction(link._id, "rejected")}
-                              className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-[10px] font-bold hover:bg-red-50 transition-colors">
-                              Reject
-                            </button>
-                          </div>
-                        )}
                         <button onClick={() => toggle(link._id)} className="text-slate-400 hover:text-slate-600 transition-colors shrink-0">
                           {expandedId === link._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
