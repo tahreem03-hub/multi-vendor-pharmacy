@@ -14,7 +14,6 @@ import {
   getAdminPendingLinks,
   getPrescriberDashboard,
   getAdminPrescriptionRequests,
-  verifyLink,
   verifyPrescriptionRequest
 } from "../controllers/prescriberController.js";
 

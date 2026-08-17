@@ -41,15 +41,13 @@ const prescriptionSchema = new mongoose.Schema(
     // ── STATUS ────────────────────────────────────────────────
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected", "dispensed", "issued"],
+      enum: ["pending", "approved", "rejected", "dispensed", "issued", "draft"],
       default: "pending",
     },
 
     method: {
       type: String,
-      // "direct" = prescriber self-issued via SwiftRx — no approval
-      // "form"   = customer requested via PrescribeLink — needs approval
-      enum: ["direct", "form"],
+      enum: ["direct"],
       default: "form",
     },
 

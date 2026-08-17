@@ -307,10 +307,41 @@ export const getAdminPrescriptionRequests = async (req, res) => {
 };
 
 
+// ─────────────────────────────────────────────────────────────
+// VERIFY PRESCRIPTION REQUEST
+// ─────────────────────────────────────────────────────────────
+export const verifyPrescriptionRequest = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["approved", "rejected", "deleted"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    if (status === "deleted") {
+      const deletedRequest = await PrescriptionRequest.findByIdAndDelete(req.params.id);
+      if (!deletedRequest) {
+        return res.status(404).json({ success: false, message: "Prescription request not found" });
+      }
+      return res.status(200).json({ success: true, message: "Prescription request deleted successfully" });
+    }
+
+    const updatedRequest = await PrescriptionRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    if (!updatedRequest) {
+      return res.status(404).json({ success: false, message: "Prescription request not found" });
+    }
+
+    return res.status(200).json({ success: true, message: `Prescription request ${status} successfully`, request: updatedRequest });
+  } catch (error) {
+    console.error("verifyPrescriptionRequest error:", error);
+    return res.status(500).json({ success: false, message: "Failed to update prescription request" });
+  }
+};
 
 // ─────────────────────────────────────────────────────────────
 // PRESCRIBER DASHBOARD
 // ─────────────────────────────────────────────────────────────
+
 
 export const getPrescriberDashboard = async (req, res) => {
   try {
